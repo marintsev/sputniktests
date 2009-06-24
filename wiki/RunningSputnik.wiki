@@ -1,0 +1,39 @@
+#summary How to run the sputnik tests
+
+The sputnik test suite comes with a python test harness, `tools/sputnik.py`.  The easiest way to run the tests is to enter the sputnik root directory and run
+
+{{{
+python tools/sputnik.py --command <command>
+}}}
+
+The `<command>` parameter specifies how to run the !JavaScript implementation.  To run the v8 engine on windows you would use
+
+{{{
+python tools/sputnik.py --command v8/shell.exe
+}}}
+
+Each test will be run by adding the test file name after the specified command.  For more complex commands you can use the `{{file}}` placeholder which will be replaced with the file to run:
+
+{{{
+python tools/sputnik.py --command "v8/shell.exe {{file}}"
+}}}
+
+The test harness prints the test outcomes as it runs the tests.  To run a particular test or set of tests you can specify the names on the command-line, for instance
+
+{{{
+python tools/sputnik.py --command <command> 11_Expressions
+}}}
+
+to run only the expression tests or
+
+{{{
+python tools/sputnik.py --command <command> S9.3.1_A1
+}}}
+
+to run a particular test.  To see the source code of a test use the `--cat` option.
+
+{{{
+python tools/sputnik.py --command <command> S9.3.1_A1 --cat
+}}}
+
+This prints the source code of that particular test.  Note that some of the tests are time zone dependent so the source code printed may only be meaningful in your time zone.
