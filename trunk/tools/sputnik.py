@@ -15,9 +15,6 @@ import tempfile
 import time
 
 
-# logging.getLogger().setLevel(logging.INFO)
-
-
 class SputnikError(Exception):
 
   def __init__(self, message):
