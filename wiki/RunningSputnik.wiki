@@ -26,10 +26,10 @@ python tools/sputnik.py --command <command> Unary_Operators
 
 to run only the unary operator tests.  The test group names match the names of the specification sections they test.  You can also use section numbers, for instance `11.4.8` to run all tests of the bitwise NOT operator or individual test names, or individual test names like `S9.3.1_A1` to run individual tests.
 
-To see the source code of a test use the `--cat` option.
+The test case files that come with Sputnik are not run directly.  A little bit of processing takes place to include common code, set up time zone information, etc.  To see the source code that is run for a particular test use the `--cat` option:
 
 {{{
 python tools/sputnik.py --command <command> S9.3.1_A1 --cat
 }}}
 
-This prints the source code of that particular test.  Note that some of the tests are time zone dependent so the source code printed may only be meaningful in your time zone.
+Note that since some of the tests are time zone dependent so the source code printed may only be meaningful in your time zone.
