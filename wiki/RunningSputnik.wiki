@@ -21,16 +21,12 @@ python tools/sputnik.py --command "v8/shell.exe {{file}}"
 The test harness prints the test outcomes as it runs the tests.  To run a particular test or set of tests you can specify the names on the command-line, for instance
 
 {{{
-python tools/sputnik.py --command <command> 11_Expressions
+python tools/sputnik.py --command <command> Unary_Operators
 }}}
 
-to run only the expression tests or
+to run only the unary operator tests.  The test group names match the names of the specification sections they test.  You can also use section numbers, for instance `11.4.8` to run all tests of the bitwise NOT operator or individual test names, or individual test names like `S9.3.1_A1` to run individual tests.
 
-{{{
-python tools/sputnik.py --command <command> S9.3.1_A1
-}}}
-
-to run a particular test.  To see the source code of a test use the `--cat` option.
+To see the source code of a test use the `--cat` option.
 
 {{{
 python tools/sputnik.py --command <command> S9.3.1_A1 --cat
