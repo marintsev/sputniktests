@@ -29,7 +29,12 @@ def BuildOptions():
   result = optparse.OptionParser()
   result.add_option("--command", default=None, help="The command-line to run")
   result.add_option("--tests", default=path.abspath('.'), help="Path to the tests")
-  result.add_option("--cat", default=False, action="store_true")
+  result.add_option("--cat", default=False, action="store_true",
+                    help="Print test source code")
+  result.add_option("--summary", default=False, action="store_true",
+                    help="Print summary after running tests")
+  result.add_option("--full-summary", default=False, action="store_true",
+                    help="Print summary and test output after running tests")
   return result
 
 
@@ -47,6 +52,7 @@ _SPECIAL_CALL_PATTERN = re.compile(r"\$([A-Z]+)(?=\()")
 
 _SPECIAL_CALLS = {
   'ERROR': 'testFailed',
+  'FAIL': 'testFailed',
   'PRINT': 'testPrint'
 }
 
@@ -110,20 +116,30 @@ class TestResult(object):
     self.stderr = stderr
     self.case = case
 
-  def ReportOutcome(self):
+  def ReportOutcome(self, long_format):
+    name = self.case.GetName()
     if self.HasUnexpectedOutcome():
-      print "=== %s failed ===" % self.case.GetName()
-      out = self.stdout.strip()
-      if len(out) > 0:
-        print "--- standard output ---"
-        print out
-      err = self.stderr.strip()
-      if len(err) > 0:
-        print "--- standard error ---"
-        print err
-      print "==="
+      if self.case.IsNegative():
+        print "%s was expected to fail but didn't" % name
+      else:
+        if long_format:
+          print "=== %s failed ===" % name
+        else:
+          print "%s: " % name
+        out = self.stdout.strip()
+        if len(out) > 0:
+          print "--- output ---"
+          print out
+        err = self.stderr.strip()
+        if len(err) > 0:
+          print "--- errors ---"
+          print err
+        if long_format:
+          print "==="
+    elif self.case.IsNegative():
+      print "%s failed as expected" % name
     else:
-      print "%s passed" % self.case.GetName()
+      print "%s passed" % name
 
   def HasFailed(self):
     return self.exit_code != 0
@@ -224,13 +240,22 @@ class ProgressIndicator(object):
     self.count = count
     self.succeeded = 0
     self.failed = 0
+    self.failed_tests = []
 
   def HasRun(self, result):
-    result.ReportOutcome()
+    result.ReportOutcome(True)
     if result.HasUnexpectedOutcome():
       self.failed += 1
+      self.failed_tests.append(result)
     else:
       self.succeeded += 1
+
+
+def MakePlural(n):
+  if (n == 1):
+    return (n, "")
+  else:
+    return (n, "s")
 
 
 class TestSuite(object):
@@ -260,23 +285,29 @@ class TestSuite(object):
         return True
     return False
 
+  def GetTimeZoneInfoInclude(self):
+    dst_attribs = GetDaylightSavingsAttribs()
+    if not dst_attribs:
+      return None
+    lines = []
+    for key in sorted(dst_attribs.keys()):
+      lines.append('var $DST_%s = %s;' % (key, str(dst_attribs[key])))
+    localtz = time.timezone / -3600
+    lines.append('var $LocalTZ = %i;' % localtz)
+    return "\n".join(lines)
+
   def GetSpecialInclude(self, name):
     if name == "environment.js":
-      dst_attribs = GetDaylightSavingsAttribs()
-      if not dst_attribs:
-        return None
-      lines = []
-      for key in sorted(dst_attribs.keys()):
-        lines.append('var $DST_%s = %s;' % (key, str(dst_attribs[key])))
-      return "\n".join(lines)
+      return self.GetTimeZoneInfoInclude()
     else:
       return None
 
   def GetInclude(self, name, strip_header=True):
-    if not name in self.include_cache:
+    key = (name, strip_header)
+    if not key in self.include_cache:
       value = self.GetSpecialInclude(name)
       if value:
-        self.include_cache[name] = value
+        self.include_cache[key] = value
       else:
         static = path.join(self.lib_root, name)
         if path.exists(static):
@@ -284,11 +315,11 @@ class TestSuite(object):
           contents = f.read()
           if strip_header:
             contents = StripHeader(contents)
-          self.include_cache[name] = contents
+          self.include_cache[key] = contents + "\n"
           f.close()
         else:
-         self.include_cache[name] = ""
-    return self.include_cache[name]
+         self.include_cache[key] = ""
+    return self.include_cache[key]
 
   def EnumerateTests(self, tests):
     logging.info("Listing tests in %s", self.test_root)
@@ -312,7 +343,39 @@ class TestSuite(object):
     logging.info("Done listing tests")
     return cases
 
-  def Run(self, command_template, tests):
+  def PrintSummary(self, progress):
+    print
+    print "=== Summary ==="
+    count = progress.count
+    succeeded = progress.succeeded
+    failed = progress.failed
+    print " - Ran %i test%s" % MakePlural(count)
+    if progress.failed == 0:
+      print " - All tests succeeded"
+    else:
+      percent = ((100.0 * succeeded) / count,)
+      print " - Passed %i test%s (%.1f%%)" % (MakePlural(succeeded) + percent)
+      percent = ((100.0 * failed) / count,)
+      print " - Failed %i test%s (%.1f%%)" % (MakePlural(failed) + percent)
+      positive = [c for c in progress.failed_tests if not c.case.IsNegative()]
+      negative = [c for c in progress.failed_tests if c.case.IsNegative()]
+      if len(positive) > 0:
+        print
+        print "Failed tests"
+        for result in positive:
+          print "  %s" % result.case.GetName()
+      if len(negative) > 0:
+        print
+        print "Expected to fail but passed ---"
+        for result in negative:
+          print " %s" % result.case.GetName()
+
+  def PrintFailureOutput(self, progress):
+    for result in progress.failed_tests:
+      print
+      result.ReportOutcome(False)
+
+  def Run(self, command_template, tests, print_summary, full_summary):
     if not "{{path}}" in command_template:
       command_template += " {{path}}"
     cases = self.EnumerateTests(tests)
@@ -322,6 +385,14 @@ class TestSuite(object):
     for case in cases:
       result = case.Run(command_template)
       progress.HasRun(result)
+    if print_summary:
+      self.PrintSummary(progress)
+      if full_summary:
+        self.PrintFailureOutput(progress)
+      else:
+        print
+        print "Use --full-summary to see output from failed tests"
+    print
 
   def Print(self, tests):
     cases = self.EnumerateTests(tests)
@@ -408,7 +479,9 @@ def Main():
   if options.cat:
     test_suite.Print(args)
   else:
-    test_suite.Run(options.command, args)
+    test_suite.Run(options.command, args,
+                   options.summary or options.full_summary,
+                   options.full_summary)
 
 
 if __name__ == '__main__':
