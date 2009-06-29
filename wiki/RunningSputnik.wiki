@@ -1,6 +1,6 @@
 #summary How to run the sputnik tests
 
-First download the Sputnik tests, either by downloading the [http://sputniktests.googlecode.com/files/sputniktests-v1.zip zip] file or by checking out the code from [http://code.google.com/p/sputniktests/source/checkout subversion].
+First download the Sputnik tests, either by downloading the [http://sputniktests.googlecode.com/files/sputniktests-v1.zip zip] file or by checking out the code from [http://code.google.com/p/sputniktests/source/checkout subversion].  To run the tests you also need to install Python.
 
 The test suite comes with a python test harness, `tools/sputnik.py`.  The easiest way to run the tests is to enter the sputnik root directory and run
 
