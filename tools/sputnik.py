@@ -145,7 +145,10 @@ class TestResult(object):
     return self.exit_code != 0
 
   def HasUnexpectedOutcome(self):
-    return self.HasFailed() and not self.case.IsNegative()
+    if self.case.IsNegative():
+       return not self.HasFailed()
+    else:
+       return self.HasFailed()
 
 
 class TestCase(object):
