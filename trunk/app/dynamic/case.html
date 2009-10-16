@@ -1,0 +1,24 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <title>{{case.id}}</title>
+  </head>
+  <body>
+    <script type="text/javascript" >
+      var $t = top;
+      var testInfo = {serial: {{case.serial}}, name: '{{case.name}}', isNegative: {{case.is_negative|lower}}};
+    </script>
+    <script type="text/javascript" src="/static/framework.js"></script>
+    <script type="text/javascript" >
+      sputnikTestStarted();
+    </script>
+    {{case.id}}
+    <script type="text/javascript">
+{{source}}
+sputnikTestCompleted();
+    </script>
+    <script type="text/javascript">
+sputnikTestDone();
+    </script>
+  </body>
+</html>
