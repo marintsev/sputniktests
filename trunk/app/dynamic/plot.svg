@@ -54,12 +54,18 @@
  <g transform="translate(85.277, 95.241)" style="fill:#c5ffff; fill-rule:nonzero; stroke:none; stroke-width:1; stroke-linecap:butt; stroke-linejoin:miter; stroke-dasharray:none;" >
   <path d="M5.8702 7.1828 C5.3956 7.1828 4.8809 7.1108 4.3262 6.9538 C0 5.7248 1.7686 0.3916 4.709 0.3916 C4.9776 0.3916 5.2559 0.4365 5.5401 0.5322 C6.3145 0.1621 6.9864 0 7.5557 0 C9.4571 0 10.2256 1.7969 9.9248 3.5879 C9.625 5.3888 8.2491 7.1828 5.8702 7.1828 " />
  </g>
- <rect width="100%" height="100%" style="stroke-width:1; fill:white; opacity:0.7; stroke:#93B4D9;">
+ <rect width="100%" height="100%" style="stroke-width:1; fill:white; opacity:0.90; stroke:#93B4D9;">
  </rect>
  {% if draw_points %}
+   <g transform="scale(1.2) translate(110, 110)">
    {% for p in points %}
-     <circle cx="{{p.x}}%" cy="{{p.y}}%" style="stroke:#497BD2;fill:#3B66BA;stroke-width:1" r="3"></circle>
+     <g transform="translate({{p.x}}, {{p.y}}) scale(0.1) translate(-62, -62)">
+       {{p.icon}}
+     </g>
    {% endfor %}
-   <circle cx="50%" cy="50%" style="fill:white; stroke:black; stroke-width:1" r="3"></circle>
+   <circle cx="0" cy="0" style="fill:white; stroke:black; stroke-width:1" r="1"></circle>
+   </g>
  {% endif %}
 </svg>
+
+

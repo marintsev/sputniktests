@@ -3,30 +3,253 @@
 
 var kWorkerCount = 4;
 var kTestStatusCookieName = "test_status";
+var kRotation = 2.14;
+var kIterations = 50;
 
-function calcMatrix(value) {
-  var keys = [];
-  for (var p in value)
-    keys.push(p);
-  var vectors = [];
-  for (var i = 0; i < keys.length; i++) {
-    vectors.push(parseTestResults(value[keys[i]]));
-  }
-  var matrix = [];
-  for (var i = 0; i < vectors.length; i++) {
-    matrix[i] = [];
-    for (var j = 0; j < vectors.length; j++) {
-      matrix[i].push(calcVectorDistance(vectors[i], vectors[j]));
-    }
-  }
-  gebi('plot').src = ("compare/plot.svg?m=" + matrixToString(keys, matrix));
+function BrowserData(name, type, data) {
+  this.name = name;
+  this.type = type;
+  this.data = data;
 }
 
-function matrixToString(keys, matrix) {
+var results = [
+  new BrowserData('Chrome3Win', 'cm', '5246:Y*DE*/*/*/*yIAIC*tQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+  new BrowserData('Chrome4Linux', 'cm', '5246:Y*DE*/*/*/*yIAIC*QQ*cQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+  new BrowserData('Chrome4Mac', 'cm', '5246:Y*DE*/*/*/*yIAIC*tQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+  new BrowserData('Firefox2Linux', 'fx', '5246:B*EI*YQ*RQ*JI*lB*EB*EQ*CQ*DE*DI*sE*MQ*Jg*GC*CB*wIAIC*Vw///Dg*SQ*CE*/*EgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EQD*GB*E4B*Cz*CI*XG*CY*Cg*Yn*CEABAIk*HoE*CCCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoABAIg*DI*CQ*CIEAg*LE*CgBoACCAUI*HDBAE*CQU*EB*FQEAgB*FBC*CE*DkAE*DC*DCC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ni*FII*DQKAkDDRAgICAIQC*CU*DFABGAgAoAMUQ*EE*CJEAgC*KQ*CgC*FgQ'),
+  new BrowserData('Firefox3Mac', 'fx', '5246:B*EI*eB*LQ*JI*/*oEAE*Ug*JB*HCE*CC*FIB*CQ*aIAIC*Vw///Dg*SQ*CE*HCB*GD*bI*DI*CgI*PgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EgD*GB*E4B*Cz*CI*2G*CEAB*Ck*HoE*DCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoAB*Cg*DI*CQ*CIEAg*LE*CgBIACCAUI*CE*EDBAE*CQU*EB*FQEAgB*FJC*CE*D0AE*DD*DSC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*FI*EQKAkDBQAgICAIQC*CU*DFABGIiAoANE*DCAE*CJEAgC*KQ*CgC*FgQ'),
+  new BrowserData('Firefox35Win', 'fx', '5246:B*EI*eB*LQ*JI*/*oEAE*TCg*JB*wIAIC*Vw///Dg*SQ*CE*HCB*GD*bI*DI*CgI*PgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EgD*GB*EYB*Cy*CI*2G*CEAB*Ck*HoE*DCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoAB*Cg*DI*CQ*CIEAg*LE*CgBIACCAUI*CE*EDBAEAQQU*EB*FQEAgB*FJC*CE*D0AE*DD*DSC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIYC*CU*DFABGIiAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
+  new BrowserData('Safari4Mac', 'sf', '5246:*eQ*YC*CI*/*/*CI*4IAIC*QQ*PggE*KQ*CE*/*FVBRAB*RQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*SI*IgC*LgEFABiU*qQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*HQ*GC*CI*CE*PC*HFAIF*aC*CQM*HgBAgCC*GC*oy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*CE*Tg*SQ*CgC*FgQ'),
+  new BrowserData('Safari3Win', 'sf', '5246:*eQ*Fl*CQ*IQ*/AE*2Q*FB*JC*7IAIC*gggE*KQ*CE*HCB*GD*bI*DI*CgI*QFARAB*RQr0SLOpT*LhCEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*ICAB*HI*IgC*LgEFABiU*fwJ*JQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*GIQAB*ECgC*Og*DBC*DC*DFAIF*FE*NE*CI*CBC*CQI*HgBAgCC*WI*HQ*FB*DQ*Gy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*LIC*Jg*SQ*CgC*FgQ'),
+  new BrowserData('IE7Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ4AiAB*EI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*EBAIEk*CQAgI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
+  new BrowserData('IE8Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ')
+];
+
+function Plotter(values) {
+  this.values = values;
+  this.matrix = null;
+  this.scores = null;
+  this.positions = null;
+  this.maxScore = null;
+}
+
+Plotter.prototype.calcDistanceMatrix = function () {
+  var vectors = [];
+  for (var i = 0; i < this.values.length; i++)
+    vectors.push(parseTestResults(this.values[i].data));
+  this.matrix = [];
+  for (var i = 0; i < vectors.length; i++)
+    this.matrix[i] = [];
+  for (var i = 0; i < vectors.length; i++) {
+    this.matrix[i][i] = 0.0;
+    for (var j = 0; j < i; j++) {
+      var dist = calcVectorDistance(vectors[i], vectors[j]);
+      this.matrix[i][j] = dist;
+      this.matrix[j][i] = dist;
+    }
+  }
+  this.scores = [];
+  for (var i = 0; i < vectors.length; i++)
+    this.scores.push(calcScore(vectors[i]));
+};
+
+Plotter.prototype.calcInitialPositions = function () {
+  var clusters = [];
+  for (var i = 0; i < this.values.length; i++)
+    clusters.push(new Cluster(this, [i], null, null));
+  while (clusters.length > 1) {
+    var minDist = null;
+    var minI = null;
+    var minJ = null;
+    for (var i = 0; i < clusters.length; i++) {
+      for (var j = 0; j < i; j++) {
+        var a = clusters[i];
+        var b = clusters[j];
+        var dist = a.distanceTo(b);
+        if ((minDist === null) || (dist < minDist)) {
+          minDist = dist;
+          minI = i;
+          minJ = j;
+        }
+      }
+    }
+    var a = clusters[minI];
+    var b = clusters[minJ];
+    var newValues = a.values.concat(b.values);
+    var next = new Cluster(this, newValues, a, b);
+    var newClusters = [];
+    for (var i = 0; i < clusters.length; i++) {
+      if (i != minI && i != minJ)
+        newClusters.push(clusters[i]);
+    }
+    newClusters.push(next);
+    clusters = newClusters;
+  }
+  this.positions = [];
+  this.maxScore = 0;
+  for (var i = 0; i < this.scores.length; i++)
+    this.maxScore = Math.max(this.scores[i], this.maxScore);
+  this.positionCluster(0, 2 * Math.PI, clusters[0]);
+};
+
+Plotter.prototype.positionCluster = function (from, to, cluster) {
+  if (cluster.values.length == 1) {
+    var scale = cluster.score() / this.maxScore * 100;
+    var index = cluster.values[0];
+    var pos = (from + to) / 2;
+    var x = Math.sin(pos + kRotation) * scale;
+    var y = Math.cos(pos + kRotation) * scale;
+    this.positions.push(new Point(this, index, x, y, this.values[index]));
+  } else {
+    var ratio = cluster.leftChild.size() / cluster.size();
+    var mid = (to - from) * ratio;
+    this.positionCluster(from, from + mid, cluster.leftChild);
+    this.positionCluster(from + mid, to, cluster.rightChild);
+  }
+};
+
+Plotter.prototype.distance = function (i, j) {
+  if (i == -1) {
+    return this.scores[j];
+  } else if (j == -1) {
+    return this.scores[i];
+  } else {
+    return this.matrix[i][j];
+  }
+};
+
+Plotter.prototype.dampen = function (pull, temp) {
+  var dx = pull[0];
+  var dy = pull[1];
+  var length = Math.sqrt(dx * dx + dy * dy);
+  if (length > temp) {
+    var ratio = temp / length;
+    pull[0] *= ratio;
+    pull[1] *= ratio;
+  }
+};
+
+Plotter.prototype.runLassesSpringyAlgorithm = function () {
+  var center = new Point(this, -1, 0, 0, null);
+  this.positions.push(center);
+  var count = this.positions.length;
+  var max = 20 / count;
+  for (var l = 0; l < kIterations; l++) {
+    var temp = max * (1 - (l / kIterations));
+    var pulls = [];
+    for (var i = 0; i < count; i++)
+      pulls[i] = [];
+    for (var i = 0; i < count; i++) {
+      for (var j = 0; j < count; j++) {
+        var pull = this.positions[i].calcPull(this.positions[j]);
+        this.dampen(pull, temp);
+        pulls[i][j] = pull;
+      }
+    }
+    for (var i = 0; i < count; i++) {
+      for (var j = 0; j < count; j++) {
+        if (i == j) continue;
+        var pull = pulls[i][j];
+        this.positions[i].x += pull[0];
+        this.positions[i].y += pull[1];
+      }
+    }
+  }
+  this.positions.pop();
+  for (var i = 0; i < this.positions.length; i++) {
+    var point = this.positions[i];
+    point.x -= center.x;
+    point.y -= center.y;
+  }
+};
+
+Plotter.prototype.getUrl = function () {
+  var result = [];
+  for (var i = 0; i < this.positions.length; i++) {
+    var pos = this.positions[i];
+    result.push(pos.data.type + "@" + (pos.x << 0) + "," + (pos.y << 0));
+  }
+  return result.join(":");
+};
+
+function Point(plotter, id, x, y, data) {
+  this.plotter = plotter;
+  this.id = id;
+  this.x = x;
+  this.y = y;
+  this.data = data;
+}
+
+Point.prototype.toString = function () {
+  return "(" + this.x + ", " + this.y + ")";
+};
+
+Point.prototype.calcPull = function (other) {
+  var ratio = (100 / this.plotter.maxScore);
+  var ideal = this.plotter.distance(this.id, other.id) * ratio;
+  var dx = this.x - other.x;
+  var dy = this.y - other.y;
+  if (ideal == 0) {
+    return [-dx, -dy];
+  } else {
+    var force = (ideal - Math.sqrt(dx * dx + dy * dy)) / ideal / 2;
+    return [dx * force, dy * force];
+  }
+};
+
+function Cluster(plotter, values, leftChild, rightChild) {
+  this.plotter = plotter;
+  this.values = values;
+  this.leftChild = leftChild;
+  this.rightChild = rightChild;
+}
+
+Cluster.prototype.score = function () {
+  return this.plotter.scores[this.values[0]];
+};
+
+Cluster.prototype.toString = function () {
+  if (this.leftChild === null) {
+    return this.plotter.values[this.values[0]].name + "(" + this.values[0] + ")";
+  } else {
+    return "(" + this.leftChild + " " + this.rightChild + ")";
+  }
+};
+
+Cluster.prototype.size = function () {
+  return this.values.length;
+};
+
+Cluster.prototype.distanceTo = function (other) {
+  var sum = 0;
+  var count = 0;
+  for (var i = 0; i < this.values.length; i++) {
+    for (var j = 0; j < other.values.length; j++) {
+      sum += this.plotter.distance(this.values[i], other.values[j]);
+      count += 1;
+    }
+  }
+  return sum / count;
+};
+
+function plotMatrix(values) {
+  var plotter = new Plotter(values);
+  plotter.calcDistanceMatrix();
+  plotter.calcInitialPositions();
+  plotter.runLassesSpringyAlgorithm();
+  gebi('plot').src = ("compare/plot.svg?m=" + plotter.getUrl());
+}
+
+function matrixToString(keys, scores, matrix) {
   var result = '';
   for (var i = 0; i < keys.length; i++) {
     if (i > 0) result += ",";
     result += keys[i];
+  }
+  result += ":";
+  for (var i = 0; i < keys.length; i++) {
+    if (i > 0) result += ",";
+    result += scores[i];
   }
   for (var i = 1; i < matrix.length; i++) {
     result += ":";
@@ -34,6 +257,15 @@ function matrixToString(keys, matrix) {
       if (j > 0) result += ",";
       result += matrix[i][j];
     }
+  }
+  return result;
+}
+
+function calcScore(a) {
+  var result = 0;
+  for (var i = 0; i < a.length; i++) {
+    if (!a[i])
+      result++;
   }
   return result;
 }
@@ -548,5 +780,5 @@ function run() {
 }
 
 function loaded() {
-
+  plotMatrix(results);
 }
