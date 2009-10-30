@@ -205,7 +205,6 @@ class Point(object):
     self.x = x
     self.y = y
     self.type = type
-    self.icon()
 
   def pull(self, other):
     ideal = self.plotter.distance(self.id, other.id) / 9
@@ -218,6 +217,10 @@ class Point(object):
 
   def icon(self):
     return self.app.get_icon(self.type)
+
+  def bullet(self):
+    type = abs(int(self.x) + int(self.y)) % 2
+    return self.app.get_icon('bullet%i' % (type + 1))
 
 
 class Sputnik(object):
@@ -308,6 +311,10 @@ class Sputnik(object):
   def get_comparison_plot(self, req):
     req.response.headers['Content-Type'] = 'image/svg+xml'
     points = req.request.params.get('m', None)
+    map = {
+      'bullseye': self.get_icon('bullseye'),
+      'tag': self.get_icon('tag')
+    }
     if points:
       point_objs = []
       for p in points.split(':'):
@@ -315,15 +322,12 @@ class Sputnik(object):
         [x, y] = point.split(',')
         point_objs.append(Point(self, x, y, type))
       key = points
-      plot = self.get_template('plot.svg', {
-        'draw_points': True,
-        'points': point_objs
-      })
+      map['draw_points'] = True
+      map['points'] = point_objs
     else:
       key = 'none'
-      plot = self.get_template('plot.svg', {
-        'draw_points': False,
-      })
+      map['draw_points'] = False
+    plot = self.get_template('plot.svg', map)
     self._plot_cache[key] = plot
     req.response.out.write(self._plot_cache[key])
 
