@@ -163,6 +163,9 @@ class TestCase(object):
   def GetName(self):
     return path.join(*self.name)
 
+  def GetPath(self):
+    return self.name
+
   def GetRawContents(self):
     if self.contents is None:
       f = open(self.full_path)
