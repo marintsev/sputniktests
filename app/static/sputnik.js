@@ -1,10 +1,13 @@
 // Copyright 2009 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
-var kWorkerCount = 4;
-var kTestStatusCookieName = "test_status";
+var kTestStatusCookieName = "sputnik_test_status";
+var kTestBlacklistCookieName = "sputnik_test_blacklist";
+var kLastTestStarted = "sputnik_last_test_started";
 var kRotation = 2.14;
 var kIterations = 50;
+var kTestCaseChunkSize = 64;
+var kChunkAheadCount = 4;
 
 function BrowserData(name, type, data) {
   this.name = name;
@@ -22,7 +25,8 @@ var results = [
   new BrowserData('Safari4Mac', 'sf', '5246:*eQ*YC*CI*/*/*CI*4IAIC*QQ*PggE*KQ*CE*/*FVBRAB*RQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*SI*IgC*LgEFABiU*qQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*HQ*GC*CI*CE*PC*HFAIF*aC*CQM*HgBAgCC*GC*oy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*CE*Tg*SQ*CgC*FgQ'),
   // new BrowserData('Safari3Win', 'sf', '5246:*eQ*Fl*CQ*IQ*/AE*2Q*FB*JC*7IAIC*gggE*KQ*CE*HCB*GD*bI*DI*CgI*QFARAB*RQr0SLOpT*LhCEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*ICAB*HI*IgC*LgEFABiU*fwJ*JQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*GIQAB*ECgC*Og*DBC*DC*DFAIF*FE*NE*CI*CBC*CQI*HgBAgCC*WI*HQ*FB*DQ*Gy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*LIC*Jg*SQ*CgC*FgQ'),
   // new BrowserData('IE7Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ4AiAB*EI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*EBAIEk*CQAgI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
-  new BrowserData('IE8Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ')
+  new BrowserData('IE8Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
+  new BrowserData('Opera', 'op', '5246:*FB*MQo*JEI*GC*KI*JC*DQC*NC*HC*/*JCAY*RE*CB*FI*JI*DB*WE*DCI*DC*KIAIC*QQ*Cg*HE*UE*HCBAQ*ED*CI*C9*CgO*pgXBzoH*RQKQQCEBRE*LB*0o*CIEEAEQS*GE*DJI*GI*JC*HI/AP*Fg*Kg*tG*CE*EE*CE*Eo*EDEIQ*MC*HQ*GC*CI*CE*OoD*HFAIF*IgB*DC*CIE*DE*EC*CQI*IB*DQAQ*ty8vdBCAEEA8AC*EQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIXCQ*DQM*EQ*QQ*FQ*DC*FgQ')
 ];
 
 function Plotter(values) {
@@ -249,7 +253,13 @@ function plotMatrix(values) {
   plotter.calcDistanceMatrix();
   plotter.calcInitialPositions();
   plotter.runLassesSpringyAlgorithm();
-  gebi('plot').src = ("compare/plot.svg?m=" + plotter.getUrl());
+  var root = gebi('plotBox');
+  var elm = document.createElement('object', true);
+  elm.setAttribute('width', 450);
+  elm.setAttribute('height', 450);
+  elm.setAttribute('data', "compare/plot.svg?m=" + plotter.getUrl());
+  elm.setAttribute('type', "image/svg+xml");
+  svgweb.appendChild(elm, root);
 }
 
 function matrixToString(keys, scores, matrix) {
@@ -304,7 +314,9 @@ function jsonDebugToString() {
 }
 
 function parseJson(str) {
-  var result = JSON.parse(str);
+  var result;
+  if (typeof JSON != 'undefined') result = JSON.parse(str);
+  else result = eval("(" + str + ")");
   try {
     result.__proto__ = {'toString': jsonDebugToString};
   } catch (e) {
@@ -382,46 +394,75 @@ ProgressBar.prototype.setValue = function (value) {
   this.label.innerHTML = percent + "%";
 };
 
-// --- W o r k e r s ---
+// --- R u n n e r ---
 
-function Worker(suite, id) {
-  this.iframe = document.createElement('iframe');
-  this.iframe.className = "hidden";
-  this.suite = suite;
-  this.id = id;
-  this.currentTestId = null;
-  this.state = Worker.IDLE;
-  document.body.appendChild(this.iframe);
+function Runner(testRun, serial, testCase) {
+  this.testRun_ = testRun;
+  this.serial_ = serial;
+  this.testCase_ = testCase;
+  this.root_ = document.getElementById('workerRoot');
+  this.iframe_ = document.createElement('iframe');
+  this.pResult_ = new Promise();
+  this.start_ = null;
+  this.hasFailed_ = false;
+  this.hasCompleted_ = false;
+  this.failedMessage_ = null;
 }
 
-Worker.IDLE = "idle";
-Worker.STARTED = "started";
-Worker.LOADING = "loading";
-
-Worker.prototype.schedule = function (testId) {
-  assert(this.state == Worker.IDLE);
-  this.state = Worker.LOADING;
-  this.currentTestId = testId;
-  this.iframe.src = 'cases/' + this.suite.name + '/' + testId + '.html';
+Runner.prototype.testStart = function () {
+  this.start_ = new Date();
 };
 
-Worker.prototype.started = function () {
-  assert(this.state == Worker.LOADING);
-  this.state = Worker.STARTED;
+Runner.prototype.testDone = function () {
+  this.root_.removeChild(this.iframe_);
+  this.pResult_.fulfill(null);
+  this.testRun_.testDone(this);
 };
 
-Worker.prototype.failed = function () {
-  // nothing to do
+Runner.prototype.testCompleted = function () {
+  this.hasCompleted_ = true;
 };
 
-Worker.prototype.release = function () {
-  assert(this.state == Worker.STARTED);
-  this.currentTestId = null;
-  this.state = Worker.IDLE;
+Runner.prototype.testFailed = function (message) {
+  if (this.hasFailed_) return;
+  this.hasFailed_ = true;
+  this.failedMessage_ = message;
 };
 
-Worker.prototype.toString = function () {
-  return "a Worker(" + this.id + ")";
+Runner.prototype.hasUnexpectedResult = function () {
+  var hasSucceeded = this.hasCompleted_ && !this.hasFailed_;
+  var isPositive = !this.testCase_.isNegative();
+  return isPositive === hasSucceeded;
+};
+
+Runner.prototype.inject = function (code) {
+  var doc = this.iframe_.contentWindow.document;
+  doc.write('<script>' + code + '</script>')
+};
+
+Runner.prototype.schedule = function () {
+  this.registerCookie();
+  var source = this.testCase_.getSource();
+  this.root_.appendChild(this.iframe_);
+  var self = this;
+  var global = this.iframe_.contentWindow;
+  this.inject('');
+  global.testFailed = function (s) { self.testFailed(s); };
+  global.testDone = function () { self.testDone(); };
+  global.testStart = function () { self.testStart(); };
+  global.testCompleted = function () { self.testCompleted(); };
+  this.inject('testStart();');
+  this.inject(source);
+  this.inject('testDone();');
+  return this.pResult_;
+};
+
+Runner.prototype.registerCookie = function () {
+  setCookie(kLastTestStarted, this.serial_);
+};
+
+Runner.prototype.toString = function () {
+  return "a Runner(" + this.serial_ + ")";
 };
 
 // --- T e s t   R e s u l t ---
@@ -457,34 +498,169 @@ TestResult.ABORTED = "aborted";
 
 // --- T e s t   R u n ---
 
-function TestRun(suite, progress, isResumable) {
-  this.suite = suite;
-  this.current = 0;
-  this.progress = progress;
-  this.progress.setMax(suite.count);
-  this.workers = [];
-  this.hasPendingActivation = false;
-  this.doneCount = 0;
-  this.failedCount = 0;
-  this.succeededCount = 0;
-  this.results = {};
-  this.abort = false;
-  this.isResumable = isResumable;
-  this.runCount = 0;
+function Promise(valueOpt) {
+  this.hasValue = false;
+  this.value = undefined;
+  this.onValues = [];
+};
+
+Promise.prototype.fulfill = function (value) {
+  this.hasValue = true;
+  this.value = value;
+  this.fire();
+};
+
+Promise.prototype.fire = function () {
+  for (var i = 0; i < this.onValues.length; i++) {
+    var pair = this.onValues[i];
+    pair[1].call(pair[0], this.value);
+  }
+  this.onValues.length = 0;
+};
+
+Promise.prototype.onValue = function (self, fun) {
+  if (this.hasValue) {
+    fun.call(self, this.value);
+  } else {
+    this.onValues.push([self, fun]);
+  }
+};
+
+function makeRequest(path) {
+  var result = new Promise();
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState == 4 && xhr.status == 200) {
+      result.fulfill(parseJson(xhr.responseText));
+    }
+  };
+  xhr.open("GET", path, true);
+  xhr.send("");
+  return result;
 }
 
+function TestCase(serial, data) {
+  this.serial_ = serial;
+  this.data_ = data;
+}
+
+TestCase.prototype.getSource = function () {
+  var rawSource = this.data_.source;
+  var source = rawSource.replace(/\$ERROR/g, 'testFailed');
+  source += "\ntestCompleted();";
+  return source;
+};
+
+TestCase.prototype.isNegative = function () {
+  return this.data_.isNegative;
+};
+
+TestCase.prototype.toString = function() {
+  return "a TestCase { id = " + this.serial_ + " }";
+};
+
+function TestChunk(run, from, to) {
+  this.run_ = run;
+  this.from_ = from;
+  this.to_ = to;
+  this.state_ = TestChunk.EMPTY;
+  this.pLoaded_ = new Promise();
+  this.data_ = null;
+};
+
+TestChunk.EMPTY = "empty";
+TestChunk.LOADING = "loading";
+TestChunk.LOADED = "loaded";
+
+TestChunk.prototype.ensureLoaded = function () {
+  if (this.state_ === TestChunk.EMPTY) {
+    this.state_ = TestChunk.LOADING;
+    var path = 'cases/' + this.run_.getSuiteName() + '/' + this.from_ + '-' + this.to_ + '.json';
+    var pGotRequest = makeRequest(path);
+    pGotRequest.onValue(this, function (value) {
+      this.state_ = TestChunk.LOADED;
+      for (var i = this.from_; i < this.to_; i++)
+        this.run_.registerCase(i, new TestCase(i, value[i - this.from_]));
+      this.pLoaded_.fulfill(null);
+    });
+  }
+  return this.pLoaded_;
+};
+
+function TestRun(suite, progress, isResumable) {
+  this.suite_ = suite;
+  this.current_ = 0;
+  this.progress_ = progress;
+  this.progress_.setMax(suite.count);
+  this.doneCount_ = 0;
+  this.failedCount_ = 0;
+  this.succeededCount_ = 0;
+  this.runs_ = {};
+  this.abort_ = false;
+  this.cases_ = {};
+  this.chunks_ = [];
+  this.initializeChunks();
+}
+
+TestRun.prototype.getSuiteName = function () {
+  return this.suite_.name;
+};
+
+TestRun.prototype.registerCase = function (index, test) {
+  this.cases_[index] = test;
+};
+
+TestRun.prototype.initializeChunks = function () {
+  var count = this.suite_.count;
+  for (var i = 0, c = 0; i < count; i += kTestCaseChunkSize, c++) {
+    var to = Math.min(i + kTestCaseChunkSize, count);
+    var chunk = new TestChunk(this, i, to);
+    this.chunks_[c] = chunk;
+  }
+};
+
+TestRun.prototype.ensureChunkLoaded = function (index) {
+  var result = this.chunks_[index].ensureLoaded();
+  var limit = Math.min(index + kChunkAheadCount + 1, this.chunks_.length);
+  for (var i = index + 1; i < limit; i++)
+    this.chunks_[i].ensureLoaded();
+  return result;
+};
+
+TestRun.prototype.getTestCase = function (index) {
+  var pResult = new Promise();
+  var chunkIndex = Math.floor(index / kTestCaseChunkSize);
+  var pLoadedTestCases = this.ensureChunkLoaded(chunkIndex);
+  pLoadedTestCases.onValue(this, function () {
+    pResult.fulfill(this.cases_[index]);
+  });
+  return pResult;
+};
+
 TestRun.prototype.start = function () {
-  var workerCount;
-  if (this.isResumable) {
-    workerCount = 1;
-  } else {
-    workerCount = Math.min(kWorkerCount, this.suite.count);
-  }
-  for (var i = 0; i < workerCount; i++) {
-    var worker = new Worker(this.suite, i);
-    this.workers.push(worker);
-  }
-  this.activateIdleWorkers();
+  this.scheduleNextTest();
+};
+
+TestRun.prototype.runTest = function (serial, testCase) {
+  return new Runner(this, serial, testCase).schedule();
+};
+
+function delay(self, fun) {
+  window.setTimeout(function () { fun.call(self); }, 0);
+}
+
+TestRun.prototype.scheduleNextTest = function () {
+  if (this.current_ > this.suite_.count) return;
+  var serial = this.current_++;
+  delay(this, function () {
+    var pCase = this.getTestCase(serial);
+    pCase.onValue(this, function (value) {
+      var pDoneRunning = this.runTest(serial, value);
+      pDoneRunning.onValue(this, function () {
+        this.scheduleNextTest();
+      });
+    });
+  });
 };
 
 function parseTestResults(progress) {
@@ -509,10 +685,10 @@ TestRun.prototype.fastForward = function (progress) {
     var result = new TestResult(info);
     if (bits[i]) {
       result.status = TestResult.COMPLETED;
-      this.succeededCount++;
+      this.succeededCount_++;
     } else {
       result.status = TestResult.FAILED;
-      this.failedCount++;
+      this.failedCount_++;
     }
     this.results[i] = result;
   }
@@ -521,100 +697,11 @@ TestRun.prototype.fastForward = function (progress) {
   this.updateUi();
 };
 
-TestRun.prototype.activateIdleWorkers = function () {
-  if (!this.hasPendingActivation && !this.abort) {
-    this.hasPendingActivation = true;
-    var self = this;
-    window.setTimeout(function () { self.activateNextWorker(); }, 10);
-  }
-}
-
-TestRun.prototype.registerTestStarting = function (next) {
-  if (!this.isResumable) return;
-  setCookie(kTestStatusCookieName, this.getSignature(next));
-};
-
-TestRun.prototype.activateNextWorker = function () {
-  assert(this.hasPendingActivation);
-  this.hasPendingActivation = false;
-  // No more tests to run
-  this.runCount++;
-  var idle = this.getIdleWorker();
-  if (!idle) {
-    // If there are no idle workers we return.  When a worker becomes
-    // idle it will restart the scheduler.
-    return;
-  }
-  var next = this.current++;
-  this.registerTestStarting(next);
-  idle.schedule(next);
-  this.activateIdleWorkers();
-};
-
-TestRun.prototype.getIdleWorker = function () {
-  for (var i = 0; i < this.workers.length; i++) {
-    if (this.workers[i].state == Worker.IDLE)
-      return this.workers[i];
-  }
-  return null;
-}
-
-TestRun.prototype.getWorker = function (testId) {
-  for (var i = 0; i < this.workers.length; i++) {
-    if (this.workers[i].currentTestId == testId)
-      return this.workers[i];
-  }
-  return null;
-};
-
-TestRun.prototype.setTestResultStatus = function (info, status, message) {
-  var result = this.results[info.serial];
-  if (result) {
-    // If the test has already failed we don't count any more failures
-    // and don't allow it to succeed.  This can happen if the
-    // exception thrown by the failure reporting function is caught
-    // and the test continues.
-    if (result.status == TestResult.FAILED)
-      return;
-    result.status = status;
-    result.message = message;
-  } else {
-    reportError("Orphan test '" + info.serial + "'");
-    this.abort = true;
-  }
-};
-
-TestRun.prototype.testFailed = function (info, message) {
-  var worker = this.getWorker(info.serial);
-  if (worker) {
-    worker.failed();
-  } else {
-    reportError("Failure in orphan test '" + info.serial + "': " + message);
-    this.abort = true;
-  }
-  this.setTestResultStatus(info, TestResult.FAILED, message);
-};
-
-TestRun.prototype.updateCounts = function (info) {
-  this.doneCount++;
-  var result = this.results[info.serial];
-  if (result) {
-    if (result.asExpected()) {
-      this.succeededCount++;
-    } else {
-      this.failedCount++;
-    }
-  } else {
-    reportError("Orphan test '" + info.serial + "' done");
-    this.abort = true;
-  }
-};
-
 TestRun.prototype.updateUi = function () {
-  this.progress.setValue(this.doneCount);
-  document.getElementById('failed').innerHTML = this.failedCount;
-  document.getElementById('succeeded').innerHTML = this.succeededCount;
-  document.getElementById('total').innerHTML = this.doneCount;
+  this.progress_.setValue(this.doneCount_);
+  document.getElementById('failed').innerHTML = this.failedCount_;
+  document.getElementById('succeeded').innerHTML = this.succeededCount_;
+  document.getElementById('total').innerHTML = this.doneCount_;
 };
 
 var kBase64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -699,45 +786,29 @@ function parseTestSignature(count, data) {
 TestRun.prototype.allDone = function () {
   if (this.isResumable)
     deleteCookie(kTestStatusCookieName);
-  var signature = this.getSignature(this.suite.count);
+  var signature = this.getSignature(this.suite_.count);
   var sigDiv = document.createElement('div');
   sigDiv.innerHTML = "[" + signature + "]";
   document.body.appendChild(sigDiv);
 };
 
-TestRun.prototype.testDone = function (info) {
-  this.updateCounts(info);
+TestRun.prototype.updateCounts = function (runner) {
+  this.doneCount_++;
+  if (runner.hasUnexpectedResult()) {
+    this.failedCount_++;
+  } else {
+    this.succeededCount_++;
+  }
+};
+
+TestRun.prototype.testDone = function (runner) {
+  this.updateCounts(runner);
   this.updateUi();
-  if (this.doneCount == this.suite.count) {
-    var self = this;
+  if (this.doneCount == this.suite_.count) {
     // Complete the test run on a timeout to allow the ui to update with
     // the last results first.
-    setTimeout(function () { self.allDone(); }, 0);
-  } else {
-    var worker = this.getWorker(info.serial);
-    if (worker) {
-      worker.release();
-      this.activateIdleWorkers();
-    } else {
-      reportError("Orphan test '" + info.serial + "' done");
-      this.abort = true;
-    }
+    delay(this, function () { this.allDone(); });
   }
-};
-
-TestRun.prototype.testStarted = function (info) {
-  var worker = this.getWorker(info.serial);
-  if (worker) {
-    worker.started();
-  } else {
-    reportError("Started orphan test '" + info.serial + "'");
-    this.abort = true;
-  }
-  this.results[info.serial] = new TestResult(info);
-};
-
-TestRun.prototype.testCompleted = function (info) {
-  this.setTestResultStatus(info, TestResult.COMPLETED, null);
 };
 
 TestRun.prototype.print = function (message) {
@@ -753,7 +824,7 @@ function getProgressCookie() {
 }
 
 function getResumePoint() {
-  var isResumable = gebi("resumable").checked;
+  var isResumable = false;
   if (isResumable) {
     var cookie = getProgressCookie();
     if (cookie) {
@@ -780,7 +851,7 @@ function run() {
   gebi('message').className = "hidden";
   var progress = new ProgressBar();
   progress.replaceInto(runControls, gebi('progressPlaceholder'));
-  var isResumable = gebi("resumable").checked;
+  var isResumable = false;
   sputnikTestController = new TestRun(defaultTestSuite, progress, isResumable);
   var resumePoint = getResumePoint();
   if (resumePoint) {
