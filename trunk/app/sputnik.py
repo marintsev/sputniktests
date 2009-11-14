@@ -15,6 +15,7 @@ from google.appengine.ext.webapp import template
 
 _CASE_CACHE_SIZE = 8192
 _PLOT_CACHE_SIZE = 1024
+_CHUNK_CACHE_SIZE = 256
 
 
 class RandomCache(object):
@@ -50,154 +51,6 @@ class RandomCache(object):
       self._vector[index] = value
 
 
-class Plotter(object):
-
-  def __init__(self, app, names, scores, distances):
-    self.app = app
-    self.names = names
-    self.scores = scores
-    self.distances = distances
-
-  def distance(self, a, b):
-    if a == b:
-      return 0
-    elif a == -1:
-      return self.scores[b]
-    elif b == -1:
-      return self.scores[a]
-    elif a < b:
-      return self.distances[b-1][a]
-    else:
-      return self.distances[a-1][b]
-
-  def position(self):
-    clusters = []
-    for i in xrange(len(self.names)):
-      clusters.append(Cluster(self, [i], []))
-    iters = 0
-    # Calculate a hierarchical clustering for the points.  Note that
-    # this algorithm runs in O(n^3) (at least) so if we want to use
-    # this for a large number of points it should be improved.  It can
-    # definitely be made O(n^2).
-    while len(clusters) > 1:
-      iters += 1
-      if iters == 20:
-        break
-      min_dist = None
-      min_i = None
-      min_j = None
-      # Find the two clusters that are closest to each other.
-      for i in xrange(len(clusters)):
-        for j in xrange(i):
-          if min_dist is None:
-            min_dist = clusters[i].distance(clusters[j])
-            min_i = i
-            min_j = j
-            continue
-          a = clusters[i]
-          b = clusters[j]
-          dist = a.distance(b)
-          if dist < min_dist:
-            min_dist = dist
-            min_i = i
-            min_j = j
-      # Remove the two clusters and add their combination
-      left = clusters[min_i]
-      right = clusters[min_j]
-      next_values = left.values + right.values
-      next = Cluster(self, next_values, [left, right])
-      indices = [k for k in xrange(len(clusters)) if k != min_i and k != min_j]
-      clusters = [clusters[k] for k in indices]
-      clusters.append(next)
-    root = clusters[0]
-    points = self.place(root, 0.0, 0.0, 100.0, 100.0, True)
-    cx = 50.0
-    cy = 50.0
-    center = Point(self, cx, cy, -1)
-    points.append(center)
-    self.adjust(points)
-    points = points[:-1]
-    for point in points:
-      point.x -= (center.x - cx)
-      point.y -= (center.y - cy)
-    return points
-
-  def place(self, cluster, min_x, min_y, max_x, max_y, by_x):
-    if not cluster.children:
-      # If this is a leaf we place it right in the middle of the
-      # available area.
-      x_midpoint = (max_x - min_x) / 2
-      y_midpoint = (max_y - min_y) / 2
-      p = Point(self, min_x + x_midpoint, min_y + y_midpoint, cluster.values[0])
-      return [p]
-    left_weight = cluster.children[0].weight()
-    right_weight = cluster.children[1].weight()
-    total_weight = left_weight + right_weight
-    ratio = left_weight / total_weight
-    if by_x:
-      x_midpoint = (max_x - min_x) * ratio
-      one = self.place(cluster.children[0], min_x, min_y, min_x + x_midpoint, max_y, False)
-      two = self.place(cluster.children[1], min_x + x_midpoint, min_y, max_x, max_y, False)
-    else:
-      y_midpoint = (max_y - min_y) * ratio
-      one = self.place(cluster.children[0], min_x, min_y, max_x, min_y + y_midpoint, True)
-      two = self.place(cluster.children[1], min_x, min_y + y_midpoint, max_x, max_y, True)
-    return one + two
-
-  def dampen(self, pull, temp):
-    dx = pull[0]
-    dy = pull[1]
-    length = math.sqrt(dx * dx + dy * dy)
-    if length > temp:
-      ratio = temp / length
-    else:
-      ratio = 1.0
-    pull[0] *= ratio
-    pull[1] *= ratio
-
-  def adjust(self, points):
-    iterations = 60
-    for l in xrange(iterations):
-      temperature = l / float(iterations)
-      pulls = []
-      for i in xrange(len(points)):
-        pulls.append([])
-        for j in xrange(i):
-          pull = points[i].pull(points[j])
-          self.dampen(pull, temperature)
-          pulls[i].append(pull)
-      for i in xrange(len(points)):
-        for j in xrange(i):
-          pull = pulls[i][j]
-          points[i].x += pull[0]
-          points[i].y += pull[1]
-          points[j].x -= pull[0]
-          points[j].y -= pull[1]
-
-
-class Cluster(object):
-
-  def __init__(self, plotter, values, children):
-    self.plotter = plotter
-    self.values = values
-    self.children = children
-
-  def distance(self, other):
-    sum = 0.0
-    count = 0.0
-    for a in self.values:
-      for b in other.values:
-        sum += self.plotter.distance(a, b)
-        count += 1
-    return sum / count
-
-  def weight(self):
-    return float(len(self.values))
-
-  def __str__(self):
-    return str(self.values)
-
-
 class Point(object):
 
   def __init__(self, app, x, y, type):
@@ -228,6 +81,7 @@ class Sputnik(object):
   def __init__(self):
     self._case_source_cache = RandomCache(_CASE_CACHE_SIZE)
     self._plot_cache = RandomCache(_PLOT_CACHE_SIZE)
+    self._chunk_cache = { }
     self._icon_cache = { }
 
   def do_404(self, req):
@@ -289,6 +143,18 @@ class Sputnik(object):
       return self.do_404(req)
     req.response.out.write(case.source)
 
+  def get_test_range_sources(self, req, suite, start, end):
+    req.response.headers['Content-Type'] = 'text/javascript'
+    key = (suite, start, end)
+    if not key in self._chunk_cache:
+      chunk = models.Case.lookup_range(suite, int(start), int(end))
+      if not chunk:
+        return self.do_404(req)
+      case_list = [ c.to_json() for c in chunk ]
+      json = models.to_json(case_list)
+      self._chunk_cache[key] = json
+    req.response.out.write(self._chunk_cache[key])
+
   def get_test_suite_json(self, req, suite):
     req.response.headers['Content-Type'] = 'text/plain'
     suite = models.Suite.lookup(suite)
@@ -347,6 +213,7 @@ def initialize_application():
       ('/debug.html', dispatcher(sputnik.get_debug_page)),
       (r'/cases/(\w+)/(\d+).html', dispatcher(sputnik.get_test_case_page)),
       (r'/cases/(\w+)/(\d+).js', dispatcher(sputnik.get_test_case_source)),
+      (r'/cases/(\w+)/(\d+)-(\d+).json', dispatcher(sputnik.get_test_range_sources)),
       (r'/suites/(\w+).js', dispatcher(sputnik.get_test_suite_json)),
       (r'/compare/plot.svg', dispatcher(sputnik.get_comparison_plot))
   ], debug=True)
