@@ -49,7 +49,7 @@
         </div>
         <p>
         <div id="message" style="text-align: left">
-          Run the Sputnik tests in your browser.  Running all 5300 sputnik tests takes around 10 minutes.
+          Run the Sputnik tests in your browser.  Running all 5300 sputnik tests takes a few minutes.
           <p>
           <div id="resumeControls" class="hidden">
             <p>
@@ -61,11 +61,19 @@
         <div id="runControls" class="hidden">
           <div id="progressPlaceholder"></div>
           <p>
+          <a href="javascript:moreInfo()">more info</a>
+          <p>
+        </div>
+        <div id="runDetails" class="hidden">
           <table style="width: 100%;">
             <tr><td class="tableLabel">Succeeded</td><td class="tableValue" id="succeeded">0</td></tr>
             <tr><td class="tableLabel">Failed</td><td class="tableValue" id="failed">0</td></tr>
-            <tr><td class="tableLabel">Total</td><td class="tableValue" id="total">0</td></tr>
+            <tr><td class="tableLabel" style="font-weight: bold">Total</td><td class="tableValue" id="total">0</td></tr>
           </table>
+          <p>
+          <div class="log">
+            <table class="logTable" id="errors"></table>
+          </div>
         </div>
       </div>
     </div>

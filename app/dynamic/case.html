@@ -4,21 +4,21 @@
     <title>{{case.id}}</title>
   </head>
   <body>
-    <script type="text/javascript" >
-      var $t = top;
-      var testInfo = {serial: {{case.serial}}, name: '{{case.name}}', isNegative: {{case.is_negative|lower}}};
+    <script type="text/javascript" src="/static/sputnik.js"></script>
+    <script type="text/javascript">
+      var testCaseInfo = {{case.to_basic_json}};
     </script>
     <script type="text/javascript" src="/static/framework.js"></script>
-    <script type="text/javascript" >
-      sputnikTestStarted();
+    <script type="text/javascript">
+      testStart();
     </script>
     {{case.id}}
     <script type="text/javascript">
 {{source}}
-sputnikTestCompleted();
+testCompleted();
     </script>
     <script type="text/javascript">
-sputnikTestDone();
+testDone();
     </script>
   </body>
 </html>
