@@ -13,6 +13,9 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
 
 
+_DISABLE_CACHING = True
+
+
 _CASE_CACHE_SIZE = 8192
 _PLOT_CACHE_SIZE = 1024
 _CHUNK_CACHE_SIZE = 256
@@ -128,12 +131,15 @@ class Sputnik(object):
       if not case:
         return self.do_404(req)
       source = case.source
-      source = re.sub(r'\$ERROR', 'sputnikTestFailed', source)
+      source = re.sub(r'\$ERROR', 'testFailed', source)
       result = self.get_template('case.html', {
         'case': case,
         'source': source
       })
-      self._case_source_cache[key] = result
+      if not _DISABLE_CACHING:
+        self._case_source_cache[key] = result
+      req.response.out.write(result)
+      return
     req.response.out.write(self._case_source_cache[key])
 
   def get_test_case_source(self, req, suite, serial):

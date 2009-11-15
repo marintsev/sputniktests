@@ -48,8 +48,12 @@ span.label {
   display: none;
 }
 
-#runControls {
+#runControls, #runDetails {
   text-align: left;
+}
+
+#total {
+  font-weight: bold;
 }
 
 .tableLabel {
@@ -59,6 +63,29 @@ span.label {
 .tableValue {
   width: 50%;
   text-align: right;
+}
+
+.logLine {
+  white-space: nowrap;
+  border: 1px solid #c4c4c4;
+}
+
+.logLine:hover {
+  background: #f7f7c7;
+  cursor: pointer;
+}
+
+.log {
+  width: 100%;
+  height: 100px;
+  overflow: auto;
+  background: #f7f7f7;
+}
+
+.logTable {
+  width: 100%;
+  table-layout: fixed;
+  display: table;
 }
 
 div.plotBox {

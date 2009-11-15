@@ -6,13 +6,20 @@ var kTestBlacklistCookieName = "sputnik_test_blacklist";
 var kLastTestStarted = "sputnik_last_test_started";
 var kRotation = 2.14;
 var kIterations = 50;
-var kTestCaseChunkSize = 64;
-var kChunkAheadCount = 4;
+var kTestCaseChunkSize = 256;
+var kChunkAheadCount = 2;
+var kCrosshairUpdateInterval = 64;
+
+var plotter = null;
 
 function BrowserData(name, type, data) {
   this.name = name;
   this.type = type;
   this.data = data;
+}
+
+function delay(self, fun) {
+  window.setTimeout(function () { fun.call(self); }, 0);
 }
 
 var results = [
@@ -31,36 +38,36 @@ var results = [
 
 function Plotter(values) {
   this.values = values;
+  this.results = [];
   this.matrix = null;
-  this.scores = null;
   this.positions = null;
   this.maxScore = null;
 }
 
 Plotter.prototype.calcDistanceMatrix = function () {
-  var vectors = [];
   for (var i = 0; i < this.values.length; i++)
-    vectors.push(parseTestResults(this.values[i].data));
+    this.results.push(parseTestResults(this.values[i].data));
   this.matrix = [];
-  for (var i = 0; i < vectors.length; i++)
+  for (var i = 0; i < this.results.length; i++)
     this.matrix[i] = [];
-  for (var i = 0; i < vectors.length; i++) {
+  for (var i = 0; i < this.results.length; i++) {
     this.matrix[i][i] = 0.0;
     for (var j = 0; j < i; j++) {
-      var dist = calcVectorDistance(vectors[i], vectors[j]);
+      var dist = calcVectorDistance(this.results[i], this.results[j]);
       this.matrix[i][j] = dist;
       this.matrix[j][i] = dist;
     }
   }
-  this.scores = [];
-  for (var i = 0; i < vectors.length; i++)
-    this.scores.push(calcScore(vectors[i]));
+  var scores = [];
+  for (var i = 0; i < this.results.length; i++)
+    scores.push(calcScore(this.results[i]));
+  return scores;
 };
 
-Plotter.prototype.calcInitialPositions = function () {
+Plotter.prototype.calcInitialPositions = function (scores) {
   var clusters = [];
   for (var i = 0; i < this.values.length; i++)
-    clusters.push(new Cluster(this, [i], null, null));
+    clusters.push(new Cluster(this, scores, [i], null, null));
   while (clusters.length > 1) {
     var minDist = null;
     var minI = null;
@@ -80,7 +87,7 @@ Plotter.prototype.calcInitialPositions = function () {
     var a = clusters[minI];
     var b = clusters[minJ];
     var newValues = a.values.concat(b.values);
-    var next = new Cluster(this, newValues, a, b);
+    var next = new Cluster(this, scores, newValues, a, b);
     var newClusters = [];
     for (var i = 0; i < clusters.length; i++) {
       if (i != minI && i != minJ)
@@ -91,8 +98,8 @@ Plotter.prototype.calcInitialPositions = function () {
   }
   this.positions = [];
   this.maxScore = 0;
-  for (var i = 0; i < this.scores.length; i++)
-    this.maxScore = Math.max(this.scores[i], this.maxScore);
+  for (var i = 0; i < scores.length; i++)
+    this.maxScore = Math.max(scores[i], this.maxScore);
   this.positionCluster(0, 2 * Math.PI, clusters[0]);
 };
 
@@ -112,11 +119,11 @@ Plotter.prototype.positionCluster = function (from, to, cluster) {
   }
 };
 
-Plotter.prototype.distance = function (i, j) {
+Plotter.prototype.distance = function (i, j, scores) {
   if (i == -1) {
-    return this.scores[j];
+    return scores[j];
   } else if (j == -1) {
-    return this.scores[i];
+    return scores[i];
   } else {
     return this.matrix[i][j];
   }
@@ -133,7 +140,7 @@ Plotter.prototype.dampen = function (pull, temp) {
   }
 };
 
-Plotter.prototype.runLassesSpringyAlgorithm = function () {
+Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
   // First apply springy algorithm to adjust positions to match distances.
   var center = new Point(this, -1, 0, 0, null);
   this.positions.push(center);
@@ -146,14 +153,14 @@ Plotter.prototype.runLassesSpringyAlgorithm = function () {
       pulls[i] = [];
     for (var i = 0; i < count; i++) {
       for (var j = 0; j < count; j++) {
-        var pull = this.positions[i].calcPull(this.positions[j]);
+        var pull = this.positions[i].calcPull(this.positions[j], scores);
         this.dampen(pull, temp);
         pulls[i][j] = pull;
       }
     }
     for (var i = 0; i < count; i++) {
       for (var j = 0; j < count; j++) {
-        if (i == j) continue;
+        if (i == j || this.positions[i].isFixed) continue;
         var pull = pulls[i][j];
         this.positions[i].x += pull[0];
         this.positions[i].y += pull[1];
@@ -161,12 +168,17 @@ Plotter.prototype.runLassesSpringyAlgorithm = function () {
     }
   }
   this.positions.pop();
-  // Then move all the points to get the midpoint to (0, 0)
+  if (adjustCenter) {
+    // Then move all the points to get the midpoint to (0, 0)
+    for (var i = 0; i < this.positions.length; i++) {
+      var point = this.positions[i];
+      point.x -= center.x;
+      point.y -= center.y;
+    }
+  }
   var maxDist = 0;
   for (var i = 0; i < this.positions.length; i++) {
     var point = this.positions[i];
-    point.x -= center.x;
-    point.y -= center.y;
     var dist = Math.sqrt(point.x * point.x + point.y * point.y);
     maxDist = Math.max(maxDist, dist);
   }
@@ -177,6 +189,7 @@ Plotter.prototype.runLassesSpringyAlgorithm = function () {
     point.x *= ratio;
     point.y *= ratio;
   }
+  return center;
 };
 
 Plotter.prototype.getUrl = function () {
@@ -188,21 +201,44 @@ Plotter.prototype.getUrl = function () {
   return result.join(":");
 };
 
+Plotter.prototype.placeFixpoints = function () {
+  var scores = plotter.calcDistanceMatrix();
+  plotter.calcInitialPositions(scores);
+  plotter.runLassesSpringyAlgorithm(scores, true);
+  for (var i = 0; i < this.positions.length; i++)
+    this.positions[i].isFixed = true;
+};
+
+Plotter.prototype.displayOn = function (root) {
+  var elm = document.createElement('object', true);
+  elm.setAttribute('width', 450);
+  elm.setAttribute('height', 450);
+  elm.setAttribute('data', "compare/plot.svg?m=" + this.getUrl());
+  elm.setAttribute('type', "image/svg+xml");
+  elm.setAttribute('id', 'plot');
+  svgweb.appendChild(elm, root);
+};
+
+Plotter.prototype.placeByDistance = function (distances) {
+  return this.runLassesSpringyAlgorithm(distances, false);
+};
+
 function Point(plotter, id, x, y, data) {
   this.plotter = plotter;
   this.id = id;
   this.x = x;
   this.y = y;
   this.data = data;
+  this.isFixed = false;
 }
 
 Point.prototype.toString = function () {
   return "(" + this.x + ", " + this.y + ")";
 };
 
-Point.prototype.calcPull = function (other) {
+Point.prototype.calcPull = function (other, scores) {
   var ratio = (100 / this.plotter.maxScore);
-  var ideal = this.plotter.distance(this.id, other.id) * ratio;
+  var ideal = this.plotter.distance(this.id, other.id, scores) * ratio;
   var dx = this.x - other.x;
   var dy = this.y - other.y;
   if (ideal == 0) {
@@ -213,7 +249,8 @@ Point.prototype.calcPull = function (other) {
   }
 };
 
-function Cluster(plotter, values, leftChild, rightChild) {
+function Cluster(plotter, scores, values, leftChild, rightChild) {
+  this.scores = scores;
   this.plotter = plotter;
   this.values = values;
   this.leftChild = leftChild;
@@ -221,7 +258,7 @@ function Cluster(plotter, values, leftChild, rightChild) {
 }
 
 Cluster.prototype.score = function () {
-  return this.plotter.scores[this.values[0]];
+  return this.scores[this.values[0]];
 };
 
 Cluster.prototype.toString = function () {
@@ -247,20 +284,6 @@ Cluster.prototype.distanceTo = function (other) {
   }
   return sum / count;
 };
-
-function plotMatrix(values) {
-  var plotter = new Plotter(values);
-  plotter.calcDistanceMatrix();
-  plotter.calcInitialPositions();
-  plotter.runLassesSpringyAlgorithm();
-  var root = gebi('plotBox');
-  var elm = document.createElement('object', true);
-  elm.setAttribute('width', 450);
-  elm.setAttribute('height', 450);
-  elm.setAttribute('data', "compare/plot.svg?m=" + plotter.getUrl());
-  elm.setAttribute('type', "image/svg+xml");
-  svgweb.appendChild(elm, root);
-}
 
 function matrixToString(keys, scores, matrix) {
   var result = '';
@@ -293,10 +316,15 @@ function calcScore(a) {
 }
 
 function calcVectorDistance(a, b) {
-  assert(a.length == b.length);
+  var minLength = Math.min(a.length, b.length);
   var result = 0;
-  for (var i = 0; i < a.length; i++) {
+  for (var i = 0; i < minLength; i++) {
     if (a[i] != b[i])
+      result++;
+  }
+  var longest = (a.length > b.length) ? a : b;
+  for (; i < longest.length; i++) {
+    if (!longest[i])
       result++;
   }
   return result;
@@ -409,14 +437,43 @@ function Runner(testRun, serial, testCase) {
   this.failedMessage_ = null;
 }
 
+Runner.prototype.openTestPage = function () {
+  window.open(this.testCase_.getHtmlUrl(), '_blank');
+};
+
+Runner.prototype.getName = function () {
+  return this.testCase_.getName();
+};
+
+Runner.prototype.getMessage = function () {
+  assert(this.hasUnexpectedResult());
+  if (this.hasFailed()) {
+    if (this.failedMessage_) {
+      return this.failedMessage_;
+    } else {
+      return this.getName() + " failed";
+    }
+  } else {
+    return this.getName() + " was expected to fail";
+  }
+};
+
+Runner.prototype.hasFailed = function () {
+  return this.hasFailed_;
+};
+
 Runner.prototype.testStart = function () {
   this.start_ = new Date();
 };
 
 Runner.prototype.testDone = function () {
-  this.root_.removeChild(this.iframe_);
+  if (this.root_)
+    this.root_.removeChild(this.iframe_);
+  if (!this.hasCompleted_)
+    this.hasFailed_ = true;
   this.pResult_.fulfill(null);
-  this.testRun_.testDone(this);
+  if (this.testRun_)
+    this.testRun_.testDone(this);
 };
 
 Runner.prototype.testCompleted = function () {
@@ -432,7 +489,7 @@ Runner.prototype.testFailed = function (message) {
 Runner.prototype.hasUnexpectedResult = function () {
   var hasSucceeded = this.hasCompleted_ && !this.hasFailed_;
   var isPositive = !this.testCase_.isNegative();
-  return isPositive === hasSucceeded;
+  return isPositive !== hasSucceeded;
 };
 
 Runner.prototype.inject = function (code) {
@@ -539,16 +596,26 @@ function makeRequest(path) {
   return result;
 }
 
-function TestCase(serial, data) {
+function TestCase(run, serial, data) {
+  this.run_ = run;
   this.serial_ = serial;
   this.data_ = data;
 }
+
+TestCase.prototype.getHtmlUrl = function () {
+  var suite = this.run_.getSuiteName();
+  return "cases/" + suite + "/" + this.serial_ + ".html";
+};
 
 TestCase.prototype.getSource = function () {
   var rawSource = this.data_.source;
   var source = rawSource.replace(/\$ERROR/g, 'testFailed');
   source += "\ntestCompleted();";
   return source;
+};
+
+TestCase.prototype.getName = function () {
+  return this.data_.name;
 };
 
 TestCase.prototype.isNegative = function () {
@@ -580,17 +647,18 @@ TestChunk.prototype.ensureLoaded = function () {
     pGotRequest.onValue(this, function (value) {
       this.state_ = TestChunk.LOADED;
       for (var i = this.from_; i < this.to_; i++)
-        this.run_.registerCase(i, new TestCase(i, value[i - this.from_]));
+        this.run_.registerCase(i, new TestCase(this.run_, i, value[i - this.from_]));
       this.pLoaded_.fulfill(null);
     });
   }
   return this.pLoaded_;
 };
 
-function TestRun(suite, progress, isResumable) {
+function TestRun(suite, progress, crosshair, isResumable) {
   this.suite_ = suite;
   this.current_ = 0;
   this.progress_ = progress;
+  this.crosshair_ = crosshair;
   this.progress_.setMax(suite.count);
   this.doneCount_ = 0;
   this.failedCount_ = 0;
@@ -599,6 +667,7 @@ function TestRun(suite, progress, isResumable) {
   this.abort_ = false;
   this.cases_ = {};
   this.chunks_ = [];
+  this.passFailVector_ = [];
   this.initializeChunks();
 }
 
@@ -645,12 +714,23 @@ TestRun.prototype.runTest = function (serial, testCase) {
   return new Runner(this, serial, testCase).schedule();
 };
 
-function delay(self, fun) {
-  window.setTimeout(function () { fun.call(self); }, 0);
-}
+TestRun.prototype.calculateCurrentDistances = function (plotter) {
+  var dists = [];
+  var results = this.passFailVector_;
+  for (var i = 0; i < plotter.results.length; i++) {
+    var dist = calcVectorDistance(results, plotter.results[i]);
+    dists.push(dist);
+  }
+  return dists;
+};
 
 TestRun.prototype.scheduleNextTest = function () {
   if (this.current_ > this.suite_.count) return;
+  if (this.current_ % kCrosshairUpdateInterval == 0) {
+    var distances = this.calculateCurrentDistances(plotter);
+    var pnt = plotter.placeByDistance(distances);
+    this.crosshair_.setPosition(pnt.x / 2 + 50, pnt.y / 2 + 50);
+  }
   var serial = this.current_++;
   delay(this, function () {
     var pCase = this.getTestCase(serial);
@@ -794,8 +874,13 @@ TestRun.prototype.allDone = function () {
 
 TestRun.prototype.updateCounts = function (runner) {
   this.doneCount_++;
-  if (runner.hasUnexpectedResult()) {
+  var hadUnexpectedResult = runner.hasUnexpectedResult();
+  this.passFailVector_[runner.serial_] = !hadUnexpectedResult;
+  if (hadUnexpectedResult) {
     this.failedCount_++;
+    var message = runner.getMessage();
+    function onErrorClicked() { runner.openTestPage(); }
+    this.reportFailure(this, onErrorClicked, message);
   } else {
     this.succeededCount_++;
   }
@@ -809,6 +894,16 @@ TestRun.prototype.testDone = function (runner) {
     // the last results first.
     delay(this, function () { this.allDone(); });
   }
+};
+
+TestRun.prototype.reportFailure = function (self, fun, message) {
+  var errors = gebi('errors');
+  var row = errors.insertRow(0);
+  row.className = 'logLine';
+  var col = row.insertCell();
+  col.innerHTML = message;
+  col.style.overflow = "hidden";
+  col.onclick = function () { fun.call(self); };
 };
 
 TestRun.prototype.print = function (message) {
@@ -845,14 +940,90 @@ function resumableClicked() {
   }
 }
 
+function Crosshair() {
+  try {
+    this.element_ = this.makeElement();
+  } catch (e) {
+    this.element_ = null;
+  }
+}
+
+Crosshair.prototype.makeElement = function () {
+  function color(c) {
+    c.setAttribute('stroke-width', 0.25);
+    c.setAttribute('stroke', '#ff0000');
+    c.setAttribute('opacity', 0.5);
+    c.setAttribute('fill', 'none');
+  }
+  var g = document.createElementNS(svgns, 'g');
+  var c1 = document.createElementNS(svgns, 'circle');
+  c1.setAttribute('cx', 0);
+  c1.setAttribute('cy', 0);
+  c1.setAttribute('r', 1);
+  color(c1);
+  g.appendChild(c1);
+  var c2 = document.createElementNS(svgns, 'circle');
+  c2.setAttribute('cx', 0);
+  c2.setAttribute('cy', 0);
+  c2.setAttribute('r', 2);
+  color(c2);
+  g.appendChild(c2);
+  var l1 = document.createElementNS(svgns, 'line');
+  l1.setAttribute('x1', -3);
+  l1.setAttribute('y1', 0);
+  l1.setAttribute('x2', 3);
+  l1.setAttribute('y2', 0);
+  color(l1);
+  g.appendChild(l1);
+  var l2 = document.createElementNS(svgns, 'line');
+  l2.setAttribute('x1', 0);
+  l2.setAttribute('y1', -3);
+  l2.setAttribute('x2', 0);
+  l2.setAttribute('y2', 3);
+  color(l2);
+  g.appendChild(l2);
+  return g;
+};
+
+Crosshair.prototype.setPosition = function (x, y) {
+  try {
+    var transform = 'translate(' + x + ',' + y + ')'
+    this.element_.setAttribute('transform', transform);
+  } catch (e) {
+    // ignore
+  }
+};
+
+Crosshair.prototype.appendTo = function (root) {
+  try {
+    root.appendChild(this.element_);
+  } catch (e) {
+    // ignore
+  }
+};
+
+function moreInfo() {
+  gebi('runDetails').className = undefined;
+}
+
 function run() {
+  // Create crosshair
+  var crosshair = new Crosshair();
+  crosshair.setPosition(50, 50);
+  var p = document.getElementById('plot');
+  var l = p.getSVGDocument().getElementById('outer');
+  crosshair.appendTo(l);
+
   var runControls = gebi('runControls');
   runControls.className = undefined;
   gebi('message').className = "hidden";
   var progress = new ProgressBar();
   progress.replaceInto(runControls, gebi('progressPlaceholder'));
   var isResumable = false;
-  sputnikTestController = new TestRun(defaultTestSuite, progress, isResumable);
+  sputnikTestController = new TestRun(defaultTestSuite,
+                                      progress,
+                                      crosshair,
+                                      isResumable);
   var resumePoint = getResumePoint();
   if (resumePoint) {
     sputnikTestController.fastForward(getProgressCookie());
@@ -863,5 +1034,8 @@ function run() {
 }
 
 function loaded() {
-  plotMatrix(results);
+  plotter = new Plotter(results);
+  plotter.placeFixpoints();
+  var root = gebi('plotBox');
+  plotter.displayOn(root);
 }

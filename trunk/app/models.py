@@ -44,7 +44,7 @@ def to_json(obj):
   elif (t is list):
     return '[%s]' % ','.join([to_json(o) for o in obj])
   elif t is bool:
-    if t: return '1'
+    if obj: return '1'
     else: return '0'
   else:
     return to_json(obj.to_json())
@@ -62,6 +62,11 @@ class Case(db.Model):
     return {'name': self.name,
             'isNegative': self.is_negative,
             'source': unicode(self.source)}
+
+  def to_basic_json(self):
+    return to_json({'name': self.name,
+            'isNegative': self.is_negative,
+            'serial': self.serial})
 
   @staticmethod
   def lookup(suite, serial):
