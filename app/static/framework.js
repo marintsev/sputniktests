@@ -7,11 +7,15 @@ var runner = new Runner(null, serial, testCase);
 var $d = null;
 
 // The type of exception thrown to abort a test.
-function SputnikTestAborted() { }
-
 function testFailed(s) {
   runner.testFailed(s);
-  throw new SputnikTestAborted();
+}
+
+function testPrint(s) {
+  runner.testPrint(s);
+  var l = document.createElement('div');
+  l.innerHTML = s;
+  document.body.appendChild(l);
 }
 
 function testDone() {
