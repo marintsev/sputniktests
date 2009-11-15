@@ -132,6 +132,8 @@ class Sputnik(object):
         return self.do_404(req)
       source = case.source
       source = re.sub(r'\$ERROR', 'testFailed', source)
+      source = re.sub(r'\$FAIL', 'testFailed', source)
+      source = re.sub(r'\$PRINT', 'testPrint', source)
       result = self.get_template('case.html', {
         'case': case,
         'source': source

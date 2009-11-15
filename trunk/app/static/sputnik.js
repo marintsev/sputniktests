@@ -12,6 +12,10 @@ var kCrosshairUpdateInterval = 64;
 
 var plotter = null;
 
+function SputnikTestFailed(message) {
+  this.message_ = message;
+};
+
 function BrowserData(name, type, data) {
   this.name = name;
   this.type = type;
@@ -435,7 +439,12 @@ function Runner(testRun, serial, testCase) {
   this.hasFailed_ = false;
   this.hasCompleted_ = false;
   this.failedMessage_ = null;
+  this.printed_ = [];
 }
+
+Runner.prototype.testPrint = function (str) {
+  this.printed_.push(str);
+};
 
 Runner.prototype.openTestPage = function () {
   window.open(this.testCase_.getHtmlUrl(), '_blank');
@@ -481,9 +490,11 @@ Runner.prototype.testCompleted = function () {
 };
 
 Runner.prototype.testFailed = function (message) {
-  if (this.hasFailed_) return;
-  this.hasFailed_ = true;
-  this.failedMessage_ = message;
+  if (!this.hasFailed_) {
+    this.hasFailed_ = true;
+    this.failedMessage_ = message;
+  }
+  throw new SputnikTestFailed(message);
 };
 
 Runner.prototype.hasUnexpectedResult = function () {
@@ -508,6 +519,7 @@ Runner.prototype.schedule = function () {
   global.testDone = function () { self.testDone(); };
   global.testStart = function () { self.testStart(); };
   global.testCompleted = function () { self.testCompleted(); };
+  global.testPrint = function () { self.testPrint(); };
   this.inject('testStart();');
   this.inject(source);
   this.inject('testDone();');
@@ -610,6 +622,8 @@ TestCase.prototype.getHtmlUrl = function () {
 TestCase.prototype.getSource = function () {
   var rawSource = this.data_.source;
   var source = rawSource.replace(/\$ERROR/g, 'testFailed');
+  var source = rawSource.replace(/\$FAIL/g, 'testFailed');
+  var source = rawSource.replace(/\$PRINT/g, 'testPrint');
   source += "\ntestCompleted();";
   return source;
 };
@@ -900,14 +914,10 @@ TestRun.prototype.reportFailure = function (self, fun, message) {
   var errors = gebi('errors');
   var row = errors.insertRow(0);
   row.className = 'logLine';
-  var col = row.insertCell();
+  var col = row.insertCell(0);
   col.innerHTML = message;
   col.style.overflow = "hidden";
   col.onclick = function () { fun.call(self); };
-};
-
-TestRun.prototype.print = function (message) {
-  alert("print: " + message);
 };
 
 function gebi(id) {
@@ -1008,10 +1018,10 @@ function moreInfo() {
 
 function run() {
   // Create crosshair
+  var p = document.getElementById('plot');
   var crosshair = new Crosshair();
   crosshair.setPosition(50, 50);
-  var p = document.getElementById('plot');
-  var l = p.getSVGDocument().getElementById('outer');
+  var l = p.contentDocument.getElementById('outer');
   crosshair.appendTo(l);
 
   var runControls = gebi('runControls');
