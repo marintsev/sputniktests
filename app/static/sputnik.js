@@ -1,9 +1,6 @@
 // Copyright 2009 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
-var kTestStatusCookieName = "sputnik_test_status";
-var kTestBlacklistCookieName = "sputnik_test_blacklist";
-var kLastTestStarted = "sputnik_last_test_started";
 var kRotation = 2.14;
 var kIterations = 50;
 var kTestCaseChunkSize = 256;
@@ -11,6 +8,36 @@ var kChunkAheadCount = 2;
 var kCrosshairUpdateInterval = 64;
 
 var plotter = null;
+
+function gebi(id) {
+  return document.getElementById(id);
+}
+
+function Persistent(key) {
+  this.keyEq_ = key + "=";
+}
+
+Persistent.prototype.get = function () {
+  var parts = document.cookie.split(/\s*;\s*/);
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].substring(0, this.keyEq_.length) == this.keyEq_)
+      return parts[i].substring(this.keyEq_.length);
+  }
+};
+
+Persistent.prototype.set = function (value, expiryHoursOpt) {
+  var expiryHours = expiryHoursOpt || 6;
+  var date = new Date();
+  date.setTime(date.getTime() + (expiryHours * 60 * 60 * 1000));
+  var expiry = "expires=" + date.toGMTString();
+  document.cookie = this.keyEq_ + value + ";" + expiry + "; path=/";
+};
+
+Persistent.prototype.clear = function () {
+  document.cookie = this.keyEq_ + "; path=/";
+};
+
+var storedTestStatus = new Persistent("sputnik_test_status");
 
 function SputnikTestFailed(message) {
   this.message_ = message;
@@ -39,6 +66,29 @@ var results = [
   new BrowserData('IE8Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
   new BrowserData('Opera', 'op', '5246:*FB*MQo*JEI*GC*KI*JC*DQC*NC*HC*/*JCAY*RE*CB*FI*JI*DB*WE*DCI*DC*KIAIC*QQ*Cg*HE*UE*HCBAQ*ED*CI*C9*CgO*pgXBzoH*RQKQQCEBRE*LB*0o*CIEEAEQS*GE*DJI*GI*JC*HI/AP*Fg*Kg*tG*CE*EE*CE*Eo*EDEIQ*MC*HQ*GC*CI*CE*OoD*HFAIF*IgB*DC*CIE*DE*EC*CQI*IB*DQAQ*ty8vdBCAEEA8AC*EQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIXCQ*DQM*EQ*QQ*FQ*DC*FgQ')
 ];
+
+//var results = [
+    //  new BrowserData('Chrome4Linux', 'cm', '5246:oAQ*/*/*/*uD*FE*Lw*DgC*Cc*cQ*vE/uAQoGDAF*V//8+/B*JQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACEEIAhAC*IkUQQYgNg*Xg*EgB*GB*EgEFISB*IB*PD*dY*DIE*CQC*HS*OB*CCY*CDAK*CE*CQ*DgBAD*DC*CI*EFAK*DI*DC*CJ*EQ*DFAgBg*OCACAg*CC*CU*JQ*DR*EE*GR*CG*DQg*Cw*DE*DgAE*DC*CI*DBAIz/2FIAQQAwD*CC*DF*CQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+//  new BrowserData('Firefox35Win', 'fx', '5246:B*EI*dg*Kg*GC*nk*/*FEAE*PgAI*IQ*uD*FE*Lw*DgC*CM*Ew///Dg*IE*JQ*vE/uAQoGDIF*IQ*DkxIie*E//8//B*CH*GQKQQCEBR*/*DkUQQYgN*Yg*EgB*GB*EYB*Dg*Iy*PD*MU*QY*CQAE*CQC*GgS*DIQ*CB*GB*GDAK*CE*CQ*DgBAD*CICAEJ*EFAK*DMACACoAJ*Ew*DFAgBgE*LQACAGgg*CCCAUI*CE*DEAQ*CBRB*DE*GR*CG*DQg*Cw*DE*DkAE*DCAII*DBAIz/2FIAQQAwD*CC*DF*CQQRIBhR*Qi*FI*EQC*CDBQAgICAIQC*CU*DFABGAgAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
+//  new BrowserData('Safari4Mac', 'sf', '
+//  new BrowserData('IE8Win', 'ie', '
+//  new BrowserData('Opera', 'op', '
+//];
+
+function TestRunSignature(signature) {
+  var splitter = signature.indexOf(':');
+  this.count_ = parseInt(signature.substring(0, splitter));
+  this.data_ = signature.substring(splitter + 1);
+  this.vector_ = null;
+}
+
+TestRunSignature.prototype.count = function () {
+  return this.count_;
+};
+
+TestRunSignature.prototype.getVector = function () {
+  return parseTestSignature(this.count_, this.data_);
+};
 
 function Plotter(values) {
   this.values = values;
@@ -368,34 +418,15 @@ function request(path, onDone) {
   xhr.send();
 }
 
-function getCookie(name) {
-  var parts = document.cookie.split(/\s*;\s*/);
-  var nameEq = name + "=";
-  for (var i = 0; i < parts.length; i++) {
-    if (parts[i].substring(0, nameEq.length) == nameEq)
-      return parts[i].substring(nameEq.length);
-  }
-}
-
-function setCookie(name, value, expiryHoursOpt) {
-  var expiryHours = expiryHoursOpt || 6;
-  var date = new Date();
-  date.setTime(date.getTime() + (expiryHours * 60 * 60 * 1000));
-  var expiry = "expires=" + date.toGMTString();
-  document.cookie = name + "=" + value + ";" + expiry + "; path=/";
-}
-
-function deleteCookie(name) {
-  document.cookie = name + "=; path=/";
-}
-
 function reportError(str) {
   alert(str);
 }
 
 function assert(value) {
-  if (!value)
+  if (!value) {
     alert("Assertion failed");
+    (undefined).foo; // force debugger
+  }
 }
 
 function ProgressBar() {
@@ -428,6 +459,32 @@ ProgressBar.prototype.setValue = function (value) {
 
 // --- R u n n e r ---
 
+var runnerTraits = { };
+
+function inheritTraits(fun, traits) {
+  for (var name in traits)
+    fun.prototype[name] = traits[name];
+}
+
+runnerTraits.openTestPage = function () {
+  window.open(this.testCase_.getHtmlUrl(), '_blank');
+}
+
+function MockRunner(serial, result) {
+  this.serial_ = serial;
+  this.result_ = result;
+}
+
+inheritTraits(MockRunner, runnerTraits);
+
+MockRunner.prototype.hasUnexpectedResult = function () {
+  return !this.result_;
+};
+
+MockRunner.prototype.getMessage = function () {
+  return "Test " + this.serial_ + " failed.";
+};
+
 function Runner(testRun, serial, testCase) {
   this.testRun_ = testRun;
   this.serial_ = serial;
@@ -442,12 +499,10 @@ function Runner(testRun, serial, testCase) {
   this.printed_ = [];
 }
 
+inheritTraits(Runner, runnerTraits);
+
 Runner.prototype.testPrint = function (str) {
   this.printed_.push(str);
-};
-
-Runner.prototype.openTestPage = function () {
-  window.open(this.testCase_.getHtmlUrl(), '_blank');
 };
 
 Runner.prototype.getName = function () {
@@ -480,9 +535,9 @@ Runner.prototype.testDone = function () {
     this.root_.removeChild(this.iframe_);
   if (!this.hasCompleted_)
     this.hasFailed_ = true;
-  this.pResult_.fulfill(null);
   if (this.testRun_)
     this.testRun_.testDone(this);
+  this.pResult_.fulfill(null);
 };
 
 Runner.prototype.testCompleted = function () {
@@ -509,7 +564,6 @@ Runner.prototype.inject = function (code) {
 };
 
 Runner.prototype.schedule = function () {
-  this.registerCookie();
   var source = this.testCase_.getSource();
   this.root_.appendChild(this.iframe_);
   var self = this;
@@ -524,10 +578,6 @@ Runner.prototype.schedule = function () {
   this.inject(source);
   this.inject('testDone();');
   return this.pResult_;
-};
-
-Runner.prototype.registerCookie = function () {
-  setCookie(kLastTestStarted, this.serial_);
 };
 
 Runner.prototype.toString = function () {
@@ -622,8 +672,8 @@ TestCase.prototype.getHtmlUrl = function () {
 TestCase.prototype.getSource = function () {
   var rawSource = this.data_.source;
   var source = rawSource.replace(/\$ERROR/g, 'testFailed');
-  var source = rawSource.replace(/\$FAIL/g, 'testFailed');
-  var source = rawSource.replace(/\$PRINT/g, 'testPrint');
+  var source = source.replace(/\$FAIL/g, 'testFailed');
+  var source = source.replace(/\$PRINT/g, 'testPrint');
   source += "\ntestCompleted();";
   return source;
 };
@@ -668,7 +718,7 @@ TestChunk.prototype.ensureLoaded = function () {
   return this.pLoaded_;
 };
 
-function TestRun(suite, progress, crosshair, isResumable) {
+function TestRun(suite, progress, crosshair) {
   this.suite_ = suite;
   this.current_ = 0;
   this.progress_ = progress;
@@ -739,7 +789,7 @@ TestRun.prototype.calculateCurrentDistances = function (plotter) {
 };
 
 TestRun.prototype.scheduleNextTest = function () {
-  if (this.current_ > this.suite_.count) return;
+  if (this.current_ >= this.suite_.count) return;
   if (this.current_ % kCrosshairUpdateInterval == 0) {
     var distances = this.calculateCurrentDistances(plotter);
     var pnt = plotter.placeByDistance(distances);
@@ -766,28 +816,15 @@ function parseTestResults(progress) {
   return bits;
 }
 
-TestRun.prototype.fastForward = function (progress) {
-  var splitter = progress.indexOf(':');
-  var count = parseInt(progress.substring(0, splitter));
-  var data = progress.substring(splitter + 1);
-  var bits = parseTestSignature(count, data);
-  assert(count == bits.length);
+TestRun.prototype.fastForward = function (target) {
+  var bits = target.getVector();
   // We force the last test to have been failed.
   bits.push(false);
   for (var i = 0; i < bits.length; i++) {
-    var info = {serial: 0, isNegative: false};
-    var result = new TestResult(info);
-    if (bits[i]) {
-      result.status = TestResult.COMPLETED;
-      this.succeededCount_++;
-    } else {
-      result.status = TestResult.FAILED;
-      this.failedCount_++;
-    }
-    this.results[i] = result;
+    var runner = new MockRunner(i, bits[i]);
+    this.testDone(runner, true);
   }
-  this.doneCount = bits.length;
-  this.current = bits.length;
+  this.current_ = bits.length;
   this.updateUi();
 };
 
@@ -812,10 +849,14 @@ function indexOfBase64Char(c) {
   return result;
 }
 
+TestRun.prototype.getTestStatus = function (index) {
+  return this.passFailVector_[index];
+};
+
 TestRun.prototype.getFailedBits = function (count) {
   var result = [];
   for (var i = 0; i < count; i++)
-    result[i] = this.results[i].asExpected();
+    result[i] = this.getTestStatus(i);
   return result;
 };
 
@@ -837,7 +878,7 @@ TestRun.prototype.getSignature = function (count) {
     // Collect the next chunk of 6 test results
     var chunk = 0;
     for (var j = 0; (j < 6) && (i + j < count); j++) {
-      var failed = !this.results[i + j].asExpected();
+      var failed = !this.getTestStatus(i + j);
       chunk = chunk | ((failed ? 1 : 0) << j);
     }
     if (chunk == 0) {
@@ -878,12 +919,12 @@ function parseTestSignature(count, data) {
 }
 
 TestRun.prototype.allDone = function () {
-  if (this.isResumable)
-    deleteCookie(kTestStatusCookieName);
+  alert("allDone");
   var signature = this.getSignature(this.suite_.count);
   var sigDiv = document.createElement('div');
   sigDiv.innerHTML = "[" + signature + "]";
   document.body.appendChild(sigDiv);
+  storedTestStatus.clear();
 };
 
 TestRun.prototype.updateCounts = function (runner) {
@@ -898,12 +939,15 @@ TestRun.prototype.updateCounts = function (runner) {
   } else {
     this.succeededCount_++;
   }
+  var resultSignature = this.getSignature(runner.serial_);
+  storedTestStatus.set(resultSignature);
 };
 
-TestRun.prototype.testDone = function (runner) {
+TestRun.prototype.testDone = function (runner, silent) {
   this.updateCounts(runner);
-  this.updateUi();
-  if (this.doneCount == this.suite_.count) {
+  if (!silent)
+    this.updateUi();
+  if (this.doneCount_ >= this.suite_.count) {
     // Complete the test run on a timeout to allow the ui to update with
     // the last results first.
     delay(this, function () { this.allDone(); });
@@ -920,35 +964,6 @@ TestRun.prototype.reportFailure = function (self, fun, message) {
   col.onclick = function () { fun.call(self); };
 };
 
-function gebi(id) {
-  return document.getElementById(id);
-}
-
-function getProgressCookie() {
-  return getCookie(kTestStatusCookieName);
-}
-
-function getResumePoint() {
-  var isResumable = false;
-  if (isResumable) {
-    var cookie = getProgressCookie();
-    if (cookie) {
-      var count = parseInt(cookie.substring(0, cookie.indexOf(":")));
-      return (count + 1);
-    }
-  }
-}
-
-function resumableClicked() {
-  var resumePoint = getResumePoint();
-  var controls = gebi("resumeControls");
-  if (resumePoint) {
-    gebi("interruptCount").innerHTML = resumePoint;
-    controls.className = "";
-  } else {
-    controls.className = "hidden";
-  }
-}
 
 function Crosshair() {
   try {
@@ -1017,6 +1032,13 @@ function moreInfo() {
 }
 
 function run() {
+  // Resume if required
+  var storedStatus = storedTestStatus.get();
+  var doResume = storedStatus && gebi('resume').checked;
+  var lastResult;
+  if (doResume)
+    lastResult = new TestRunSignature(storedStatus);
+
   // Create crosshair
   var p = document.getElementById('plot');
   var crosshair = new Crosshair();
@@ -1024,28 +1046,39 @@ function run() {
   var l = p.contentDocument.getElementById('outer');
   crosshair.appendTo(l);
 
+
   var runControls = gebi('runControls');
   runControls.className = undefined;
   gebi('message').className = "hidden";
   var progress = new ProgressBar();
   progress.replaceInto(runControls, gebi('progressPlaceholder'));
-  var isResumable = false;
-  sputnikTestController = new TestRun(defaultTestSuite,
-                                      progress,
-                                      crosshair,
-                                      isResumable);
-  var resumePoint = getResumePoint();
-  if (resumePoint) {
-    sputnikTestController.fastForward(getProgressCookie());
-  } else {
-    deleteCookie(kTestStatusCookieName);
-  }
-  sputnikTestController.start();
+  var testRun = new TestRun(defaultTestSuite,
+                            progress,
+                            crosshair);
+  if (doResume)
+    testRun.fastForward(lastResult);
+
+  testRun.start();
 }
 
-function loaded() {
+function displayPlot() {
   plotter = new Plotter(results);
   plotter.placeFixpoints();
   var root = gebi('plotBox');
   plotter.displayOn(root);
+}
+
+function displayResumeButton() {
+  var lastRunSignature = storedTestStatus.get();
+  if (lastRunSignature) {
+    var signature = new TestRunSignature(lastRunSignature);
+    var lastStarted = signature.count() + 1;
+    gebi('resumePoint').innerHTML = lastStarted;
+    gebi('resumeControls').className = undefined;
+  }
+}
+
+function loaded() {
+  displayPlot();
+  displayResumeButton();
 }

@@ -91,3 +91,8 @@ span.label {
 div.plotBox {
   text-align: right;
 }
+
+span.topic {
+  font-weight: bold;
+  color: #214584;
+}
