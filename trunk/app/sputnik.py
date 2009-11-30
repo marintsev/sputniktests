@@ -13,7 +13,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
 
 
-_DISABLE_CACHING = True
+_DISABLE_CACHING = False
 
 
 _CASE_CACHE_SIZE = 8192

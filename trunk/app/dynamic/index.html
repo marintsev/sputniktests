@@ -52,19 +52,20 @@
           Run the Sputnik tests in your browser.  Running all 5300 sputnik tests takes a few minutes.
           <p>
           <div id="resumeControls" class="hidden">
+            Your last test run appears to have been interrupted while
+            running test number <span id="resumePoint">#</span>.  Keep
+            the box below checked to continue the previous session.
             <p>
-            Test running appears to have been interrupted while
-            running test number <span id="interruptCount">#</span>.
-            Testing will be resumed from the next test.
+            <input id="resume" type="checkbox" checked="true">Continue previous session.
           </div>
         </div>
         <div id="runControls" class="hidden">
           <div id="progressPlaceholder"></div>
           <p>
-          <a href="javascript:moreInfo()">more info</a>
-          <p>
+          <a href="javascript:moreInfo()">Details &raquo;</a>
         </div>
         <div id="runDetails" class="hidden">
+          <p>
           <table style="width: 100%;">
             <tr><td class="tableLabel">Succeeded</td><td class="tableValue" id="succeeded">0</td></tr>
             <tr><td class="tableLabel">Failed</td><td class="tableValue" id="failed">0</td></tr>
@@ -76,6 +77,17 @@
           </div>
         </div>
       </div>
+      <p>
+      <span class="topic">Conformance.</span> Run Sputnik to check how your browser's
+      JavaScript implemtation conforms to the standard.
+      <p>
+      <span class="topic">Completeness.</span> Run Sputnik to do a complete test against
+      every corner of the ECMAScript specification.
+      <p>
+      <span class="topic">Comparison.</span> Run Sputnik to see how your browser's
+      JavaScript implementation compares with major browsers.
+      <p>
+      <a href="http://sputniktests.googlecode.com" target="_blank">Learn more about the Sputnik tests &raquo;</a>
     </div>
   </div>
 
@@ -85,8 +97,10 @@
     ©2009 Google
     - <a href="http://www.google.com">Home</a>
     - <a href="http://sputniktests.googlecode.com">Source</a>
+<!--
     - <a href="debug.html">Debug</a>
     - <a href="javascript:plotMatrix(results)">Matrix</a>
+-->
   </div>
 
   <div id="workerRoot" class="hidden"></div>
