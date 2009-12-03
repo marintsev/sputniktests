@@ -3,9 +3,9 @@
 
 var kRotation = 2.14;
 var kIterations = 50;
-var kTestCaseChunkSize = 256;
-var kChunkAheadCount = 2;
-var kCrosshairUpdateInterval = 64;
+var kTestCaseChunkSize = 128;
+var kTestListAppendSize = 32;
+var kChunkAheadCount = 1;
 
 var plotter = null;
 
@@ -49,8 +49,11 @@ function BrowserData(name, type, data) {
   this.data = data;
 }
 
-function delay(self, fun) {
-  window.setTimeout(function () { fun.call(self); }, 0);
+function delay(timeoutOpt) {
+  var pResult = new Promise();
+  var timeout = (timeoutOpt === undefined) ? 0 : timeoutOpt;
+  window.setTimeout(function () { pResult.fulfill(null); }, timeout);
+  return pResult;
 }
 
 var results = [
@@ -429,34 +432,6 @@ function assert(value) {
   }
 }
 
-function ProgressBar() {
-  this.root = document.createElement('div');
-  this.root.className = 'progress';
-  this.bar = document.createElement('div');
-  this.bar.className = 'bar';
-  this.label = document.createElement('span');
-  this.label.className = 'label';
-  this.root.appendChild(this.bar);
-  this.root.appendChild(this.label);
-  this.value = 0;
-  this.max = 1;
-}
-
-ProgressBar.prototype.replaceInto = function (parent, placeholder) {
-  parent.replaceChild(this.root, placeholder);
-};
-
-ProgressBar.prototype.setMax = function (value) {
-  this.max = value;
-};
-
-ProgressBar.prototype.setValue = function (value) {
-  this.value = value;
-  var percent = Math.floor(100 * this.value / this.max);
-  this.bar.style.width = percent + "%";
-  this.label.innerHTML = percent + "%";
-};
-
 // --- R u n n e r ---
 
 var runnerTraits = { };
@@ -531,13 +506,13 @@ Runner.prototype.testStart = function () {
 };
 
 Runner.prototype.testDone = function () {
-  if (this.root_)
-    this.root_.removeChild(this.iframe_);
   if (!this.hasCompleted_)
     this.hasFailed_ = true;
   if (this.testRun_)
     this.testRun_.testDone(this);
   this.pResult_.fulfill(null);
+  if (this.root_)
+    this.root_.removeChild(this.iframe_);
 };
 
 Runner.prototype.testCompleted = function () {
@@ -662,6 +637,7 @@ function TestCase(run, serial, data) {
   this.run_ = run;
   this.serial_ = serial;
   this.data_ = data;
+  this.description_ = null;
 }
 
 TestCase.prototype.getHtmlUrl = function () {
@@ -680,6 +656,22 @@ TestCase.prototype.getSource = function () {
 
 TestCase.prototype.getName = function () {
   return this.data_.name;
+};
+
+TestCase.prototype.getDescription = function () {
+  if (!this.description_) {
+    var result;
+    var match = /@description:(.*)$/m.exec(this.data_.source);
+    if (!match) {
+      result = "";
+    } else {
+      var str = match[1];
+      var stripped = /^\s*(.*)\s*;$/.exec(str);
+      result = stripped ? stripped[1] : str;
+    }
+    this.description_ = result;
+  }
+  return this.description_;
 };
 
 TestCase.prototype.isNegative = function () {
@@ -718,32 +710,18 @@ TestChunk.prototype.ensureLoaded = function () {
   return this.pLoaded_;
 };
 
-function TestRun(suite, progress, crosshair) {
+function TestQuery(suite) {
   this.suite_ = suite;
-  this.current_ = 0;
-  this.progress_ = progress;
-  this.crosshair_ = crosshair;
-  this.progress_.setMax(suite.count);
-  this.doneCount_ = 0;
-  this.failedCount_ = 0;
-  this.succeededCount_ = 0;
-  this.runs_ = {};
-  this.abort_ = false;
-  this.cases_ = {};
   this.chunks_ = [];
-  this.passFailVector_ = [];
+  this.cases_ = {};
   this.initializeChunks();
 }
 
-TestRun.prototype.getSuiteName = function () {
-  return this.suite_.name;
+TestQuery.prototype.getSize = function () {
+  return this.suite_.count;
 };
 
-TestRun.prototype.registerCase = function (index, test) {
-  this.cases_[index] = test;
-};
-
-TestRun.prototype.initializeChunks = function () {
+TestQuery.prototype.initializeChunks = function () {
   var count = this.suite_.count;
   for (var i = 0, c = 0; i < count; i += kTestCaseChunkSize, c++) {
     var to = Math.min(i + kTestCaseChunkSize, count);
@@ -752,7 +730,11 @@ TestRun.prototype.initializeChunks = function () {
   }
 };
 
-TestRun.prototype.ensureChunkLoaded = function (index) {
+TestQuery.prototype.registerCase = function (index, test) {
+  this.cases_[index] = test;
+};
+
+TestQuery.prototype.ensureChunkLoaded = function (index) {
   var result = this.chunks_[index].ensureLoaded();
   var limit = Math.min(index + kChunkAheadCount + 1, this.chunks_.length);
   for (var i = index + 1; i < limit; i++)
@@ -760,7 +742,7 @@ TestRun.prototype.ensureChunkLoaded = function (index) {
   return result;
 };
 
-TestRun.prototype.getTestCase = function (index) {
+TestQuery.prototype.getTestCase = function (index) {
   var pResult = new Promise();
   var chunkIndex = Math.floor(index / kTestCaseChunkSize);
   var pLoadedTestCases = this.ensureChunkLoaded(chunkIndex);
@@ -769,6 +751,26 @@ TestRun.prototype.getTestCase = function (index) {
   });
   return pResult;
 };
+
+TestQuery.prototype.getSuiteName = function () {
+  return this.suite_.name;
+};
+
+TestQuery.prototype.size = function () {
+  return this.suite_.count;
+}
+
+function TestRun(data, progress) {
+  this.current_ = 0;
+  this.progress_ = progress;
+  this.data_ = data;
+  this.doneCount_ = 0;
+  this.failedTests_ = [];
+  this.succeededCount_ = 0;
+  this.runs_ = {};
+  this.abort_ = false;
+  this.passFailVector_ = [];
+}
 
 TestRun.prototype.start = function () {
   this.scheduleNextTest();
@@ -789,14 +791,10 @@ TestRun.prototype.calculateCurrentDistances = function (plotter) {
 };
 
 TestRun.prototype.scheduleNextTest = function () {
-  if (this.current_ >= this.suite_.count) return;
-  if (this.current_ % kCrosshairUpdateInterval == 0) {
-    var distances = this.calculateCurrentDistances(plotter);
-    var pnt = plotter.placeByDistance(distances);
-    this.crosshair_.setPosition(pnt.x / 2 + 50, pnt.y / 2 + 50);
-  }
+  if (this.current_ >= this.size()) return;
   var serial = this.current_++;
-  delay(this, function () {
+  var pDelay = delay();
+  pDelay.onValue(this, function () {
     var pCase = this.getTestCase(serial);
     pCase.onValue(this, function (value) {
       var pDoneRunning = this.runTest(serial, value);
@@ -805,6 +803,14 @@ TestRun.prototype.scheduleNextTest = function () {
       });
     });
   });
+};
+
+TestRun.prototype.getTestCase = function (serial) {
+  return this.data_.getTestCase(serial);
+};
+
+TestRun.prototype.size = function () {
+  return this.data_.size();
 };
 
 function parseTestResults(progress) {
@@ -828,9 +834,14 @@ TestRun.prototype.fastForward = function (target) {
   this.updateUi();
 };
 
+TestRun.prototype.setTestList = function (testList) {
+  this.testList_ = testList;
+};
+
 TestRun.prototype.updateUi = function () {
-  this.progress_.setValue(this.doneCount_);
-  document.getElementById('failed').innerHTML = this.failedCount_;
+  this.progress_.setValue((100 * this.doneCount_ / this.size()) | 0);
+  this.testList_.addPendingEntries();
+  document.getElementById('failed').innerHTML = this.failedTests_.length;
   document.getElementById('succeeded').innerHTML = this.succeededCount_;
   document.getElementById('total').innerHTML = this.doneCount_;
 };
@@ -932,7 +943,7 @@ TestRun.prototype.updateCounts = function (runner) {
   var hadUnexpectedResult = runner.hasUnexpectedResult();
   this.passFailVector_[runner.serial_] = !hadUnexpectedResult;
   if (hadUnexpectedResult) {
-    this.failedCount_++;
+    this.failedTests_.push(runner.serial_);
     var message = runner.getMessage();
     function onErrorClicked() { runner.openTestPage(); }
     this.reportFailure(this, onErrorClicked, message);
@@ -947,23 +958,44 @@ TestRun.prototype.testDone = function (runner, silent) {
   this.updateCounts(runner);
   if (!silent)
     this.updateUi();
-  if (this.doneCount_ >= this.suite_.count) {
+  if (this.doneCount_ >= this.size()) {
     // Complete the test run on a timeout to allow the ui to update with
     // the last results first.
-    delay(this, function () { this.allDone(); });
+    var pDelay = delay();
+    pDelay.onValue(this, function () {
+      this.allDone();
+    });
   }
 };
 
-TestRun.prototype.reportFailure = function (self, fun, message) {
-  var errors = gebi('errors');
-  var row = errors.insertRow(0);
-  row.className = 'logLine';
-  var col = row.insertCell(0);
-  col.innerHTML = message;
-  col.style.overflow = "hidden";
-  col.onclick = function () { fun.call(self); };
+TestRun.prototype.getResultData = function () {
+  return new TestRunData(this);
 };
 
+TestRun.prototype.reportFailure = function (self, fun, message) {
+
+};
+
+function TestRunData(run) {
+  this.run_ = run;
+}
+
+TestRunData.prototype.size = function () {
+  return this.run_.failedTests_.length;
+};
+
+TestRunData.prototype.getEntry = function (serial) {
+  var pResult = new Promise();
+  this.run_.getTestCase(this.run_.failedTests_[serial]).onValue(this, function (test) {
+    pResult.fulfill({
+      getName: function () { return test.getName(); },
+      getDescription: function () { return test.getDescription(); },
+      getSource: function () { return test.getSource(); },
+      getStatus: function () { return TestPanelEntry.FAILED; }
+    });
+  });
+  return pResult;
+};
 
 function Crosshair() {
   try {
@@ -1061,24 +1093,174 @@ function run() {
   testRun.start();
 }
 
-function displayPlot() {
-  plotter = new Plotter(results);
-  plotter.placeFixpoints();
-  var root = gebi('plotBox');
-  plotter.displayOn(root);
+function TestPanel(data, element) {
+  this.data_ = data;
+  this.entries_ = [];
+  this.element_ = element;
+  this.targetCount_ = kTestListAppendSize;
+  this.decorate();
 }
 
-function displayResumeButton() {
-  var lastRunSignature = storedTestStatus.get();
-  if (lastRunSignature) {
-    var signature = new TestRunSignature(lastRunSignature);
-    var lastStarted = signature.count() + 1;
-    gebi('resumePoint').innerHTML = lastStarted;
-    gebi('resumeControls').className = undefined;
+TestPanel.prototype.decorate = function () {
+  var elm = this.element_;
+  elm.className = 'test-panel';
+  var self = this;
+  elm.onscroll = function (event) { self.onScroll(event); };
+  this.element_ = elm;
+};
+
+TestPanel.prototype.onScroll = function (event) {
+  var elm = this.element_;
+  var remaining = elm.scrollHeight - elm.scrollTop - elm.clientHeight;
+  if (remaining < 100) {
+    this.targetCount_ = this.entries_.length + kTestListAppendSize;
+    this.addPendingEntries();
   }
 }
 
+TestPanel.prototype.element = function () {
+  return this.element_;
+};
+
+TestPanel.prototype.addPendingEntries = function () {
+  var end = Math.min(this.targetCount_, this.data_.size());
+  for (var i = this.entries_.length; i < end; i++) {
+    var entry = new TestPanelEntry(this, i);
+    entry.appendTo(this.element_);
+    this.entries_.push(entry);
+  }
+};
+
+function TestPanelEntry(panel, serial) {
+  this.panel_ = panel;
+  this.serial_ = serial;
+  this.isOpen_ = false;
+  this.details_ = null;
+  this.create();
+}
+
+TestPanelEntry.NONE = 'none';
+TestPanelEntry.FAILED = 'failed';
+
+TestPanelEntry.prototype.getData = function () {
+  return this.panel_.data_.getEntry(this.serial_);
+}
+
+TestPanelEntry.prototype.create = function () {
+  var elm = document.createElement('div');
+  elm.className = 'test-panel-entry';
+
+  var header = document.createElement('div');
+  header.className = 'test-panel-entry-header';
+  var self = this;
+  header.onclick = function () { self.onClick() };
+  elm.appendChild(header);
+
+  var status = document.createElement('div');
+  status.className = 'test-panel-entry-status test-panel-entry-status-none';
+  header.appendChild(status);
+  var title = document.createElement('div');
+  title.className = 'test-panel-entry-text loading';
+  header.appendChild(title);
+  title.innerHTML = "Loading...";
+  this.element_ = elm;
+  this.getData().onValue(this, function (test) {
+    title.className = 'test-panel-entry-text';
+    title.innerHTML = test.getName() + " <span class='description'> - " + test.getDescription() + "</span>";
+    status.className = 'test-panel-entry-status test-panel-entry-status-' + test.getStatus();
+  });
+};
+
+TestPanelEntry.prototype.ensureDetails = function () {
+  if (this.details_) return;
+  this.details_ = document.createElement('table');
+  this.details_.className = 'test-panel-details';
+  var row = this.details_.insertRow();
+  var status = row.insertCell(0);
+  status.className = 'test-panel-entry-details-status';
+  var source = row.insertCell(1);
+  source.className = 'test-panel-source';
+  var sourceDiv = document.createElement('div');
+  sourceDiv.style.marginLeft = '3px';
+  source.appendChild(sourceDiv);
+  this.getData().onValue(this, function (test) {
+    var text = test.getSource();
+    sourceDiv.innerHTML = text.replace(/[\n\r\f]/g, '<br/>');
+  });
+};
+
+TestPanelEntry.prototype.showDetails = function () {
+  this.ensureDetails();
+  this.element_.appendChild(this.details_);
+};
+
+TestPanelEntry.prototype.hideDetails = function () {
+  this.element_.removeChild(this.details_);
+};
+
+TestPanelEntry.prototype.onClick = function () {
+  this.getData().onValue(this, function (test) {
+    if (this.isOpen_) {
+      this.hideDetails();
+    } else {
+      this.showDetails();
+    }
+    this.isOpen_ = !this.isOpen_;
+  });
+};
+
+TestPanelEntry.prototype.appendTo = function (elm) {
+  elm.appendChild(this.element_);
+};
+
+function ProgressBar(outer, label) {
+  this.outer_ = outer;
+  this.label_ = label;
+  this.control_ = new goog.ui.ProgressBar();
+  this.control_.decorate(this.outer_);
+}
+
+ProgressBar.prototype.setValue = function (value) {
+  this.control_.setValue(value);
+  this.label_.innerHTML = value + '%';
+};
+
+function start() {
+  run.start();
+}
+
+var run;
 function loaded() {
-  displayPlot();
-  displayResumeButton();
+  var selectors = ['browse', 'run', 'compare'];
+  var bevel = 10;
+  for (var i = 0; i < selectors.length; i++) {
+    (function () { // I really need an inner scope here!
+      var id = selectors[i];
+      var elm = goog.dom.getElement(id);
+      var panel = goog.ui.RoundedPanel.create(bevel, 1, '#cccccc', '#ffffff', 15);
+      elm.onclick = function () { window.location = '/' + id };
+      panel.decorate(elm);
+    })();
+  }
+  var mainPanel = goog.ui.RoundedPanel.create(bevel, 1, '#cccccc', '#ffffff', 15);
+  mainPanel.decorate(goog.dom.getElement('contents'));
+  var suite = new TestQuery(defaultTestSuite);
+  var runcontrols = gebi('runcontrols');
+  if (runcontrols) {
+    var bar = new ProgressBar(runcontrols, gebi('progress'));
+    bar.setValue(0);
+    run = new TestRun(suite, bar);
+  }
+  var testlist = gebi('testlist');
+  if (testlist) {
+    var output = new TestPanel(run.getResultData(), testlist);
+    output.addPendingEntries();
+    run.setTestList(output);
+  }
+  var button = gebi('button');
+  var b = goog.ui.decorate(button);
+  goog.events.listen(b, goog.ui.Component.EventType.ACTION, function (e) {
+    b.setEnabled(false);
+    start();
+  });
 }

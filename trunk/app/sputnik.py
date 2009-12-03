@@ -101,7 +101,9 @@ class Sputnik(object):
     path = self.get_dynamic_path(name)
     return template.render(path, attribs)
 
-  def get_main_page(self, req):
+  def get_main_page(self, req, page):
+    if not page or page == 'run':
+      page = 'run'
     req.response.headers['Content-Type'] = 'text/html'
     version = models.Version.get()
     if not version:
@@ -112,7 +114,7 @@ class Sputnik(object):
     if not suite:
       self.do_500(req, "Suite '%s' not found" % current)
       return
-    req.response.out.write(self.get_template('index.html', {
+    req.response.out.write(self.get_template('%s.html' % page, {
       'default_suite_json': suite.to_json()
     }))
 
@@ -217,7 +219,7 @@ def dispatcher(method):
 def initialize_application():
   sputnik = Sputnik()
   return webapp.WSGIApplication([
-      ('/', dispatcher(sputnik.get_main_page)),
+      ('/(\w*)', dispatcher(sputnik.get_main_page)),
       ('/debug.html', dispatcher(sputnik.get_debug_page)),
       (r'/cases/(\w+)/(\d+).html', dispatcher(sputnik.get_test_case_page)),
       (r'/cases/(\w+)/(\d+).js', dispatcher(sputnik.get_test_case_source)),
