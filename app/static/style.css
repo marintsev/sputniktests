@@ -1,98 +1,195 @@
-h1 {
-  font-size: 2em;
-  font-weight: bold;
-  color: #777777;
-  margin: 40px 0px 70px;
-  text-align: center;
-  font-family: arial, sans-serif;
+html {
+  background: #f2f2f2;
 }
 
-.header {
-  font-size: 180%;
-  font-weight: bold;
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-div.content {
-  width: 450px;
-  height: 450px;
+#wrapper {
+  width: 675px;
+  margin: 20px auto 0px;
 }
 
-div.footer {
-  text-align: center;
-}
-
-div.progress {
-  background-color: white;
-  text-align: center;
-  width: 100%;
-  height: 16px;
-  border: 1px solid #93B4D9;
-  position: relative;
-  padding: 1px;
-}
-
-div.bar {
-  background-color: #93B4D9;
-  height: 100%;
+#contents {
   float: left;
-}
-
-span.label {
-  width: 100%;
-  float: left;
-  position: absolute;
+  height: 600px;
+  width: 640px;
   display: block;
+  margin-top: 20px;
 }
 
-.hidden {
-  display: none;
+#header {
+  font-size: 58px;
+  margin-top: 0px;
+  margin-bottom: 13px;
+  font-weight: normal;
 }
 
-#runControls, #runDetails {
-  text-align: left;
-}
-
-#total {
-  font-weight: bold;
-}
-
-.tableLabel {
-  width: 50%;
-}
-
-.tableValue {
-  width: 50%;
-  text-align: right;
-}
-
-.logLine {
-  white-space: nowrap;
-  border: 1px solid #c4c4c4;
-}
-
-.logLine:hover {
-  background: #f7f7c7;
+div.selector {
+  float: left;
+  display: block;
+  width: 200px;
+  height: 48px;
   cursor: pointer;
 }
 
-.log {
+.middle {
+  position: relative;
+  top: 50%;
+  margin-top: -0.55em;
+  text-align: center;
+}
+
+.middleSelector {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+#stats {
+  float: left;
+  margin-top: 10px;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  width: 600px;
+}
+
+#subheader {
+  font-weight: normal;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+div {
+
+}
+
+#runcontrols {
+  float: left;
+  margin: 20px 10px 0px 20px;
+  height: 20px;
+  width: 550px;
+}
+
+#startstop {
+  float: left;
+  margin-top: 20px;
+  height: 21px;
+  width: 35px;
+  text-align: right;
+  font-size: 10pt;
+}
+
+.goog-roundedpanel {
+   position: relative;
+   z-index: 0;
+}
+ 
+.goog-roundedpanel-background {
   width: 100%;
-  height: 100px;
+  height: 100%;
+  position: absolute;
+  top: 0px;
+  z-index: -1;
+}
+
+.progress-bar-horizontal {
+  position: relative;
+  border: 1px solid #949dad;
+  background: white;
+  padding: 1px;
+  overflow: hidden;
+  margin: 2px;
+}
+ 
+.progress-bar-horizontal {
+  height: 1.2em;
+}
+ 
+.progress-bar-thumb {
+  position: relative;
+  background: #d4e4ff;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+div.test-panel {
+  display: block;
+  border: 1px solid #cccccc;
+  height: 440px;
+  width: 600px;
+  margin-left: 20px;
   overflow: auto;
-  background: #f7f7f7;
 }
 
-.logTable {
+div.test-panel-entry {
+  border: 1px solid #cccccc;
+  margin: 1px;
+  overflow: hidden;
+}
+
+div.test-panel-entry-header {
   width: 100%;
-  table-layout: fixed;
-  display: table;
+  cursor: pointer;
+  height: 1.2em;
 }
 
-div.plotBox {
+div.test-panel-entry-header:hover {
+  background: #ffffee;
+}
+
+td.stat {
+  font-weight: bold;
   text-align: right;
 }
 
-span.topic {
-  font-weight: bold;
-  color: #214584;
+table.test-panel-details {
+  width: 100%;
+  border-top: 1px dashed #eeeeee;
+  margin: 0;
+  border-collapse: collapse;
+  font-family: courier;
+  font-size: 8pt;
+  overflow: hidden;
+}
+
+div.test-panel-entry-status {
+  float: left;
+  width: 10px;
+  height: 1.2em;
+  margin-right: 3px;
+}
+
+div.test-panel-entry-status-none {
+  background: #ebeff9;
+}
+
+div.test-panel-entry-status-failed {
+  background: #FFE3E3;
+}
+
+.test-panel-entry-details-status {
+  background: #ebeff9;
+  width: 10px;
+  height: 100%;
+  width: 8px;
+}
+
+div.test-panel-entry-text {
+  font-size: 10pt;
+  overflow: hidden;
+  height: 1.2em;
+}
+
+td.test-panel-source {
+  overflow: hidden;
+}
+
+span.description {
+  color: #777777;
+}
+
+div.loading {
+  color: #dddddd;
 }

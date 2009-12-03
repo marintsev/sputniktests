@@ -2,110 +2,33 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-
-    <link type="text/css" rel="stylesheet" href="http://www.google.com/tools/dlpage/res/c/css/goog.css">
-    <link type="text/css" rel="stylesheet" href="http://www.google.com/tools/dlpage/res/c/css/dlpage.css">
     <link rel="icon" type="image/ico" href="images/sputnik-16.ico">
     <link type="text/css" rel="stylesheet" href="static/style.css">
-
     <script type="text/javascript" src="static/sputnik.js"></script>
-    <script type="text/javascript" src="static/svg.js" data-path="static/"></script>
+    <script type="text/javascript" src="static/goog/base.js"></script>
     <script>
+      goog.require('goog.dom');
+      goog.require('goog.ui.RoundedPanel');
       var defaultTestSuite = {{default_suite_json}};
+      var activeTab = 'browse';
     </script>
-
     <title>Sputnik (BETA)</title>
   </head>
 
-  <!--                                           -->
-  <!-- The body can have arbitrary html, or      -->
-  <!-- you can leave the body empty if you want  -->
-  <!-- to create a completely dynamic UI.        -->
-  <!--                                           -->
   <body onload="loaded()">
-
-  <div id="container" style="font-size: 1.3em; margin-top: 10px;">
-  
-  <div id="header" style="height: 65px">
-  <table style="width: 100%">
-    <tr>
-      <td style="text-align: left">
-        <div class="header">Sputnik <span style="color:#990000">(BETA)</span></div>
-        <div><i>JavaScript Conformance</i></div>
-      </td>
-    </tr>
-  </table>
-  </div>
-
-  <div id="main" style="display: block">
-    <div id="content" class="content">
-      <div id="plotBox" class="plotBox">
+  <div id="wrapper">
+    <div>
+      <h1 id="header">Sputnik</h1>
+      <h2 id="subheader">JavaScript Conformance</h2>
+    </div>
+    <div class="selector" id="browse"><div class="middle">Browse</div></div>
+    <div class="selector" id="run"><div class="middle">Run</div></div>
+    <div class="selector" id="compare"><div class="middle">Compare</div></div>
+    <div id="contents">
+      <div id="testlist">
       </div>
     </div>
-    <div id="action" style="display: block">
-      <div id="blue" class="blue">
-        <div class="button">
-          <span><span><a href="javascript:run()">Run Sputnik Tests!</a></span></span>
-        </div>
-        <p>
-        <div id="message" style="text-align: left">
-          Run the Sputnik tests in your browser.  Running all 5300 sputnik tests takes a few minutes.
-          <p>
-          <div id="resumeControls" class="hidden">
-            Your last test run appears to have been interrupted while
-            running test number <span id="resumePoint">#</span>.  Keep
-            the box below checked to continue the previous session.
-            <p>
-            <input id="resume" type="checkbox" checked="true">Continue previous session.
-          </div>
-        </div>
-        <div id="runControls" class="hidden">
-          <div id="progressPlaceholder"></div>
-          <p>
-          <a href="javascript:moreInfo()">Details &raquo;</a>
-        </div>
-        <div id="runDetails" class="hidden">
-          <p>
-          <table style="width: 100%;">
-            <tr><td class="tableLabel">Succeeded</td><td class="tableValue" id="succeeded">0</td></tr>
-            <tr><td class="tableLabel">Failed</td><td class="tableValue" id="failed">0</td></tr>
-            <tr><td class="tableLabel" style="font-weight: bold">Total</td><td class="tableValue" id="total">0</td></tr>
-          </table>
-          <p>
-          <div class="log">
-            <table class="logTable" id="errors"></table>
-          </div>
-        </div>
-      </div>
-      <p>
-      <span class="topic">Conformance.</span> Run Sputnik to check how your browser's
-      JavaScript implemtation conforms to the standard.
-      <p>
-      <span class="topic">Completeness.</span> Run Sputnik to do a complete test against
-      every corner of the ECMAScript specification.
-      <p>
-      <span class="topic">Comparison.</span> Run Sputnik to see how your browser's
-      JavaScript implementation compares with major browsers.
-      <p>
-      <a href="http://sputniktests.googlecode.com" target="_blank">Learn more about the Sputnik tests &raquo;</a>
-    </div>
   </div>
-
-  <div id="scratch"></div>  
-
-  <div id="footer" class="footer">
-    ©2009 Google
-    - <a href="http://www.google.com">Home</a>
-    - <a href="http://sputniktests.googlecode.com">Source</a>
-<!--
-    - <a href="debug.html">Debug</a>
-    - <a href="javascript:plotMatrix(results)">Matrix</a>
--->
-  </div>
-
-  <div id="workerRoot" class="hidden"></div>
-  
-  </div>
-
+  <div id="scratch"></div>
   </body>
 </html>
