@@ -15,7 +15,7 @@
       goog.require('goog.ui.CustomButtonRenderer');
       goog.require('goog.ui.decorate');
       var defaultTestSuite = {{default_suite_json}};
-      var activeTab = 'about';
+      var activeTab = 'run';
     </script>
     <title>Sputnik (BETA)</title>
   </head>
@@ -27,25 +27,13 @@
       <h2 id="subheader">JavaScript Conformance</h2>
     </div>
     <div class="selector" id="about"><div class="middle">About</div></div>
-    <div class="selector leftMargin selected" id="run"><div class="middle">Run</div></div>
-    <div class="selector leftMargin" id="browse"><div class="middle">Browse</div></div>
+    <div class="selector leftMargin" id="run"><div class="middle">Run</div></div>
+    <div class="selector leftMargin selected" id="browse"><div class="middle">Browse</div></div>
     <div class="selector leftMargin" id="compare"><div class="middle">Compare</div></div>
     <div id="contents">
-      <div id="runcontrols">
-        <div class="progress-bar-thumb"></div>
-        <div id="progress" style="position:absolute;top:0;text-align:center;width:100%;font:statusbar;padding:2px"></div>
+      <div id="testlist-toplevel">
+        <div id="testlist" class="high"></div>
       </div>
-      <div id="startstop"><div id="button" class="goog-custom-button">Start</div></div> 
-      <table id="stats">
-        <tr>
-          <td>Total:</td><td id="total" class="stat">0</td>
-        </tr><tr>
-          <td>Succeeded:</td><td id="succeeded" class="stat">0</td>
-        </tr><tr>
-          <td>Failed:</td><td id="failed" class="stat">0</td>
-        </tr>
-      </table>
-     <div id="testlist" class="low"></div>
     </div>
   </div>
   <div id="scratch"></div>

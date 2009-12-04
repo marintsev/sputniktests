@@ -94,6 +94,9 @@ class Sputnik(object):
     req.response.out.write(message)
     req.error(500)
 
+  def set_expiration(self, req, time=3600):
+    req.response.headers['cache-control'] = 'max-age=%d' % time
+
   def get_dynamic_path(self, name):
     return os.path.join(os.path.dirname(__file__), 'dynamic', name)
 
@@ -154,6 +157,7 @@ class Sputnik(object):
     req.response.out.write(case.source)
 
   def get_test_range_sources(self, req, suite, start, end):
+    self.set_expiration(req)
     req.response.headers['Content-Type'] = 'text/javascript'
     key = (suite, start, end)
     if not key in self._chunk_cache:

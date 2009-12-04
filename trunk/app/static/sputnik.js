@@ -4,7 +4,7 @@
 var kRotation = 2.14;
 var kIterations = 50;
 var kTestCaseChunkSize = 128;
-var kTestListAppendSize = 32;
+var kTestListAppendSize = 64;
 var kChunkAheadCount = 1;
 
 var plotter = null;
@@ -752,6 +752,14 @@ TestQuery.prototype.getTestCase = function (index) {
   return pResult;
 };
 
+TestQuery.prototype.getEntry = function (serial) {
+  var pResult = new Promise();
+  this.getTestCase(serial).onValue(this, function (test) {
+    pResult.fulfill(toDataEntry(test, TestPanelEntry.NONE));
+  });
+  return pResult;
+};
+
 TestQuery.prototype.getSuiteName = function () {
   return this.suite_.name;
 };
@@ -984,15 +992,19 @@ TestRunData.prototype.size = function () {
   return this.run_.failedTests_.length;
 };
 
+function toDataEntry(test, status) {
+  return {
+    getName: function () { return test.getName(); },
+    getDescription: function () { return test.getDescription(); },
+    getSource: function () { return test.getSource(); },
+    getStatus: function () { return status; }
+  };
+}
+
 TestRunData.prototype.getEntry = function (serial) {
   var pResult = new Promise();
   this.run_.getTestCase(this.run_.failedTests_[serial]).onValue(this, function (test) {
-    pResult.fulfill({
-      getName: function () { return test.getName(); },
-      getDescription: function () { return test.getDescription(); },
-      getSource: function () { return test.getSource(); },
-      getStatus: function () { return TestPanelEntry.FAILED; }
-    });
+    pResult.fulfill(toDataEntry(test, TestPanelEntry.FAILED));
   });
   return pResult;
 };
@@ -1103,7 +1115,7 @@ function TestPanel(data, element) {
 
 TestPanel.prototype.decorate = function () {
   var elm = this.element_;
-  elm.className = 'test-panel';
+  elm.className += ' test-panel';
   var self = this;
   elm.onscroll = function (event) { self.onScroll(event); };
   this.element_ = elm;
@@ -1116,7 +1128,7 @@ TestPanel.prototype.onScroll = function (event) {
     this.targetCount_ = this.entries_.length + kTestListAppendSize;
     this.addPendingEntries();
   }
-}
+};
 
 TestPanel.prototype.element = function () {
   return this.element_;
@@ -1226,12 +1238,12 @@ ProgressBar.prototype.setValue = function (value) {
 };
 
 function start() {
-  run.start();
+  testRun.start();
 }
 
-var run;
+var testRun;
 function loaded() {
-  var selectors = ['browse', 'run', 'compare'];
+  var selectors = ['about', 'browse', 'run', 'compare'];
   var bevel = 10;
   for (var i = 0; i < selectors.length; i++) {
     (function () { // I really need an inner scope here!
@@ -1249,13 +1261,20 @@ function loaded() {
   if (runcontrols) {
     var bar = new ProgressBar(runcontrols, gebi('progress'));
     bar.setValue(0);
-    run = new TestRun(suite, bar);
+    testRun = new TestRun(suite, bar);
   }
   var testlist = gebi('testlist');
   if (testlist) {
-    var output = new TestPanel(run.getResultData(), testlist);
+    var data;
+    if (testRun) {
+      data = testRun.getResultData();
+    } else {
+      data = suite;
+    }
+    var output = new TestPanel(data, testlist);
     output.addPendingEntries();
-    run.setTestList(output);
+    if (testRun)
+      testRun.setTestList(output);
   }
   var button = gebi('button');
   var b = goog.ui.decorate(button);
