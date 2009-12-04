@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="icon" type="image/ico" href="images/sputnik-16.ico">
+    <link type="text/css" rel="stylesheet" href="static/style.css">
+    <link type="text/css" rel="stylesheet" href="static/button.css">
+    <script type="text/javascript" src="static/sputnik.js"></script>
+    <script type="text/javascript" src="static/goog/base.js"></script>
+    <script>
+      goog.require('goog.dom');
+      goog.require('goog.ui.RoundedPanel');
+      goog.require('goog.ui.ProgressBar');
+      goog.require('goog.ui.CustomButton');
+      goog.require('goog.ui.CustomButtonRenderer');
+      goog.require('goog.ui.decorate');
+      var defaultTestSuite = {{default_suite_json}};
+      var activeTab = 'run';
+    </script>
+    <title>Sputnik (BETA)</title>
+  </head>
+
+  <body onload="loaded()">
+  <div id="wrapper">
+    <div>
+      <h1 id="header">Sputnik</h1>
+      <h2 id="subheader">JavaScript Conformance</h2>
+    </div>
+    <div class="selector selected" id="about"><div class="middle">About</div></div>
+    <div class="selector leftMargin" id="run"><div class="middle">Run</div></div>
+    <div class="selector leftMargin" id="browse"><div class="middle">Browse</div></div>
+    <div class="selector leftMargin" id="compare"><div class="middle">Compare</div></div>
+    <div id="contents">
+      <div id="about-text">
+        <h2>What is Sputnik?</h2>
+        Sputnik is a JavaScript 3 conformance test suite.  The purpose
+        of the test suite is to determine how well a JavaScript
+        implementation adheres to
+        the <a href="http://www.ecma-international.org/publications/standards/Ecma-262.htm">ECMA-262</a>
+        specification, 3rd edition. It contains over 5000 tests that
+        touch all aspects of the JavaScript language.
+
+        <h2>What is this site?</h2>
+
+        This site allows you to run the sputnik tests, browser the
+        individual tests in the test suite, and to compare the most
+        popular browser's test results.
+
+        <h3>Run</h3>
+        
+        On the <a href="run">run</a> page you can run the full test
+        suite in your browser and browse the failing tests.  Note that
+        running the tests is a fairly strenuous exercise for a browser
+        and will cause some browsers, particularly older ones, to
+        crash or stall.  If this happens you can close and reopen your
+        browser and continue running where you left off.
+
+        <h3>Browse</h3>
+
+        The <a href="browse">browse</a> page allows you to browse all
+        the tests.  Currently you can just see the name, description
+        and source code for each test.
+
+        <h3>Compare</h3>
+
+        The <a href="compare">compare</a> page shows an experimental
+        plot illustrating how popular browsers perform compared to
+        each other.
+
+        <ul>
+          <li>The distance to the center shows how close the browser
+            is to passing all tests.  The further the browser is from
+            the center the more tests it fails.
+
+          <li>The distance between browsers shows how similar browsers
+            are.  The more similar two browsers are - the more
+            test failures they have in common - the closer they will
+            be.
+        </ul>
+
+      </div>
+    </div>
+  </div>
+  <div id="scratch"></div>
+  <div id="workerRoot" style="visibility: hidden; position: absolute;"></div>
+  </body>
+</html>

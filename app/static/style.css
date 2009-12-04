@@ -6,6 +6,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+#about-text {
+  margin: 20px;
+  text-align: justify;
+}
+
 #wrapper {
   width: 675px;
   margin: 20px auto 0px;
@@ -29,7 +34,7 @@ body {
 div.selector {
   float: left;
   display: block;
-  width: 200px;
+  width: 145px;
   height: 48px;
   cursor: pointer;
 }
@@ -41,9 +46,8 @@ div.selector {
   text-align: center;
 }
 
-.middleSelector {
+.leftMargin {
   margin-left: 20px;
-  margin-right: 20px;
 }
 
 #stats {
@@ -105,6 +109,11 @@ div {
 .progress-bar-horizontal {
   height: 1.2em;
 }
+
+.selected {
+  font-weight: bold;
+  font-size: 120%;
+}
  
 .progress-bar-thumb {
   position: relative;
@@ -114,10 +123,21 @@ div {
   height: 100%;
 }
 
+#testlist-toplevel {
+  margin-top: 20px;
+}
+
+div.high {
+  height: 560px;
+}
+
+div.low {
+  height: 453px;
+}
+
 div.test-panel {
   display: block;
   border: 1px solid #cccccc;
-  height: 440px;
   width: 600px;
   margin-left: 20px;
   overflow: auto;
