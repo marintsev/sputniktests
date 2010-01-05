@@ -74,9 +74,8 @@ class Point(object):
   def icon(self):
     return self.app.get_icon(self.type)
 
-  def bullet(self):
-    type = abs(int(self.x) + int(self.y)) % 2
-    return self.app.get_icon('bullet%i' % (type + 1))
+  def type(self):
+    return self.type
 
 
 class Sputnik(object):
@@ -105,8 +104,8 @@ class Sputnik(object):
     return template.render(path, attribs)
 
   def get_main_page(self, req, page):
-    if not page or page == 'run':
-      page = 'run'
+    if not page:
+      page = 'about'
     req.response.headers['Content-Type'] = 'text/html'
     version = models.Version.get()
     if not version:

@@ -213,3 +213,8 @@ span.description {
 div.loading {
   color: #dddddd;
 }
+
+#plotBox {
+  margin-top: 50px;
+  margin-left: 70px;
+}

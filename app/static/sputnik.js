@@ -259,17 +259,17 @@ Plotter.prototype.getUrl = function () {
 };
 
 Plotter.prototype.placeFixpoints = function () {
-  var scores = plotter.calcDistanceMatrix();
-  plotter.calcInitialPositions(scores);
-  plotter.runLassesSpringyAlgorithm(scores, true);
+  var scores = this.calcDistanceMatrix();
+  this.calcInitialPositions(scores);
+  this.runLassesSpringyAlgorithm(scores, true);
   for (var i = 0; i < this.positions.length; i++)
     this.positions[i].isFixed = true;
 };
 
 Plotter.prototype.displayOn = function (root) {
   var elm = document.createElement('object', true);
-  elm.setAttribute('width', 450);
-  elm.setAttribute('height', 450);
+  elm.setAttribute('width', 500);
+  elm.setAttribute('height', 500);
   elm.setAttribute('data', "compare/plot.svg?m=" + this.getUrl());
   elm.setAttribute('type', "image/svg+xml");
   elm.setAttribute('id', 'plot');
@@ -410,17 +410,6 @@ function parseJson(str) {
   return result;
 }
 
-function request(path, onDone) {
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState == 4 && xhr.status == 200) {
-      onDone(parseJson(xhr.responseText));
-    }
-  };
-  xhr.open("GET", path, true);
-  xhr.send();
-}
-
 function reportError(str) {
   alert(str);
 }
@@ -520,11 +509,15 @@ Runner.prototype.testCompleted = function () {
 };
 
 Runner.prototype.testFailed = function (message) {
+  this.recordFailure(message);
+  throw new SputnikTestFailed(message);
+};
+
+Runner.prototype.recordFailure = function (message) {
   if (!this.hasFailed_) {
     this.hasFailed_ = true;
     this.failedMessage_ = message;
   }
-  throw new SputnikTestFailed(message);
 };
 
 Runner.prototype.hasUnexpectedResult = function () {
@@ -535,7 +528,11 @@ Runner.prototype.hasUnexpectedResult = function () {
 
 Runner.prototype.inject = function (code) {
   var doc = this.iframe_.contentWindow.document;
-  doc.write('<script>' + code + '</script>')
+  try {
+    doc.write('<script>' + code + '</script>');
+  } catch (e) {
+    this.recordFailure(String(e));
+  }
 };
 
 Runner.prototype.schedule = function () {
@@ -621,16 +618,12 @@ Promise.prototype.onValue = function (self, fun) {
 };
 
 function makeRequest(path) {
-  var result = new Promise();
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState == 4 && xhr.status == 200) {
-      result.fulfill(parseJson(xhr.responseText));
-    }
-  };
-  xhr.open("GET", path, true);
-  xhr.send("");
-  return result;
+  var pResult = new Promise();
+  goog.net.XhrIo.send(path, function () {
+    var obj = this.getResponseJson();
+    pResult.fulfill(obj);
+  });
+  return pResult;
 }
 
 function TestCase(run, serial, data) {
@@ -938,11 +931,13 @@ function parseTestSignature(count, data) {
 }
 
 TestRun.prototype.allDone = function () {
-  alert("allDone");
+  /*
   var signature = this.getSignature(this.suite_.count);
   var sigDiv = document.createElement('div');
   sigDiv.innerHTML = "[" + signature + "]";
   document.body.appendChild(sigDiv);
+  */
+  this.progress_.setText("Done");
   storedTestStatus.clear();
 };
 
@@ -1234,7 +1229,11 @@ function ProgressBar(outer, label) {
 
 ProgressBar.prototype.setValue = function (value) {
   this.control_.setValue(value);
-  this.label_.innerHTML = value + '%';
+  this.setText(value + '%');
+};
+
+ProgressBar.prototype.setText = function (value) {
+  this.label_.innerHTML = value;
 };
 
 function start() {
@@ -1277,9 +1276,17 @@ function loaded() {
       testRun.setTestList(output);
   }
   var button = gebi('button');
-  var b = goog.ui.decorate(button);
-  goog.events.listen(b, goog.ui.Component.EventType.ACTION, function (e) {
-    b.setEnabled(false);
-    start();
-  });
+  if (button) {
+    var b = goog.ui.decorate(button);
+    goog.events.listen(b, goog.ui.Component.EventType.ACTION, function (e) {
+      b.setEnabled(false);
+      start();
+    });
+  }
+  var plotBox = gebi('plotBox');
+  if (plotBox) {
+    var plotter = new Plotter(results);
+    plotter.placeFixpoints();
+    plotter.displayOn(plotBox);
+  }
 }
