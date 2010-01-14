@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="icon" type="image/ico" href="images/sputnik-16.ico">
+    <link type="text/css" rel="stylesheet" href="static/style.css">
+    <link type="text/css" rel="stylesheet" href="static/button.css">
+    <link type="text/css" rel="stylesheet" href="static/prettify.css">
+    <script type="text/javascript" src="static/closure.js"></script>
+    <script type="text/javascript" src="static/sputnik.js"></script>
+    <script type="text/javascript" src="static/svg.js" data-path="static/"></script>
+    <script type="text/javascript" src="static/prettify.js"></script>
+    <script>
+      var defaultTestSuite = {{default_suite_json}};
+      var pageName = {{page_name}};
+    </script>
+    <title>Sputnik</title>
+  </head>
+  <body onload="loaded()" onunload="movingOn()">
+    <div id="wrapper">
+      <div>
+        <h1 id="header">Sputnik</h1>
+        <h2 id="subheader">JavaScript Conformance</h2>
+      </div>
+      <div class="selector" id="about"><div class="middle">About</div></div>
+      <div class="selector leftMargin" id="run"><div class="middle">Run</div></div>
+      <div class="selector leftMargin" id="browse"><div class="middle">Browse</div></div>
+      <div class="selector leftMargin" id="compare"><div class="middle">Compare</div></div>
+      <script>gebi(pageName).className += ' selected';</script>
+      <div id="contents">
+{{contents}}
+      </div>
+      <div id="footer">
+        <a href="http://www.google.com">Home</a>
+        - <a href="http://sputniktests.googlecode.com">Source</a>
+      </div>
+      <div id="scratch"></div>
+      <div id="workerRoot" style="visibility: hidden; position: absolute;"></div>
+    </div>
+  </body>
+</html>

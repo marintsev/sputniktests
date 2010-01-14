@@ -1,36 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link rel="icon" type="image/ico" href="images/sputnik-16.ico">
-    <link type="text/css" rel="stylesheet" href="static/style.css">
-    <link type="text/css" rel="stylesheet" href="static/button.css">
-    <script type="text/javascript" src="static/sputnik.js"></script>
-    <script type="text/javascript" src="static/closure.js"></script>
-    <script>
-      var defaultTestSuite = {{default_suite_json}};
-      var activeTab = 'browse';
-    </script>
-    <title>Sputnik (BETA)</title>
-  </head>
-
-  <body onload="loaded()">
-  <div id="wrapper">
-    <div>
-      <h1 id="header">Sputnik</h1>
-      <h2 id="subheader">JavaScript Conformance</h2>
-    </div>
-    <div class="selector" id="about"><div class="middle">About</div></div>
-    <div class="selector leftMargin" id="run"><div class="middle">Run</div></div>
-    <div class="selector leftMargin selected" id="browse"><div class="middle">Browse</div></div>
-    <div class="selector leftMargin" id="compare"><div class="middle">Compare</div></div>
-    <div id="contents">
-      <div id="testlist-toplevel">
-        <div id="testlist" class="high"></div>
-      </div>
+<div style="width: 800px">
+  <div id="testlist-toplevel">
+    <div id="testlist" class="high"></div>
+  </div>
+  <div class="description">
+    <div class="description-text">
+      The list above contains all test cases.  Click on a test case to
+      see the source code.
     </div>
   </div>
-  <div id="scratch"></div>
-  <div id="workerRoot" style="visibility: hidden; position: absolute;"></div>
-  </body>
-</html>
+</div>

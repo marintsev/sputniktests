@@ -16,6 +16,14 @@ body {
   margin: 20px auto 0px;
 }
 
+#footer {
+  width: 675px;
+  margin: 20px auto 0px;
+  float: left;
+  display: block;
+  text-align: center;
+}
+
 #contents {
   float: left;
   height: 600px;
@@ -51,11 +59,15 @@ div.selector {
 }
 
 #stats {
-  float: left;
   margin-top: 10px;
   margin-left: 20px;
   margin-bottom: 10px;
-  width: 600px;
+  width: 604px;
+}
+
+#next {
+  display: block;
+  float: left;
 }
 
 #subheader {
@@ -64,31 +76,32 @@ div.selector {
   margin-bottom: 20px;
 }
 
-div {
-
-}
-
 #runcontrols {
   float: left;
-  margin: 20px 10px 0px 20px;
+  margin: 20px 0px 0px 20px;
   height: 20px;
-  width: 550px;
+  width: 450px;
 }
 
-#startstop {
+#startstop, #reset {
   float: left;
   margin-top: 20px;
+  margin-left: 10px;
   height: 21px;
-  width: 35px;
   text-align: right;
   font-size: 10pt;
+}
+
+.goog-custom-button-inner-box {
+  width: 55px;
+  text-align: center;
 }
 
 .goog-roundedpanel {
    position: relative;
    z-index: 0;
 }
- 
+
 .goog-roundedpanel-background {
   width: 100%;
   height: 100%;
@@ -105,7 +118,7 @@ div {
   overflow: hidden;
   margin: 2px;
 }
- 
+
 .progress-bar-horizontal {
   height: 1.2em;
 }
@@ -128,11 +141,17 @@ div {
 }
 
 div.high {
-  height: 560px;
+  height: 429px;
 }
 
 div.low {
-  height: 453px;
+  display: block;
+  float: left;
+  height: 323px;
+}
+
+#testlist {
+  display: block;
 }
 
 div.test-panel {
@@ -141,6 +160,11 @@ div.test-panel {
   width: 600px;
   margin-left: 20px;
   overflow: auto;
+}
+
+div.list-label {
+  margin-left: 20px;
+  color: #cccccc;
 }
 
 div.test-panel-entry {
@@ -181,19 +205,20 @@ div.test-panel-entry-status {
   margin-right: 3px;
 }
 
-div.test-panel-entry-status-none {
+.test-panel-entry-status-none {
   background: #ebeff9;
 }
 
-div.test-panel-entry-status-failed {
+.test-panel-entry-status-failed {
   background: #FFE3E3;
 }
 
+.test-panel-entry-status-blacklisted {
+  background: #999999;
+}
+
 .test-panel-entry-details-status {
-  background: #ebeff9;
-  width: 10px;
   height: 100%;
-  width: 8px;
 }
 
 div.test-panel-entry-text {
@@ -210,11 +235,28 @@ span.description {
   color: #777777;
 }
 
-div.loading {
+div.source {
+  margin-left: 3px;
+}
+
+.loading {
   color: #dddddd;
 }
 
 #plotBox {
-  margin-top: 50px;
-  margin-left: 70px;
+  margin-top: 10px;
+  margin-left: 95px;
+}
+
+div.description {
+  width: 600px;
+  margin: 20px;
+  border-top: 1px dashed gray;
+  display: block;
+  float: left;
+}
+
+div.description-text {
+  text-align: justify;
+  margin-top: 15px;
 }

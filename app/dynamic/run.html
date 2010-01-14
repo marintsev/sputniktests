@@ -1,56 +1,38 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link rel="icon" type="image/ico" href="images/sputnik-16.ico">
-    <link type="text/css" rel="stylesheet" href="static/style.css">
-    <link type="text/css" rel="stylesheet" href="static/button.css">
-    <script type="text/javascript" src="static/sputnik.js"></script>
-    <script type="text/javascript" src="static/closure.js"></script>
-    <script>
-      <!--
-      goog.require('goog.dom');
-      goog.require('goog.ui.RoundedPanel');
-      goog.require('goog.ui.ProgressBar');
-      goog.require('goog.ui.CustomButton');
-      goog.require('goog.ui.CustomButtonRenderer');
-      goog.require('goog.ui.decorate');
-      goog.require('goog.net.XhrIo');
-      -->
-      var defaultTestSuite = {{default_suite_json}};
-    </script>
-    <title>Sputnik (BETA)</title>
-  </head>
-
-  <body onload="loaded()">
-  <div id="wrapper">
-    <div>
-      <h1 id="header">Sputnik</h1>
-      <h2 id="subheader">JavaScript Conformance</h2>
-    </div>
-    <div class="selector" id="about"><div class="middle">About</div></div>
-    <div class="selector leftMargin selected" id="run"><div class="middle">Run</div></div>
-    <div class="selector leftMargin" id="browse"><div class="middle">Browse</div></div>
-    <div class="selector leftMargin" id="compare"><div class="middle">Compare</div></div>
-    <div id="contents">
-      <div id="runcontrols">
-        <div class="progress-bar-thumb"></div>
-        <div id="progress" style="position:absolute;top:0;text-align:center;width:100%;font:statusbar;padding:2px"></div>
-      </div>
-      <div id="startstop"><div id="button" class="goog-custom-button">Start</div></div> 
-      <table id="stats">
-        <tr>
-          <td>Total:</td><td id="total" class="stat">0</td>
-        </tr><tr>
-          <td>Succeeded:</td><td id="succeeded" class="stat">0</td>
-        </tr><tr>
-          <td>Failed:</td><td id="failed" class="stat">0</td>
-        </tr>
-      </table>
-     <div id="testlist" class="low"></div>
+<div style="width: 800px">
+  <div id="runcontrols">
+    <div class="progress-bar-thumb"></div>
+    <div id="progress" style="position:absolute;top:0;text-align:center;width:100%;font:statusbar;padding:2px"></div>
+  </div>
+  <div id="reset"><div id="resetbutton" class="goog-custom-button">Reset</div></div> 
+  <div id="startstop"><div id="button" class="goog-custom-button">Start</div></div> 
+  <div id="next">
+    <table id="stats">
+      <tr>
+        <td>Total:</td><td id="total" class="stat">0</td>
+      </tr><tr>
+        <td>Succeeded:</td><td id="succeeded" class="stat">0</td>
+      </tr><tr>
+        <td>Failed:</td><td id="failed" class="stat">0</td>
+      </tr>
+    </table>
+  </div>
+  <div>
+    <div id="testlist" class="low"></div>
+  </div>
+  <div class="description">
+    <div class="description-text">
+      <p>
+      Click <i>start</i> to run the full test suite in your browser.
+      Note that running the tests is a fairly strenuous exercise for a
+      browser and will cause some browsers, particularly older ones,
+      to crash or stall. If this happens you can close and reopen your
+      browser and continue running where you left off.
+      </p><p>
+      Failing tests will be added to the list above.  Tests that are
+      interrupted, for instance by crashing, are added to a blacklist
+      and won't be run again.  Clear the list of failures and the
+      blacklist by clicking <i>reset</i>.
+      </p>
     </div>
   </div>
-  <div id="scratch"></div>
-  <div id="workerRoot" style="visibility: hidden; position: absolute;"></div>
-  </body>
-</html>
+</div>

@@ -1,11 +1,24 @@
 // Copyright 2009 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
+/*
+http://closure-compiler.appspot.com/home
+
+Requires:
+goog.require('goog.dom');
+goog.require('goog.ui.RoundedPanel');
+goog.require('goog.ui.ProgressBar');
+goog.require('goog.ui.CustomButton');
+goog.require('goog.ui.decorate');
+goog.require('goog.ui.Tooltip');
+goog.require('goog.net.XhrIo');
+*/
+
 var kRotation = 2.14;
 var kIterations = 50;
 var kTestCaseChunkSize = 128;
 var kTestListAppendSize = 64;
-var kChunkAheadCount = 1;
+var kChunkAheadCount = 2;
 
 var plotter = null;
 
@@ -15,29 +28,44 @@ function gebi(id) {
 
 function Persistent(key) {
   this.keyEq_ = key + "=";
+  this.hasValue_ = false;
+  this.value_ = undefined;
 }
 
 Persistent.prototype.get = function () {
-  var parts = document.cookie.split(/\s*;\s*/);
-  for (var i = 0; i < parts.length; i++) {
-    if (parts[i].substring(0, this.keyEq_.length) == this.keyEq_)
-      return parts[i].substring(this.keyEq_.length);
+  if (!this.hasValue_) {
+    this.hasValue_ = true;
+    var parts = document.cookie.split(/\s*;\s*/);
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].substring(0, this.keyEq_.length) == this.keyEq_) {
+        this.value_ = parts[i].substring(this.keyEq_.length);
+        break;
+      }
+    }
   }
+  return this.value_;
 };
 
 Persistent.prototype.set = function (value, expiryHoursOpt) {
+  this.hasValue_ = true;
+  this.value_ = value;
   var expiryHours = expiryHoursOpt || 6;
   var date = new Date();
   date.setTime(date.getTime() + (expiryHours * 60 * 60 * 1000));
   var expiry = "expires=" + date.toGMTString();
-  document.cookie = this.keyEq_ + value + ";" + expiry + "; path=/";
+  var value = this.keyEq_ + value + ";" + expiry + "; path=/";
+  document.cookie = value;
 };
 
 Persistent.prototype.clear = function () {
   document.cookie = this.keyEq_ + "; path=/";
+  this.hasValue_ = true;
+  this.value_ = undefined;
 };
 
+var storedTestRunning = new Persistent("sputnik_test_running");
 var storedTestStatus = new Persistent("sputnik_test_status");
+var storedBlacklist = new Persistent("sputnik_blacklist");
 
 function SputnikTestFailed(message) {
   this.message_ = message;
@@ -268,13 +296,19 @@ Plotter.prototype.placeFixpoints = function () {
 
 Plotter.prototype.displayOn = function (root) {
   var elm = document.createElement('object', true);
-  elm.setAttribute('width', 500);
-  elm.setAttribute('height', 500);
+  elm.setAttribute('width', 450);
+  elm.setAttribute('height', 438);
   elm.setAttribute('data', "compare/plot.svg?m=" + this.getUrl());
   elm.setAttribute('type', "image/svg+xml");
   elm.setAttribute('id', 'plot');
+  elm.setAttribute('onload', 'plotLoaded()');
   svgweb.appendChild(elm, root);
 };
+
+function plotLoaded() {
+  var elm = gebi('plot').contentDocument.getElementById('cm');
+  elm.style.cursor = 'pointer';
+}
 
 Plotter.prototype.placeByDistance = function (distances) {
   return this.runLassesSpringyAlgorithm(distances, false);
@@ -492,6 +526,7 @@ Runner.prototype.hasFailed = function () {
 
 Runner.prototype.testStart = function () {
   this.start_ = new Date();
+  storedTestRunning.set(this.serial_);
 };
 
 Runner.prototype.testDone = function () {
@@ -622,7 +657,7 @@ function makeRequest(path) {
   goog.net.XhrIo.send(path, function () {
     var obj = this.getResponseJson();
     pResult.fulfill(obj);
-  });
+  }, 'GET', undefined, undefined, 0);
   return pResult;
 }
 
@@ -649,6 +684,10 @@ TestCase.prototype.getSource = function () {
 
 TestCase.prototype.getName = function () {
   return this.data_.name;
+};
+
+TestCase.prototype.getSerial = function () {
+  return this.serial_;
 };
 
 TestCase.prototype.getDescription = function () {
@@ -771,10 +810,16 @@ function TestRun(data, progress) {
   this.runs_ = {};
   this.abort_ = false;
   this.passFailVector_ = [];
+  this.paused_ = false;
 }
 
-TestRun.prototype.start = function () {
+TestRun.prototype.resume = function () {
+  this.paused_ = false;
   this.scheduleNextTest();
+};
+
+TestRun.prototype.pause = function () {
+  this.paused_ = true;
 };
 
 TestRun.prototype.runTest = function (serial, testCase) {
@@ -792,7 +837,14 @@ TestRun.prototype.calculateCurrentDistances = function (plotter) {
 };
 
 TestRun.prototype.scheduleNextTest = function () {
-  if (this.current_ >= this.size()) return;
+  if (this.paused_)
+    return;
+  while (blacklist.contains(this.current_)) {
+    var serial = this.current_++;
+    this.addMockTest(serial, true);
+  }
+  if (this.current_ >= this.size())
+    return;
   var serial = this.current_++;
   var pDelay = delay();
   pDelay.onValue(this, function () {
@@ -823,14 +875,55 @@ function parseTestResults(progress) {
   return bits;
 }
 
+function Blacklist(store) {
+  this.store_ = store;
+  var str = store.get();
+  if (str) {
+    this.value_ = str.split(':');
+  } else {
+    this.value_ = [];
+  }
+  this.map_ = {};
+  for (var i = 0; i < this.value_.length; i++) {
+    this.map_[this.value_[i]] = true;
+  }
+};
+
+Blacklist.prototype.initialize = function () {
+  var str = storedTestRunning.get();
+  storedTestRunning.clear();
+  if (str)
+    this.push(str);
+};
+
+Blacklist.prototype.push = function (i) {
+  if (this.contains(i))
+    return;
+  this.value_.push(i);
+  this.store_.set(this.value_.join(':'));
+  this.map_[i] = true;
+};
+
+Blacklist.prototype.contains = function (value) {
+  return !!this.map_[value];
+};
+
+Blacklist.prototype.isEmpty = function () {
+  return this.value_.length == 0;
+};
+
+var blacklist = new Blacklist(storedBlacklist);
+
+TestRun.prototype.addMockTest = function (i, hasFailed) {
+  var runner = new MockRunner(i, hasFailed);
+  this.testDone(runner, true);
+};
+
 TestRun.prototype.fastForward = function (target) {
   var bits = target.getVector();
   // We force the last test to have been failed.
-  bits.push(false);
-  for (var i = 0; i < bits.length; i++) {
-    var runner = new MockRunner(i, bits[i]);
-    this.testDone(runner, true);
-  }
+  for (var i = 0; i < bits.length; i++)
+    this.addMockTest(i, bits[i]);
   this.current_ = bits.length;
   this.updateUi();
 };
@@ -939,9 +1032,10 @@ TestRun.prototype.allDone = function () {
   */
   this.progress_.setText("Done");
   storedTestStatus.clear();
+  testControls.allDone();
 };
 
-TestRun.prototype.updateCounts = function (runner) {
+TestRun.prototype.updateCounts = function (runner, silent) {
   this.doneCount_++;
   var hadUnexpectedResult = runner.hasUnexpectedResult();
   this.passFailVector_[runner.serial_] = !hadUnexpectedResult;
@@ -953,12 +1047,14 @@ TestRun.prototype.updateCounts = function (runner) {
   } else {
     this.succeededCount_++;
   }
-  var resultSignature = this.getSignature(runner.serial_);
-  storedTestStatus.set(resultSignature);
+  if (!silent) {
+    var resultSignature = this.getSignature(runner.serial_);
+    storedTestStatus.set(resultSignature);
+  }
 };
 
 TestRun.prototype.testDone = function (runner, silent) {
-  this.updateCounts(runner);
+  this.updateCounts(runner, silent);
   if (!silent)
     this.updateUi();
   if (this.doneCount_ >= this.size()) {
@@ -999,105 +1095,15 @@ function toDataEntry(test, status) {
 TestRunData.prototype.getEntry = function (serial) {
   var pResult = new Promise();
   this.run_.getTestCase(this.run_.failedTests_[serial]).onValue(this, function (test) {
-    pResult.fulfill(toDataEntry(test, TestPanelEntry.FAILED));
+    var isBlacklisted = blacklist.contains(test.getSerial());
+    var status = isBlacklisted ? TestPanelEntry.BLACKLISTED : TestPanelEntry.FAILED;
+    pResult.fulfill(toDataEntry(test, status));
   });
   return pResult;
 };
 
-function Crosshair() {
-  try {
-    this.element_ = this.makeElement();
-  } catch (e) {
-    this.element_ = null;
-  }
-}
-
-Crosshair.prototype.makeElement = function () {
-  function color(c) {
-    c.setAttribute('stroke-width', 0.25);
-    c.setAttribute('stroke', '#ff0000');
-    c.setAttribute('opacity', 0.5);
-    c.setAttribute('fill', 'none');
-  }
-  var g = document.createElementNS(svgns, 'g');
-  var c1 = document.createElementNS(svgns, 'circle');
-  c1.setAttribute('cx', 0);
-  c1.setAttribute('cy', 0);
-  c1.setAttribute('r', 1);
-  color(c1);
-  g.appendChild(c1);
-  var c2 = document.createElementNS(svgns, 'circle');
-  c2.setAttribute('cx', 0);
-  c2.setAttribute('cy', 0);
-  c2.setAttribute('r', 2);
-  color(c2);
-  g.appendChild(c2);
-  var l1 = document.createElementNS(svgns, 'line');
-  l1.setAttribute('x1', -3);
-  l1.setAttribute('y1', 0);
-  l1.setAttribute('x2', 3);
-  l1.setAttribute('y2', 0);
-  color(l1);
-  g.appendChild(l1);
-  var l2 = document.createElementNS(svgns, 'line');
-  l2.setAttribute('x1', 0);
-  l2.setAttribute('y1', -3);
-  l2.setAttribute('x2', 0);
-  l2.setAttribute('y2', 3);
-  color(l2);
-  g.appendChild(l2);
-  return g;
-};
-
-Crosshair.prototype.setPosition = function (x, y) {
-  try {
-    var transform = 'translate(' + x + ',' + y + ')'
-    this.element_.setAttribute('transform', transform);
-  } catch (e) {
-    // ignore
-  }
-};
-
-Crosshair.prototype.appendTo = function (root) {
-  try {
-    root.appendChild(this.element_);
-  } catch (e) {
-    // ignore
-  }
-};
-
 function moreInfo() {
   gebi('runDetails').className = undefined;
-}
-
-function run() {
-  // Resume if required
-  var storedStatus = storedTestStatus.get();
-  var doResume = storedStatus && gebi('resume').checked;
-  var lastResult;
-  if (doResume)
-    lastResult = new TestRunSignature(storedStatus);
-
-  // Create crosshair
-  var p = document.getElementById('plot');
-  var crosshair = new Crosshair();
-  crosshair.setPosition(50, 50);
-  var l = p.contentDocument.getElementById('outer');
-  crosshair.appendTo(l);
-
-
-  var runControls = gebi('runControls');
-  runControls.className = undefined;
-  gebi('message').className = "hidden";
-  var progress = new ProgressBar();
-  progress.replaceInto(runControls, gebi('progressPlaceholder'));
-  var testRun = new TestRun(defaultTestSuite,
-                            progress,
-                            crosshair);
-  if (doResume)
-    testRun.fastForward(lastResult);
-
-  testRun.start();
 }
 
 function TestPanel(data, element) {
@@ -1107,6 +1113,17 @@ function TestPanel(data, element) {
   this.targetCount_ = kTestListAppendSize;
   this.decorate();
 }
+
+TestPanel.prototype.clear = function () {
+  var node = this.element_;
+  while (node.hasChildNodes())
+    node.removeChild(node.firstChild);
+  this.entries_ = [];
+};
+
+TestPanel.prototype.setData = function (value) {
+  this.data_ = value;
+};
 
 TestPanel.prototype.decorate = function () {
   var elm = this.element_;
@@ -1148,6 +1165,7 @@ function TestPanelEntry(panel, serial) {
 
 TestPanelEntry.NONE = 'none';
 TestPanelEntry.FAILED = 'failed';
+TestPanelEntry.BLACKLISTED = 'blacklisted';
 
 TestPanelEntry.prototype.getData = function () {
   return this.panel_.data_.getEntry(this.serial_);
@@ -1182,17 +1200,25 @@ TestPanelEntry.prototype.ensureDetails = function () {
   if (this.details_) return;
   this.details_ = document.createElement('table');
   this.details_.className = 'test-panel-details';
-  var row = this.details_.insertRow();
+  var row = this.details_.insertRow(0);
   var status = row.insertCell(0);
-  status.className = 'test-panel-entry-details-status';
+  status.className = 'test-panel-entry-details-status loading';
+  // What fun, to have to do crap like this.  Grr.
+  var expander = document.createElement('div');
+  expander.style.width = '8px';
+  status.appendChild(expander);
   var source = row.insertCell(1);
   source.className = 'test-panel-source';
-  var sourceDiv = document.createElement('div');
-  sourceDiv.style.marginLeft = '3px';
+  var sourceDiv = document.createElement('pre');
+  sourceDiv.className = 'source prettyprint lang-js';
   source.appendChild(sourceDiv);
   this.getData().onValue(this, function (test) {
     var text = test.getSource();
     sourceDiv.innerHTML = text.replace(/[\n\r\f]/g, '<br/>');
+    status.className = 'test-panel-entry-details-status test-panel-entry-status-' + test.getStatus();
+    delay().onValue(this, function () {
+      prettyPrint();
+    });
   });
 };
 
@@ -1236,12 +1262,87 @@ ProgressBar.prototype.setText = function (value) {
   this.label_.innerHTML = value;
 };
 
-function start() {
-  testRun.start();
+function TestControls(start, reset, isContinuation) {
+  this.reset_ = reset;
+  this.start_ = start;
+  this.isContinuation_ = isContinuation;
+  this.startState_ = TestControls.STOPPED;
+  this.resetState_ = isContinuation ? TestControls.CLEAR : TestControls.NONE;
+};
+
+TestControls.STOPPED = 'stopped';
+TestControls.RUNNING = 'running';
+TestControls.DONE = 'done';
+TestControls.CLEAR = 'clear';
+TestControls.NONE = 'none';
+
+TestControls.prototype.initialize = function () {
+  if (this.resetState_ == TestControls.NONE)
+    this.reset_.setEnabled(false);
+  if (this.isContinuation_)
+    this.start_.setCaption("Resume");
+};
+
+TestControls.prototype.startClicked = function () {
+  if (this.startState_ == TestControls.STOPPED) {
+    this.startState_ = TestControls.RUNNING;
+    this.startTests();
+  } else if (this.startState_ == TestControls.RUNNING) {
+    this.startState_ = TestControls.STOPPED;
+    this.pauseTests();
+  }
+};
+
+TestControls.prototype.startTests = function () {
+  this.start_.setCaption("Pause");
+  this.reset_.setEnabled(false);
+  testRun.resume();
+};
+
+TestControls.prototype.pauseTests = function () {
+  this.start_.setCaption("Resume");
+  this.reset_.setEnabled(true);
+  testRun.pause();
+};
+
+TestControls.prototype.resetClicked = function () {
+  this.resetState_ = TestControls.NONE;
+  this.reset_.setEnabled(false);
+  this.start_.setCaption("Start");
+  this.start_.setEnabled(true);
+  this.clear();
+};
+
+TestControls.prototype.clear = function () {
+  testRun = new TestRun(testSuite, progressBar);
+  testOutput.clear();
+  testRun.setTestList(testOutput);
+  testOutput.setData(testRun.getResultData());
+  storedTestStatus.clear();
+  storedBlacklist.clear();
+  testRun.updateUi();
+};
+
+TestControls.prototype.allDone = function () {
+  this.startState_ = TestControls.STOPPED;
+  this.resetState_ = TestControls.CLEAR;
+  this.start_.setCaption("Done");
+  this.start_.setEnabled(false);
+  this.reset_.setEnabled(true);
+  storedTestRunning.clear();
+};
+
+function movingOn() {
+  storedTestRunning.clear();
 }
 
+var testSuite;
+var testOutput;
+var progressBar;
 var testRun;
+var testControls;
 function loaded() {
+  blacklist.initialize();
   var selectors = ['about', 'browse', 'run', 'compare'];
   var bevel = 10;
   for (var i = 0; i < selectors.length; i++) {
@@ -1256,13 +1357,16 @@ function loaded() {
   var mainPanel = goog.ui.RoundedPanel.create(bevel, 1, '#cccccc', '#ffffff', 15);
   mainPanel.decorate(goog.dom.getElement('contents'));
   var suite = new TestQuery(defaultTestSuite);
+  testSuite = suite;
   var runcontrols = gebi('runcontrols');
   if (runcontrols) {
     var bar = new ProgressBar(runcontrols, gebi('progress'));
+    progressBar = bar;
     bar.setValue(0);
     testRun = new TestRun(suite, bar);
   }
   var testlist = gebi('testlist');
+  var isContinuation = false;
   if (testlist) {
     var data;
     if (testRun) {
@@ -1270,17 +1374,31 @@ function loaded() {
     } else {
       data = suite;
     }
-    var output = new TestPanel(data, testlist);
-    output.addPendingEntries();
-    if (testRun)
-      testRun.setTestList(output);
+    testOutput = new TestPanel(data, testlist);
+    testOutput.addPendingEntries();
+    if (testRun) {
+      testRun.setTestList(testOutput);
+      var storedStatus = storedTestStatus.get();
+      if (storedStatus) {
+        isContinuation = true;
+        var signature = new TestRunSignature(storedStatus);
+        testRun.fastForward(signature);
+      }
+    }
   }
-  var button = gebi('button');
-  if (button) {
-    var b = goog.ui.decorate(button);
-    goog.events.listen(b, goog.ui.Component.EventType.ACTION, function (e) {
-      b.setEnabled(false);
-      start();
+  var startElement = gebi('button');
+  if (startElement) {
+    var resetElement = gebi('resetbutton');
+    var start = goog.ui.decorate(startElement);
+    var reset = goog.ui.decorate(resetElement);
+    var control = new TestControls(start, reset, isContinuation);
+    testControls = control;
+    control.initialize();
+    goog.events.listen(start, goog.ui.Component.EventType.ACTION, function (e) {
+      control.startClicked();
+    });
+    goog.events.listen(reset, goog.ui.Component.EventType.ACTION, function (e) {
+      control.resetClicked();
     });
   }
   var plotBox = gebi('plotBox');

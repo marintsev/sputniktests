@@ -106,6 +106,7 @@ class Sputnik(object):
   def get_main_page(self, req, page):
     if not page:
       page = 'about'
+    self.set_expiration(req, time=180)
     req.response.headers['Content-Type'] = 'text/html'
     version = models.Version.get()
     if not version:
@@ -116,8 +117,11 @@ class Sputnik(object):
     if not suite:
       self.do_500(req, "Suite '%s' not found" % current)
       return
-    req.response.out.write(self.get_template('%s.html' % page, {
-      'default_suite_json': suite.to_json()
+    inner = self.get_template('%s.html' % page, {})
+    req.response.out.write(self.get_template('page.html', {
+      'contents': inner,
+      'default_suite_json': suite.to_json(),
+      'page_name': '"%s"' % page
     }))
 
   def get_debug_page(self, req):
@@ -188,6 +192,7 @@ class Sputnik(object):
       return ''
 
   def get_comparison_plot(self, req):
+    self.set_expiration(req)
     req.response.headers['Content-Type'] = 'image/svg+xml'
     points = req.request.params.get('m', None)
     map = {
