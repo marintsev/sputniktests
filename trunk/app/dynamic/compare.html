@@ -1,33 +1,17 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link rel="icon" type="image/ico" href="images/sputnik-16.ico">
-    <link type="text/css" rel="stylesheet" href="static/style.css">
-    <link type="text/css" rel="stylesheet" href="static/button.css">
-    <script type="text/javascript" src="static/sputnik.js"></script>
-    <script type="text/javascript" src="static/closure.js"></script>
-    <script type="text/javascript" src="static/svg.js" data-path="static/"></script>
-    <script>
-      var defaultTestSuite = {{default_suite_json}};
-      var activeTab = 'browse';
-    </script>
-    <title>Sputnik (BETA)</title>
-  </head>
-
-  <body onload="loaded()">
-  <div id="wrapper">
-    <div>
-      <h1 id="header">Sputnik</h1>
-      <h2 id="subheader">JavaScript Conformance</h2>
-    </div>
-    <div class="selector" id="about"><div class="middle">About</div></div>
-    <div class="selector leftMargin" id="run"><div class="middle">Run</div></div>
-    <div class="selector leftMargin" id="browse"><div class="middle">Browse</div></div>
-    <div class="selector leftMargin selected" id="compare"><div class="middle">Compare</div></div>
-    <div id="contents">
-      <div id="plotBox" class="plotBox">
+<div style="width: 800px">
+  <div id="plotBox" class="plotBox"></div>
+  <div class="description">
+    <div class="description-text">
+      <p>
+        This experimental plot illustrates how popular browsers
+        perform compared to each other.
+      </p><p>
+        The distance to the center shows how close the browser is to
+        passing all tests; the further the browser is from the center
+        the more tests it fails.  The distance between browsers shows
+        how different they are; the more similar two browsers are &ndash;
+        the more test failures they have in common &ndash; the closer they
+        will be.
     </div>
   </div>
-  </body>
-</html>
+</div>

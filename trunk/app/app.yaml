@@ -14,13 +14,9 @@ handlers:
   static_dir: static/images
   expiration: "7d"
 
-- url: /static/goog/
-  static_dir: static/goog
-  expiration: "1d"
-
 - url: /static
   static_dir: static
-  expiration: "1s"
+  expiration: "1h"
 
 - url: /.*
   script: sputnik.py

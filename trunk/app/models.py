@@ -4,30 +4,31 @@
 
 
 from google.appengine.ext import db
+import cStringIO
+
+
+_ESCAPEES = {
+  '"': '\\"',
+  '\\': '\\\\',
+  '\b': '\\b',
+  '\f': '\\f',
+  '\n': '\\n',
+  '\r': '\\r',
+  '\t': '\\t'
+}
 
 
 def json_escape(s):
-  result = ''
+  result = []
   for c in s:
-    if c == '"':
-      result += '\\"'
-    elif c == '\\':
-      result += '\\\\'
-    elif c == '\b':
-      result += '\\b'
-    elif c == '\f':
-      result += '\\f'
-    elif c == '\n':
-      result += '\\n'
-    elif c == '\r':
-      result += '\\r'
-    elif c == '\t':
-      result += '\\t'
+    escapee = _ESCAPEES.get(c, None)
+    if escapee:
+      result.append(escapee)
     elif c < ' ':
-      result += "\\u%.4X" % ord(c)
+      result.append("\\u%.4X" % ord(c))
     else:
-      result += c
-  return result
+      result.append(c)
+  return "".join(result)
 
 
 def to_json(obj):
