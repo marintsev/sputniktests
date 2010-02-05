@@ -1,5 +1,5 @@
 html {
-  background: #f2f2f2;
+  background: #e7ebf0;
 }
 
 body {
@@ -42,7 +42,7 @@ body {
 div.selector {
   float: left;
   display: block;
-  width: 145px;
+  width: 200px;
   height: 48px;
   cursor: pointer;
 }
@@ -259,4 +259,11 @@ div.description {
 div.description-text {
   text-align: justify;
   margin-top: 15px;
+}
+
+div.popup {
+  position: absolute;
+  z-index: 1;
+  border: 1px solid #cccccc;
+  background: white;
 }
