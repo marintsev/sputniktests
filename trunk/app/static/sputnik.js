@@ -63,18 +63,105 @@ Persistent.prototype.clear = function () {
   this.value_ = undefined;
 };
 
-var storedTestRunning = new Persistent("sputnik_test_running");
-var storedTestStatus = new Persistent("sputnik_test_status");
-var storedBlacklist = new Persistent("sputnik_blacklist");
+function TestStatusStore() {
+  this.blockStores_ = [];
+  this.countStore_ = new Persistent("sputnik_test_count");
+  this.storedCount_ = TestStatusStore.DATA_NOT_READ;
+}
 
-function SputnikTestFailed(message) {
-  this.message_ = message;
+TestStatusStore.DATA_NOT_READ = -1;
+
+TestStatusStore.prototype.clear = function (signature) {
+  this.countStore_.clear();
+  this.storedCount_ = 0;
 };
 
-function BrowserData(name, type, data) {
-  this.name = name;
-  this.type = type;
-  this.data = data;
+function floorBy(val, by) {
+  return by * Math.floor(val / by);
+}
+
+function encodeBlock(testRun, from, to) {
+    var result = [];
+  var zeroChunkCount = 0;
+  function flushZeroChunks() {
+    if (zeroChunkCount == 0) {
+      return;
+    } else if (zeroChunkCount == 1) {
+      result.push(kBase64Chars.charAt(0));
+      zeroChunkCount = 0;
+    } else {
+      result.push('*' + base64Char(zeroChunkCount));
+      zeroChunkCount = 0;
+    }
+  }
+  for (var i = from; i < to; i += 6) {
+    // Collect the next chunk of 6 test results
+    var chunk = 0;
+    for (var j = 0; (j < 6) && (i + j < to); j++) {
+      var failed = !testRun.getTestStatus(i + j);
+      chunk = chunk | ((failed ? 1 : 0) << j);
+    }
+    if (chunk == 0) {
+      if (zeroChunkCount == 63)
+        flushZeroChunks();
+      zeroChunkCount++;
+    } else {
+      flushZeroChunks();
+      result.push(base64Char(chunk));
+    }
+  }
+  return result.join("");
+}
+
+TestStatusStore.prototype.getBlockStore = function (index) {
+  if (!(index in this.blockStores_))
+    this.blockStores_[index] = new Persistent("sputnik_test_store_" + index);
+  return this.blockStores_[index];
+};
+
+TestStatusStore.prototype.ensureStoredCount = function () {
+  if (this.storedCount_ != TestStatusStore.DATA_NOT_READ)
+    return;
+  var countStr = this.countStore_.get();
+  this.storedCount_ = countStr ? Number(countStr) : 0;
+  return this.storedCount_;
+};
+
+var kBlockSize = 768;
+TestStatusStore.prototype.set = function (testRun, count) {
+  this.ensureStoredCount();
+  this.countStore_.set(count);
+  var blocks = [];
+  for (var i = Math.floor(this.storedCount_ / kBlockSize); (i * kBlockSize) < count; i += kBlockSize) {
+    var from = i * kBlockSize;
+    var to = Math.min(from + kBlockSize, count);
+    var block = encodeBlock(testRun, from, to);
+    this.getBlockStore(i).set(block);
+  }
+  this.storedCount_ = count;
+};
+
+TestStatusStore.prototype.get = function () {
+  this.ensureStoredCount();
+  if (this.storedCount_ == 0)
+    return null;
+  var result = [];
+  for (var i = 0; (i * kBlockSize) < this.storedCount_; i++) {
+    var block = this.getBlockStore(i).get();
+    var remainder = this.storedCount_ - (i * kBlockSize);
+    parseTestSignature(Math.min(remainder, kBlockSize), block, result);
+  }
+  return result;
+};
+
+var storedTestRunning = new Persistent("sputnik_test_running");
+var storedTestStatus = new TestStatusStore();
+var storedBlacklist = new Persistent("sputnik_blacklist");
+
+function format(str, props) {
+  return str.replace(/\{\{(\w+)\}\}/g, function (full, match) {
+    return props[match];
+  });
 }
 
 function delay(timeoutOpt) {
@@ -84,27 +171,35 @@ function delay(timeoutOpt) {
   return pResult;
 }
 
-var results = [
-  // new BrowserData('Chrome3Win', 'cm', '5246:Y*DE*/*/*/*yIAIC*tQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-  new BrowserData('Chrome4Linux', 'cm', '5246:Y*DE*/*/*/*yIAIC*QQ*cQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-  // new BrowserData('Chrome4Mac', 'cm', '5246:Y*DE*/*/*/*yIAIC*tQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-  // new BrowserData('Firefox2Linux', 'fx', '5246:B*EI*YQ*RQ*JI*lB*EB*EQ*CQ*DE*DI*sE*MQ*Jg*GC*CB*wIAIC*Vw///Dg*SQ*CE*/*EgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EQD*GB*E4B*Cz*CI*XG*CY*Cg*Yn*CEABAIk*HoE*CCCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoABAIg*DI*CQ*CIEAg*LE*CgBoACCAUI*HDBAE*CQU*EB*FQEAgB*FBC*CE*DkAE*DC*DCC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ni*FII*DQKAkDDRAgICAIQC*CU*DFABGAgAoAMUQ*EE*CJEAgC*KQ*CgC*FgQ'),
-  // new BrowserData('Firefox3Mac', 'fx', '5246:B*EI*eB*LQ*JI*/*oEAE*Ug*JB*HCE*CC*FIB*CQ*aIAIC*Vw///Dg*SQ*CE*HCB*GD*bI*DI*CgI*PgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EgD*GB*E4B*Cz*CI*2G*CEAB*Ck*HoE*DCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoAB*Cg*DI*CQ*CIEAg*LE*CgBIACCAUI*CE*EDBAE*CQU*EB*FQEAgB*FJC*CE*D0AE*DD*DSC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*FI*EQKAkDBQAgICAIQC*CU*DFABGIiAoANE*DCAE*CJEAgC*KQ*CgC*FgQ'),
-  new BrowserData('Firefox35Win', 'fx', '5246:B*EI*eB*LQ*JI*/*oEAE*TCg*JB*wIAIC*Vw///Dg*SQ*CE*HCB*GD*bI*DI*CgI*PgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EgD*GB*EYB*Cy*CI*2G*CEAB*Ck*HoE*DCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoAB*Cg*DI*CQ*CIEAg*LE*CgBIACCAUI*CE*EDBAEAQQU*EB*FQEAgB*FJC*CE*D0AE*DD*DSC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIYC*CU*DFABGIiAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
-  new BrowserData('Safari4Mac', 'sf', '5246:*eQ*YC*CI*/*/*CI*4IAIC*QQ*PggE*KQ*CE*/*FVBRAB*RQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*SI*IgC*LgEFABiU*qQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*HQ*GC*CI*CE*PC*HFAIF*aC*CQM*HgBAgCC*GC*oy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*CE*Tg*SQ*CgC*FgQ'),
-  // new BrowserData('Safari3Win', 'sf', '5246:*eQ*Fl*CQ*IQ*/AE*2Q*FB*JC*7IAIC*gggE*KQ*CE*HCB*GD*bI*DI*CgI*QFARAB*RQr0SLOpT*LhCEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*ICAB*HI*IgC*LgEFABiU*fwJ*JQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*GIQAB*ECgC*Og*DBC*DC*DFAIF*FE*NE*CI*CBC*CQI*HgBAgCC*WI*HQ*FB*DQ*Gy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*LIC*Jg*SQ*CgC*FgQ'),
-  // new BrowserData('IE7Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ4AiAB*EI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*EBAIEk*CQAgI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
-  new BrowserData('IE8Win', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
-  new BrowserData('Opera', 'op', '5246:*FB*MQo*JEI*GC*KI*JC*DQC*NC*HC*/*JCAY*RE*CB*FI*JI*DB*WE*DCI*DC*KIAIC*QQ*Cg*HE*UE*HCBAQ*ED*CI*C9*CgO*pgXBzoH*RQKQQCEBRE*LB*0o*CIEEAEQS*GE*DJI*GI*JC*HI/AP*Fg*Kg*tG*CE*EE*CE*Eo*EDEIQ*MC*HQ*GC*CI*CE*OoD*HFAIF*IgB*DC*CIE*DE*EC*CQI*IB*DQAQ*ty8vdBCAEEA8AC*EQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIXCQ*DQM*EQ*QQ*FQ*DC*FgQ')
-];
+function SputnikTestFailed(message) {
+  this.message_ = message;
+};
 
-//var results = [
-    //  new BrowserData('Chrome4Linux', 'cm', '5246:oAQ*/*/*/*uD*FE*Lw*DgC*Cc*cQ*vE/uAQoGDAF*V//8+/B*JQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACEEIAhAC*IkUQQYgNg*Xg*EgB*GB*EgEFISB*IB*PD*dY*DIE*CQC*HS*OB*CCY*CDAK*CE*CQ*DgBAD*DC*CI*EFAK*DI*DC*CJ*EQ*DFAgBg*OCACAg*CC*CU*JQ*DR*EE*GR*CG*DQg*Cw*DE*DgAE*DC*CI*DBAIz/2FIAQQAwD*CC*DF*CQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-//  new BrowserData('Firefox35Win', 'fx', '5246:B*EI*dg*Kg*GC*nk*/*FEAE*PgAI*IQ*uD*FE*Lw*DgC*CM*Ew///Dg*IE*JQ*vE/uAQoGDIF*IQ*DkxIie*E//8//B*CH*GQKQQCEBR*/*DkUQQYgN*Yg*EgB*GB*EYB*Dg*Iy*PD*MU*QY*CQAE*CQC*GgS*DIQ*CB*GB*GDAK*CE*CQ*DgBAD*CICAEJ*EFAK*DMACACoAJ*Ew*DFAgBgE*LQACAGgg*CCCAUI*CE*DEAQ*CBRB*DE*GR*CG*DQg*Cw*DE*DkAE*DCAII*DBAIz/2FIAQQAwD*CC*DF*CQQRIBhR*Qi*FI*EQC*CDBQAgICAIQC*CU*DFABGAgAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
-//  new BrowserData('Safari4Mac', 'sf', '
-//  new BrowserData('IE8Win', 'ie', '
-//  new BrowserData('Opera', 'op', '
-//];
+function BrowserData(name, type, data) {
+  this.name = name;
+  this.type = type;
+  this.data = data;
+  this.signature = new TestRunSignature(this.data);
+}
+
+BrowserData.prototype.getSignature = function () {
+  return this.signature;
+};
+
+BrowserData.prototype.getTooltipHtml = function () {
+  return format('<div style="margin: 1px"><b>{{label}}</b><br/>Failures: {{count}}</div>', {
+    'label': this.name,
+    'count': this.getSignature().getFailureCount()
+  });
+};
+
+var results = [
+  new BrowserData('Chrome 4.0', 'cm', '5246:Y*DE*/*/*/*yIAIC*QQ*cQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+  new BrowserData('Firefox 3.6 rc1', 'fx', '5246:B*EI*eB*LQ*JI*/*oEAE*TCg*JB*wIAIC*Vw///Dg*SQ*CE*HCB*GD*bI*DI*CgI*PgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EgD*GB*EYB*Cy*CI*2G*CEAB*Ck*HoE*DCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoAB*Cg*DI*CQ*CIEAg*LE*CgBIACCAUI*CE*EDBAEAQQU*EB*FQEAgB*FJC*CE*D0AE*DD*DSC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIYC*CU*DFABGIiAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
+  new BrowserData('Safari 4', 'sf', '5246:*eQ*YC*CI*/*/*CI*4IAIC*QQ*PggE*KQ*CE*/*FVBRAB*RQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*SI*IgC*LgEFABiU*qQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*HQ*GC*CI*CE*PC*HFAIF*aC*CQM*HgBAgCC*GC*oy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*CE*Tg*SQ*CgC*FgQ'),
+  new BrowserData('Internet Explorer 8', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
+  new BrowserData('Opera 9', 'op', '5246:*FB*MQo*JEI*GC*KI*JC*DQC*NC*HC*/*JCAY*RE*CB*FI*JI*DB*WE*DCI*DC*KIAIC*QQ*Cg*HE*UE*HCBAQ*ED*CI*C9*CgO*pgXBzoH*RQKQQCEBRE*LB*0o*CIEEAEQS*GE*DJI*GI*JC*HI/AP*Fg*Kg*tG*CE*EE*CE*Eo*EDEIQ*MC*HQ*GC*CI*CE*OoD*HFAIF*IgB*DC*CIE*DE*EC*CQI*IB*DQAQ*ty8vdBCAEEA8AC*EQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIXCQ*DQM*EQ*QQ*FQ*DC*FgQ')
+];
 
 function TestRunSignature(signature) {
   var splitter = signature.indexOf(':');
@@ -118,7 +213,19 @@ TestRunSignature.prototype.count = function () {
 };
 
 TestRunSignature.prototype.getVector = function () {
-  return parseTestSignature(this.count_, this.data_);
+  if (!this.vector_)
+    this.vector_ = parseTestSignature(this.count_, this.data_);
+  return this.vector_;
+};
+
+TestRunSignature.prototype.getFailureCount = function () {
+  var vector = this.getVector();
+  var count = 0;
+  for (var i = 0; i < this.count_; i++) {
+    if (!vector[i])
+      count++;
+  }
+  return count;
 };
 
 function Plotter(values) {
@@ -234,6 +341,7 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
   for (var l = 0; l < kIterations; l++) {
     var temp = max * (1 - (l / kIterations));
     var pulls = [];
+    // Calculate the pull that each exerts on the other
     for (var i = 0; i < count; i++)
       pulls[i] = [];
     for (var i = 0; i < count; i++) {
@@ -243,6 +351,7 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
         pulls[i][j] = pull;
       }
     }
+    // Apply the pull to the points
     for (var i = 0; i < count; i++) {
       for (var j = 0; j < count; j++) {
         if (i == j || this.positions[i].isFixed) continue;
@@ -250,6 +359,19 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
         this.positions[i].x += pull[0];
         this.positions[i].y += pull[1];
       }
+    }
+    // Push points out so distance to center matches score
+    for (var i = 0; i < count - 1; i++) {
+      var point = this.positions[i];
+      var x = point.x;
+      var y = point.y;
+      var dist = Math.sqrt(x * x + y * y);
+      if (dist == 0)
+        continue;
+      var idealDist = scores[point.id] / this.maxScore * 100;
+      var factor = idealDist / dist;
+      point.x *= factor;
+      point.y *= factor;
     }
   }
   this.positions.pop();
@@ -294,6 +416,7 @@ Plotter.prototype.placeFixpoints = function () {
     this.positions[i].isFixed = true;
 };
 
+var plot;
 Plotter.prototype.displayOn = function (root) {
   var elm = document.createElement('object', true);
   elm.setAttribute('width', 450);
@@ -303,11 +426,105 @@ Plotter.prototype.displayOn = function (root) {
   elm.setAttribute('id', 'plot');
   elm.setAttribute('onload', 'plotLoaded()');
   svgweb.appendChild(elm, root);
+  plot = root;
+};
+
+function PopUpController() {
+  this.elm_ = document.createElement('div');
+  this.elm_.className = 'popup';
+  this.hide();
+  this.timeout_ = 500;
+  this.hasScheduledTimeout_ = false;
+  this.lastMouseMove_ = new Date();
+  this.lastEvent_ = null;
+  this.lastCallback_ = null;
+  this.isShowingPopup_ = false;
+  this.hasLeft_ = false;
+}
+
+PopUpController.prototype.hide = function () {
+  this.elm_.style.visibility = 'hidden';
+  this.isShowingPopup_ = false;
+};
+
+PopUpController.prototype.show = function (event, callback) {
+  var popup = this.elm_;
+  var x = event.clientX;
+  var y = event.clientY;
+  popup.innerHTML = callback();
+  popup.style.left = x + 95 + 10 + 'px';
+  popup.style.top = y + 10 + 10 + 'px';
+  popup.style.visibility = 'visible';
+  this.isShowingPopup_ = true;
+};
+
+PopUpController.prototype.decorate = function (root) {
+  root.appendChild(this.elm_);
+};
+
+PopUpController.prototype.checkTimeout = function (whenScheduled, callback) {
+  if (this.hasLeft_)
+    return;
+  var now = new Date();
+  var lastMove = this.lastMouseMove_;
+  if (lastMove != whenScheduled) {
+    var elapsed = now - lastMove;
+    this.hasScheduledTimeout_ = true;
+    delay(Math.max(this.timeout_ - elapsed, 0)).onValue(this, function () {
+      this.hasScheduledTimeout_ = false;
+      this.checkTimeout(lastMove, callback);
+    });
+  } else {
+    this.show(this.lastEvent_, this.lastCallback_);
+  }
+};
+
+PopUpController.prototype.elementMouseMoved = function (elm, event, callback) {
+  if (this.hasLeft_)
+    return;
+  if (this.isShowingPopup_) {
+    this.hide();
+  } else {
+    var now = new Date();
+    this.lastMouseMove_ = now;
+    this.lastEvent_ = event;
+    this.lastCallback_ = callback;
+    if (!this.hasScheduledTimeout_) {
+      this.hasScheduledTimeout_ = true;
+      delay(this.timeout_).onValue(this, function () {
+        this.hasScheduledTimeout_ = false;
+        this.checkTimeout(now, callback);
+      });
+    }
+  }
+};
+
+PopUpController.prototype.attach = function (elm, callback) {
+  var self = this;
+  elm.onmousemove = function (event) {
+    self.hasLeft_ = false;
+    self.elementMouseMoved(elm, event, callback);
+  };
+  elm.onmouseout = function (event) {
+    self.hasLeft_ = true;
+    self.hide();
+  }
 };
 
 function plotLoaded() {
-  var elm = gebi('plot').contentDocument.getElementById('cm');
-  elm.style.cursor = 'pointer';
+  var controller = new PopUpController();
+  controller.decorate(plot);
+  var doc = gebi('plot').contentDocument;
+  for (var i = 0; i < results.length; i++) {
+    var result = results[i];
+    var elm = doc.getElementById(result.type);
+    elm.style.cursor = 'pointer';
+    (function (r) {
+      controller.attach(elm, function () {
+        return r.getTooltipHtml();
+      });
+    })(result);
+  }
 }
 
 Plotter.prototype.placeByDistance = function (distances) {
@@ -811,6 +1028,7 @@ function TestRun(data, progress) {
   this.abort_ = false;
   this.passFailVector_ = [];
   this.paused_ = false;
+  this.displayResults_ = false;
 }
 
 TestRun.prototype.resume = function () {
@@ -919,8 +1137,7 @@ TestRun.prototype.addMockTest = function (i, hasFailed) {
   this.testDone(runner, true);
 };
 
-TestRun.prototype.fastForward = function (target) {
-  var bits = target.getVector();
+TestRun.prototype.fastForward = function (bits) {
   // We force the last test to have been failed.
   for (var i = 0; i < bits.length; i++)
     this.addMockTest(i, bits[i]);
@@ -1000,9 +1217,11 @@ TestRun.prototype.getSignature = function (count) {
   return count + ":" + data;
 };
 
-function parseTestSignature(count, data) {
+function parseTestSignature(count, data, result) {
   var i = 0;
-  var result = [ ];
+  if (!result)
+    result = [];
+  var bitsRead = 0;
   while (i < data.length) {
     var c = data.charAt(i++);
     if (c == '*') {
@@ -1010,26 +1229,30 @@ function parseTestSignature(count, data) {
       var zeroChunkCount = indexOfBase64Char(next);
       for (var j = 0; j < 6 * zeroChunkCount; j++) {
         result.push(true);
+        bitsRead++;
       }
     } else {
       var bits = indexOfBase64Char(c);
-      for (var j = 0; j < 6 && result.length < count; j++) {
+      for (var j = 0; j < 6 && bitsRead < count; j++) {
         result.push((bits & (1 << j)) == 0);
+        bitsRead++;
       }
     }
   }
-  while (result.length < count)
+  while (bitsRead < count) {
     result.push(true);
+    bitsRead++;
+  }
   return result;
 }
 
 TestRun.prototype.allDone = function () {
-  /*
-  var signature = this.getSignature(this.suite_.count);
-  var sigDiv = document.createElement('div');
-  sigDiv.innerHTML = "[" + signature + "]";
-  document.body.appendChild(sigDiv);
-  */
+  if (this.displayResults_) {
+    var signature = this.getSignature(this.data_.getSize());
+    var sigDiv = document.createElement('div');
+    sigDiv.innerHTML = "Results: [" + signature + "]";
+    document.body.appendChild(sigDiv);
+  }
   this.progress_.setText("Done");
   storedTestStatus.clear();
   testControls.allDone();
@@ -1048,8 +1271,7 @@ TestRun.prototype.updateCounts = function (runner, silent) {
     this.succeededCount_++;
   }
   if (!silent) {
-    var resultSignature = this.getSignature(runner.serial_);
-    storedTestStatus.set(resultSignature);
+    storedTestStatus.set(this, runner.serial_);
   }
 };
 
@@ -1283,19 +1505,21 @@ TestControls.prototype.initialize = function () {
     this.start_.setCaption("Resume");
 };
 
-TestControls.prototype.startClicked = function () {
+TestControls.prototype.startClicked = function (event) {
+  var displayResults = event.ctrlKey;
   if (this.startState_ == TestControls.STOPPED) {
     this.startState_ = TestControls.RUNNING;
-    this.startTests();
+    this.startTests(displayResults);
   } else if (this.startState_ == TestControls.RUNNING) {
     this.startState_ = TestControls.STOPPED;
     this.pauseTests();
   }
 };
 
-TestControls.prototype.startTests = function () {
+TestControls.prototype.startTests = function (displayResults) {
   this.start_.setCaption("Pause");
   this.reset_.setEnabled(false);
+  testRun.displayResults_ = displayResults;
   testRun.resume();
 };
 
@@ -1343,7 +1567,7 @@ var testRun;
 var testControls;
 function loaded() {
   blacklist.initialize();
-  var selectors = ['about', 'browse', 'run', 'compare'];
+  var selectors = ['about', 'run', 'compare'];
   var bevel = 10;
   for (var i = 0; i < selectors.length; i++) {
     (function () { // I really need an inner scope here!
@@ -1381,8 +1605,7 @@ function loaded() {
       var storedStatus = storedTestStatus.get();
       if (storedStatus) {
         isContinuation = true;
-        var signature = new TestRunSignature(storedStatus);
-        testRun.fastForward(signature);
+        testRun.fastForward(storedStatus);
       }
     }
   }
@@ -1395,7 +1618,7 @@ function loaded() {
     testControls = control;
     control.initialize();
     goog.events.listen(start, goog.ui.Component.EventType.ACTION, function (e) {
-      control.startClicked();
+      control.startClicked(e);
     });
     goog.events.listen(reset, goog.ui.Component.EventType.ACTION, function (e) {
       control.resetClicked();
