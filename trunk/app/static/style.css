@@ -17,11 +17,25 @@ body {
 }
 
 #footer {
-  width: 675px;
+  width: 643px;
   margin: 20px auto 0px;
   float: left;
   display: block;
   text-align: center;
+  font-size: 11px;
+  color: #858585;
+}
+
+#footer div#links {
+  float: left;
+}
+
+#footer div#credits {
+  float: right;
+}
+
+#footer div#credits img {
+  margin: 0 0 -7px 0;
 }
 
 #contents {
@@ -37,6 +51,28 @@ body {
   margin-top: 0px;
   margin-bottom: 13px;
   font-weight: normal;
+}
+
+.left {
+  text-align: left;
+}
+
+.right {
+  text-align: right;
+}
+
+div.scoretip {
+  margin: 2px;
+}
+
+div.scoretip table {
+  font-size: 11px;
+  width: 100%;
+  color: #858585;
+}
+
+div.scoretipinner {
+  border-bottom: 1px solid #cccccc;
 }
 
 div.selector {

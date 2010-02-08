@@ -17,7 +17,7 @@ goog.require('goog.net.XhrIo');
 var kRotation = 2.14;
 var kIterations = 50;
 var kTestCaseChunkSize = 128;
-var kTestListAppendSize = 64;
+var kTestListAppendSize = 640;
 var kChunkAheadCount = 2;
 
 var plotter = null;
@@ -32,16 +32,18 @@ function Persistent(key) {
   this.value_ = undefined;
 }
 
+Persistent.prototype.fetchFromCookie = function () {
+  var parts = document.cookie.split(/\s*;\s*/);
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].substring(0, this.keyEq_.length) == this.keyEq_)
+      return parts[i].substring(this.keyEq_.length);
+  }
+};
+
 Persistent.prototype.get = function () {
   if (!this.hasValue_) {
     this.hasValue_ = true;
-    var parts = document.cookie.split(/\s*;\s*/);
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].substring(0, this.keyEq_.length) == this.keyEq_) {
-        this.value_ = parts[i].substring(this.keyEq_.length);
-        break;
-      }
-    }
+    this.value_ = this.fetchFromCookie();
   }
   return this.value_;
 };
@@ -115,7 +117,7 @@ function encodeBlock(testRun, from, to) {
 
 TestStatusStore.prototype.getBlockStore = function (index) {
   if (!(index in this.blockStores_))
-    this.blockStores_[index] = new Persistent("sputnik_test_store_" + index);
+    this.blockStores_[index] = new Persistent("sputnik_test_results_" + index);
   return this.blockStores_[index];
 };
 
@@ -186,19 +188,40 @@ BrowserData.prototype.getSignature = function () {
   return this.signature;
 };
 
+BrowserData.prototype.distance = function (other) {
+  return calcVectorDistance(this.signature.getVector(), other.signature.getVector());
+};
+
 BrowserData.prototype.getTooltipHtml = function () {
-  return format('<div style="margin: 1px"><b>{{label}}</b><br/>Failures: {{count}}</div>', {
+  var differences = [];
+  for (var i = 0; i < results.length; i++) {
+    var result = results[i];
+    if (result == this)
+      continue;
+    var dist = result.distance(this);
+    var text = format('<tr><td class="left">{{name}}</td><td class="right"><b>{{score}}</b></td></tr>', {
+      'name': result.name,
+      'score': result.distance(this)
+    });
+    differences.push([dist, text]);
+  }
+  differences.sort(function (a, b) { return a[0] - b[0]; });
+  var texts = [];
+  for (var i = 0; i < differences.length; i++)
+    texts.push(differences[i][1]);
+  return format('<div class="scoretip"><div class="scoretipinner"><b>{{label}}</b><br/>Failures: {{count}}</div><table>{{distances}}</table></div>', {
     'label': this.name,
-    'count': this.getSignature().getFailureCount()
+    'count': this.getSignature().getFailureCount(),
+    'distances': texts.join('')
   });
 };
 
 var results = [
-  new BrowserData('Chrome 4.0', 'cm', '5246:Y*DE*/*/*/*yIAIC*QQ*cQ*CE*/*bQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CJFEEGYT*SI*Dg*FD*GB*EgEFABiU*3G*DCB*Ck*HgE*PCY*CDAC*CE*CQ*Dg*CD*DC*HBAC*DI*DC*CB*Cg*GQ*CI*Cg*Og*DC*CU*ID*CE*CQE*EB*FQEAgB*FBC*CE*DgAE*DC*EC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-  new BrowserData('Firefox 3.6 rc1', 'fx', '5246:B*EI*eB*LQ*JI*/*oEAE*TCg*JB*wIAIC*Vw///Dg*SQ*CE*HCB*GD*bI*DI*CgI*PgHAioH*RQKQQCEBR*/*Co*CJFEEGYT*SI*Dg*EgD*GB*EYB*Cy*CI*2G*CEAB*Ck*HoE*DCEAQ*MDAC*CE*CQ*Dg*CD*CICAEB*EBAC*DMACACoAB*Cg*DI*CQ*CIEAg*LE*CgBIACCAUI*CE*EDBAEAQQU*EB*FQEAgB*FJC*CE*D0AE*DD*DSC*CQ*Cy8vdBCAEEA8AC*EQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIYC*CU*DFABGIiAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
-  new BrowserData('Safari 4', 'sf', '5246:*eQ*YC*CI*/*/*CI*4IAIC*QQ*PggE*KQ*CE*/*FVBRAB*RQrwQKGhR*LBAEIQggAEEIIggABEQIQABBCIIgABCCEIQABCCIIgABBCQIg*Go*CIEEAEQS*SI*IgC*LgEFABiU*qQ*LQn*CE*DIE*HoAIAC*CI*JCY*CC*HQ*GC*CI*CE*PC*HFAIF*aC*CQM*HgBAgCC*GC*oy8vdBCAEEA8AC*EQBQQRIBhR*Qi*HE*DIAk*FIAgAC*CE*Tg*SQ*CgC*FgQ'),
-  new BrowserData('Internet Explorer 8', 'ie', '5246:AQCAIUAIgAEAQg*DQ4K*CIE*CCg*EBQMI*DIQAEQAC*CwAE*EB*CMCAhJYBAI*CQ*CFE*CCAgQEEAQCAgIg*CIG*Ck*CCAIE*CBgg*CJAEQCgAQCABYAIAggI*DCQ*CQCAQAEC*CEgACQgIAIASQ*CIxAhAgAEB*CcACB*CgEAIQBQUABAEEABE*CBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*GI*DIAYK*IC*DC*DQ*IMI*SQ*CE*EEg*DE*DB*GQ*DI*Wg*Dg*PsXBi6H*JCQC*FQKQQCEBR*/gQo*CIEEAEQSI*DQC*IYABhI*IgC*GQE//Pi0FEByW*KQ*HE*Eo+//////0JgIEIgn*CQX*DIUGAIUAgQ*DE*MICI*CCACQ*EC*EY*CC*HSAQB*DCAgO*CG*PC*HoAIKC*EEAFACAQAk*CQIFEAI*CgAC*CQIAQE*DQABI*EQ*DC*GE*CE*FEg*CSC*FC*CB*EE*CgABAy8vdBCAEEA8AC*EQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQggI*CIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
-  new BrowserData('Opera 9', 'op', '5246:*FB*MQo*JEI*GC*KI*JC*DQC*NC*HC*/*JCAY*RE*CB*FI*JI*DB*WE*DCI*DC*KIAIC*QQ*Cg*HE*UE*HCBAQ*ED*CI*C9*CgO*pgXBzoH*RQKQQCEBRE*LB*0o*CIEEAEQS*GE*DJI*GI*JC*HI/AP*Fg*Kg*tG*CE*EE*CE*Eo*EDEIQ*MC*HQ*GC*CI*CE*OoD*HFAIF*IgB*DC*CIE*DE*EC*CQI*IB*DQAQ*ty8vdBCAEEA8AC*EQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIXCQ*DQM*EQ*QQ*FQ*DC*FgQ')
+  new BrowserData('Chrome 4.0', 'cm', '5246:oAQ*/*/*/*uD*FE*Lw*DgC*Cc*cQ*vE/uAQoGDAF*V//8+/B*JQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*JJFEEGYD*Wg*EgB*GB*EgEFISB*IB*PD*dY*FCB*Ck*HgE*MB*CCY*CDAK*CE*CQ*DgBAD*DC*CI*EFAK*DI*DC*CJ*EQ*DFAgAY*OCACAg*CC*CU*JQ*DRAM*EB*FQEAgB*DEI*EE*DgAE*DC*CI*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+  new BrowserData('Firefox 3.6', 'fx', '5246:B*EI*dg*Kg*GC*nk*/*FEAE*RI*MB*qD*FE*Lw*DgC*Cc*Ew///Dg*IE*JQ*vE/uAQoGDIF*IQ*DkxIie*E//8//B*CH*GQKQQCEBR*/*FJFEEGYD*Wg*EgB*GB*EYB*Dg*Iy*PD*dY*CQ*DB*Ck*HoE*DCEAQ*FB*GDAK*CE*CQ*DgBAD*CICAEJ*EFAK*DMACACoAJ*Ew*DFAgAYE*LQACAGgg*CCCAUI*CE*DEAQ*CBRBM*EB*FQEAgB*DEI*EE*DkAE*DCAII*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIQC*CU*DFABGAgAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
+  new BrowserData('Safari 4.0.4', 'sf', '5246:*eI*TI*CC*/*/g*5D*FE*Lw*DgC*Cc*PggE*KQ*vEXKAQoECAB*OEBE*E7fE//*DVB*FQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*rg*MgEFISB*IB*PD*RB*LdCAQ*FIE*HoAIAC*MCY*UI*CE*VUAgU*gI*GG*CKI*IC*oy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*DIAk*HgAC*CE*Tg*SQ*CgC*FgQ'),
+  new BrowserData('Internet Explorer 8.0', 'ie', '5246:*CgkAVAIgAEAQg*DQ4M*CIE*CCg*ECQMI*DBEAIg*CgBIAEAgS*ChJog*CIACAI*CQ*CJE*DCBRAgCAIAgIg*CIG*Ck*ChQAIEAU*EJAEgEgAQCABYAgAgAJ*DQg*CIEAQACC*CIABBQgEAIAQQ*CIxAhAgAEB*CcACBB*CUAEFQ*CBBQAB*DCCBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*EHAI*DEAQI*IyC*CiG*CcB*HMI*SQ*HEg*DE*DB*GV*CoI*II*EC*FEUIgQgECAI*NsIqf*E7fE//IAJXB*FQKQQCEBR*/gQ*KI*DQC*IYABh*Jg*HQE//Pi0FIbB*HEB*CQ*HE*Er+//////AiCAB9q*CdB*CgQZAgQBACB*CQcC*MICI*CCACQ*EC*EY*KCAQB*FgO*CG*VgCgoI*GEAI*CBQC*ChUQAg*DFg*FIAQE*DEg*FBB*DC*GE*CE*DQAC*DSC*FC*CB*CQ*DC*CBAy8vdBCAEEA8*Cg*DQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQgg*DIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
+  new BrowserData('Opera 10.10', 'op', '5246:*SQo*JEI*GC*Ig*GC*DQC*QI*HI*/*LCAY*OBAQ*Cg*DC*MI*DB*WEACACI*DC*DIH*FE*LwC*CgG*CcBAg*HE*cCBAQ*HI*C9*CgO*Lg*GE/uAQoGDIF*IQ*DkxMje*E//+//B*CXB*FQKQQCEBRE*LB*/*FE*DJI*YI/AP*EC*Lg*ND*MU*QY*CQ*GE*CE*Eo*EDEAQ*eI*CE*OoB*FUAgU*JG*DI*CgQ*DQ*KI*GE*EBAB*uy8vdBCAEEA8*Cg*DQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIQCQ*DQM*EQ*QQ*FQ*DC*CC*CgQ')
 ];
 
 function TestRunSignature(signature) {
@@ -338,6 +361,21 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
   this.positions.push(center);
   var count = this.positions.length;
   var max = 20 / count;
+  function adjustDistanceToCenter(self, dampening) {
+    for (var i = 0; i < count - 1; i++) {
+      var point = self.positions[i];
+      var x = point.x - center.x;
+      var y = point.y - center.y;
+      var dist = Math.sqrt(x * x + y * y);
+      if (dist == 0)
+        continue;
+      var idealDist = scores[point.id] / self.maxScore * 100;
+      var targetDist = dampening * idealDist + (1 - dampening) * dist;
+      var factor = idealDist / dist;
+      point.x *= factor;
+      point.y *= factor;
+    }
+  };
   for (var l = 0; l < kIterations; l++) {
     var temp = max * (1 - (l / kIterations));
     var pulls = [];
@@ -360,21 +398,9 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
         this.positions[i].y += pull[1];
       }
     }
-    // Push points out so distance to center matches score
-    for (var i = 0; i < count - 1; i++) {
-      var point = this.positions[i];
-      var x = point.x;
-      var y = point.y;
-      var dist = Math.sqrt(x * x + y * y);
-      if (dist == 0)
-        continue;
-      var idealDist = scores[point.id] / this.maxScore * 100;
-      var factor = idealDist / dist;
-      point.x *= factor;
-      point.y *= factor;
-    }
   }
   this.positions.pop();
+  adjustDistanceToCenter(this, 1.0);
   if (adjustCenter) {
     // Then move all the points to get the midpoint to (0, 0)
     for (var i = 0; i < this.positions.length; i++) {
@@ -1102,16 +1128,25 @@ function Blacklist(store) {
     this.value_ = [];
   }
   this.map_ = {};
+  this.transientMap_ = {};
   for (var i = 0; i < this.value_.length; i++) {
     this.map_[this.value_[i]] = true;
   }
 };
 
 Blacklist.prototype.initialize = function () {
+  // If we were interrupted add the test to the blacklist
   var str = storedTestRunning.get();
   storedTestRunning.clear();
   if (str)
     this.push(str);
+  // Add tests from URL parameters
+  var fromUrl = getUrlParameters()['skip'];
+  if (fromUrl) {
+    var skipped = fromUrl.split(',');
+    for (var i = 0; i < skipped.length; i++)
+      this.pushTransient(skipped[i]);
+  }
 };
 
 Blacklist.prototype.push = function (i) {
@@ -1122,12 +1157,12 @@ Blacklist.prototype.push = function (i) {
   this.map_[i] = true;
 };
 
-Blacklist.prototype.contains = function (value) {
-  return !!this.map_[value];
+Blacklist.prototype.pushTransient = function (i) {
+  this.transientMap_[i] = true;
 };
 
-Blacklist.prototype.isEmpty = function () {
-  return this.value_.length == 0;
+Blacklist.prototype.contains = function (value) {
+  return !!this.map_[value] || !!this.transientMap_[value];
 };
 
 var blacklist = new Blacklist(storedBlacklist);
@@ -1558,6 +1593,21 @@ TestControls.prototype.allDone = function () {
 
 function movingOn() {
   storedTestRunning.clear();
+}
+
+function getUrlParameters() {
+  var url = String(window.location.href);
+  var qIndex = url.indexOf('?');
+  var result = {};
+  if (qIndex != -1) {
+    var params = url.substring(qIndex + 1);
+    var pairs = params.split('&');
+    for (var i = 0; i < pairs.length; i++) {
+      var pair = pairs[i].split('=');
+      result[pair[0]] = pair[1];
+    }
+  }
+  return result;
 }
 
 var testSuite;
