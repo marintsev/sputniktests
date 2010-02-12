@@ -160,6 +160,72 @@ var storedTestRunning = new Persistent("sputnik_test_running");
 var storedTestStatus = new TestStatusStore();
 var storedBlacklist = new Persistent("sputnik_blacklist");
 
+function Environment() {
+  this.cached_ = null;
+}
+
+Environment.prototype.get = function () {
+  if (!this.cached_)
+    this.cached_ = this.calcSource();
+  return this.cached_;
+};
+
+/**
+ * Finds the first date, starting from |start|, where |predicate|
+ * holds.
+ */
+function findNearestDateBefore(start, predicate) {
+  var current = start;
+  var month = 1000 * 60 * 60 * 24 * 30;
+  for (var step = month; step > 0; step = Math.floor(step / 3)) {
+    if (!predicate(current)) {
+      while (!predicate(current))
+        current = new Date(current.getTime() + step);
+      current = new Date(current.getTime() - step);
+    }
+  }
+  while (!predicate(current))
+    current = new Date(current.getTime() + 1);
+  return current;
+}
+
+Environment.prototype.calcSource = function () {
+  var juneDate = new Date(2000, 6, 20, 0, 0, 0, 0);
+  var decemberDate = new Date(2000, 12, 20, 0, 0, 0, 0);
+  var juneOffset = juneDate.getTimezoneOffset();
+  var decemberOffset = decemberDate.getTimezoneOffset();
+  var isSouthernHemisphere = (juneOffset > decemberOffset);
+  var winterTime = isSouthernHemisphere ? juneDate : decemberDate;
+  var summerTime = isSouthernHemisphere ? decemberDate : juneDate;
+  var props = [];
+  props.push(['$LocalTZ', new Date().getTimezoneOffset() / -60]);
+  function pushDate(type, date) {
+    props.push(['$DST_' + type + '_month', date.getMonth()]);
+    props.push(['$DST_' + type + '_sunday', date.getDate() > 15 ? '"last"' : '"first"']);
+    props.push(['$DST_' + type + '_hour', date.getHours()]);
+    props.push(['$DST_' + type + '_minutes', date.getMinutes()]);
+  }
+  var dstStart = findNearestDateBefore(winterTime, function (date) {
+    return date.getTimezoneOffset() == summerTime.getTimezoneOffset();
+  });
+  pushDate('start', dstStart);
+  //  props.push(['$DST_start_month', dstStart.getMonth()]);
+  var dstEnd = findNearestDateBefore(summerTime, function (date) {
+    return date.getTimezoneOffset() == winterTime.getTimezoneOffset();
+  });
+  pushDate('end', dstEnd);
+  var result = [];
+  for (var i = 0; i < props.length; i++) {
+    result.push(format('var {{name}} = {{value}};\n', {
+      'name': props[i][0],
+      'value': props[i][1]
+    }));
+  }
+  return result.join('');
+};
+
+var environment = new Environment();
+
 function format(str, props) {
   return str.replace(/\{\{(\w+)\}\}/g, function (full, match) {
     return props[match];
@@ -216,12 +282,20 @@ BrowserData.prototype.getTooltipHtml = function () {
   });
 };
 
+// var results = [
+//   new BrowserData('Chrome 4.0', 'cm', '5246:oAQ*/*/*/*uD*FE*Lw*DgC*Cc*cQ*vE/uAQoGDAF*V//8+/B*JQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*JJFEEGYD*Wg*EgB*GB*EgEFISB*IB*PD*dY*FCB*Ck*HgE*MB*CCY*CDAK*CE*CQ*DgBAD*DC*CI*EFAK*DI*DC*CJ*EQ*DFAgAY*OCACAg*CC*CU*JQ*DRAM*EB*FQEAgB*DEI*EE*DgAE*DC*CI*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
+//   new BrowserData('Firefox 3.6', 'fx', '5246:B*EI*dg*Kg*GC*nk*/*FEAE*RI*MB*qD*FE*Lw*DgC*Cc*Ew///Dg*IE*JQ*vE/uAQoGDIF*IQ*DkxIie*E//8//B*CH*GQKQQCEBR*/*FJFEEGYD*Wg*EgB*GB*EYB*Dg*Iy*PD*dY*CQ*DB*Ck*HoE*DCEAQ*FB*GDAK*CE*CQ*DgBAD*CICAEJ*EFAK*DMACACoAJ*Ew*DFAgAYE*LQACAGgg*CCCAUI*CE*DEAQ*CBRBM*EB*FQEAgB*DEI*EE*DkAE*DCAII*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIQC*CU*DFABGAgAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
+//   new BrowserData('Safari 4.0.4', 'sf', '5246:*eI*TI*CC*/*/g*5D*FE*Lw*DgC*Cc*PggE*KQ*vEXKAQoECAB*OEBE*E7fE//*DVB*FQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*rg*MgEFISB*IB*PD*RB*LdCAQ*FIE*HoAIAC*MCY*UI*CE*VUAgU*gI*GG*CKI*IC*oy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*DIAk*HgAC*CE*Tg*SQ*CgC*FgQ'),
+//   new BrowserData('Internet Explorer 8.0', 'ie', '5246:*CgkAVAIgAEAQg*DQ4M*CIE*CCg*ECQMI*DBEAIg*CgBIAEAgS*ChJog*CIACAI*CQ*CJE*DCBRAgCAIAgIg*CIG*Ck*ChQAIEAU*EJAEgEgAQCABYAgAgAJ*DQg*CIEAQACC*CIABBQgEAIAQQ*CIxAhAgAEB*CcACBB*CUAEFQ*CBBQAB*DCCBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*EHAI*DEAQI*IyC*CiG*CcB*HMI*SQ*HEg*DE*DB*GV*CoI*II*EC*FEUIgQgECAI*NsIqf*E7fE//IAJXB*FQKQQCEBR*/gQ*KI*DQC*IYABh*Jg*HQE//Pi0FIbB*HEB*CQ*HE*Er+//////AiCAB9q*CdB*CgQZAgQBACB*CQcC*MICI*CCACQ*EC*EY*KCAQB*FgO*CG*VgCgoI*GEAI*CBQC*ChUQAg*DFg*FIAQE*DEg*FBB*DC*GE*CE*DQAC*DSC*FC*CB*CQ*DC*CBAy8vdBCAEEA8*Cg*DQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQgg*DIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
+//   new BrowserData('Opera 10.10', 'op', '5246:*SQo*JEI*GC*Ig*GC*DQC*QI*HI*/*LCAY*OBAQ*Cg*DC*MI*DB*WEACACI*DC*DIH*FE*LwC*CgG*CcBAg*HE*cCBAQ*HI*C9*CgO*Lg*GE/uAQoGDIF*IQ*DkxMje*E//+//B*CXB*FQKQQCEBRE*LB*/*FE*DJI*YI/AP*EC*Lg*ND*MU*QY*CQ*GE*CE*Eo*EDEAQ*eI*CE*OoB*FUAgU*JG*DI*CgQ*DQ*KI*GE*EBAB*uy8vdBCAEEA8*Cg*DQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIQCQ*DQM*EQ*QQ*FQ*DC*CC*CgQ')
+// ];
+
 var results = [
-  new BrowserData('Chrome 4.0', 'cm', '5246:oAQ*/*/*/*uD*FE*Lw*DgC*Cc*cQ*vE/uAQoGDAF*V//8+/B*JQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*JJFEEGYD*Wg*EgB*GB*EgEFISB*IB*PD*dY*FCB*Ck*HgE*MB*CCY*CDAK*CE*CQ*DgBAD*DC*CI*EFAK*DI*DC*CJ*EQ*DFAgAY*OCACAg*CC*CU*JQ*DRAM*EB*FQEAgB*DEI*EE*DgAE*DC*CI*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-  new BrowserData('Firefox 3.6', 'fx', '5246:B*EI*dg*Kg*GC*nk*/*FEAE*RI*MB*qD*FE*Lw*DgC*Cc*Ew///Dg*IE*JQ*vE/uAQoGDIF*IQ*DkxIie*E//8//B*CH*GQKQQCEBR*/*FJFEEGYD*Wg*EgB*GB*EYB*Dg*Iy*PD*dY*CQ*DB*Ck*HoE*DCEAQ*FB*GDAK*CE*CQ*DgBAD*CICAEJ*EFAK*DMACACoAJ*Ew*DFAgAYE*LQACAGgg*CCCAUI*CE*DEAQ*CBRBM*EB*FQEAgB*DEI*EE*DkAE*DCAII*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIQC*CU*DFABGAgAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
-  new BrowserData('Safari 4.0.4', 'sf', '5246:*eI*TI*CC*/*/g*5D*FE*Lw*DgC*Cc*PggE*KQ*vEXKAQoECAB*OEBE*E7fE//*DVB*FQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*rg*MgEFISB*IB*PD*RB*LdCAQ*FIE*HoAIAC*MCY*UI*CE*VUAgU*gI*GG*CKI*IC*oy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*DIAk*HgAC*CE*Tg*SQ*CgC*FgQ'),
-  new BrowserData('Internet Explorer 8.0', 'ie', '5246:*CgkAVAIgAEAQg*DQ4M*CIE*CCg*ECQMI*DBEAIg*CgBIAEAgS*ChJog*CIACAI*CQ*CJE*DCBRAgCAIAgIg*CIG*Ck*ChQAIEAU*EJAEgEgAQCABYAgAgAJ*DQg*CIEAQACC*CIABBQgEAIAQQ*CIxAhAgAEB*CcACBB*CUAEFQ*CBBQAB*DCCBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*EHAI*DEAQI*IyC*CiG*CcB*HMI*SQ*HEg*DE*DB*GV*CoI*II*EC*FEUIgQgECAI*NsIqf*E7fE//IAJXB*FQKQQCEBR*/gQ*KI*DQC*IYABh*Jg*HQE//Pi0FIbB*HEB*CQ*HE*Er+//////AiCAB9q*CdB*CgQZAgQBACB*CQcC*MICI*CCACQ*EC*EY*KCAQB*FgO*CG*VgCgoI*GEAI*CBQC*ChUQAg*DFg*FIAQE*DEg*FBB*DC*GE*CE*DQAC*DSC*FC*CB*CQ*DC*CBAy8vdBCAEEA8*Cg*DQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQgg*DIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
-  new BrowserData('Opera 10.10', 'op', '5246:*SQo*JEI*GC*Ig*GC*DQC*QI*HI*/*LCAY*OBAQ*Cg*DC*MI*DB*WEACACI*DC*DIH*FE*LwC*CgG*CcBAg*HE*cCBAQ*HI*C9*CgO*Lg*GE/uAQoGDIF*IQ*DkxMje*E//+//B*CXB*FQKQQCEBRE*LB*/*FE*DJI*YI/AP*EC*Lg*ND*MU*QY*CQ*GE*CE*Eo*EDEAQ*eI*CE*OoB*FUAgU*JG*DI*CgQ*DQ*KI*GE*EBAB*uy8vdBCAEEA8*Cg*DQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIQCQ*DQM*EQ*QQ*FQ*DC*CC*CgQ')
+  new BrowserData('Chrome 4.0', 'cm', '5246:*W//fvvB*S/AuxfD*qB*WM*/*/*/*pE*HwgB*DG*JwC*WwB*KM*2g/D*FC*Gg*CB*EQwAgB*KY*JD*FY*CwAG*Hw*Jw*FDD*JMYAYAMEADI*HGE*HB*cgB*DM*HgBAw*CCg*CG*DD*CDAgBAw*CgF*Mg*GG*GD*ED*Ew*QgB*FgB*CM*CgB*CM*CgB*Cw*DD*CM*FM*DGYEAgC*nQ*XgABAEIIAEBCEAQgAIQgABCEIQgABCEIQgABCEACEIQIQIAEEIAgAB'),
+  new BrowserData('Firefox 3.6', 'fx', '5246:*W//f/vB*PG*C/AuxfDAwPAwPwB*iB*HCAY*MMg*Jx///D*9gB*FEAE*bg*HC*jQ*FQ*NB*0E*HwgB*DG*JwC*VQ*Eg*HM*18G*FCAC*EQAg*CB*DQQQAghI*CI*GYAC*HDQAI*CYAIwAG*FEAw*EE*Ew*FDD*JMYAYAMEADI*HGE*HB*YE*CCgBC*CM*FkOgBBw*CCgACG*DD*CDAgBAw*CgBAE*Fg*Eg*CC*DGYI*EDAI*CDACDAwAY*OgBAhD*CgB*CM*CgB*CM*CgB*Cw*DD*CM*FM*DGY*/'),
+  new BrowserData('Safari 4.0.4', 'sf', '5246:*W51P/v*T/AuBALAIgAIAwB*iB*HCAY*MM*FIi*/*bQ*bC*lQ*FQ*8E*HwgB*DG*JwC*iM*UE*TE*Ng/D*DgACg*DQ*CQAB*DQ*DgZ*LB*JQhBAIAgB*2C*kQ*Kh*Rg*Ca*HE*P6B*DY*HI*/*FEAgC*/gABAEIIAEBCEAQgAIQgABCEIQgABCEIQgABCEACEIQIQIAEEIAgAB'),
+  new BrowserData('Internet Explorer 8.0', 'ie', '5246:M*J4Z*EgR*E51P/v*TPBgBALAjuAjOwB*DE*CB*LB*NIAB*HCAY*MM*KO*EDB*CGC*CDBEBAYAYAOAQI*D8//*F/*YwAUG*DBAgAgAEQAC*CEA4K*DE*CQACAh*CCwQ*DEAM*DwQ*DgTC*DYI*DwQ*DYI*DME*DGC*EWC*EWC*EGC*Em*CYCT*DgJ*DwE*Cm*DW*Q8D*L0kCEg*CE*CgwlD*CgO*JwD*O4AgAM*CE*CYO*CI+/f*CtycGjAEwAGE+//////ANAE*QC*CF*CgJf*DQAMgBg/DQAH*Cgg*DQ*IQ*EgIg*IEAC*GgAQ*EE*CIAB*EIAII*FI*CII*DCgg*CC*DI*CQ*RC*RcM*Do*KE*CC*CC*IkPA+f*FQAgg*DQAQa*EEs*CEAC*Eg*EC*CCMAoBZ*GBI*Cg*Gb*GQ*DQ*CsX*gy*Fy*GgC*KE*JgD*RQAg*/'),
+  new BrowserData('Opera 10.10', 'op', '5246:AE*EIAE*E4f*H//f//BAG*NG*C/AuxfLA4vA4PwB*FE*mY*Hg*EM*HE*UCACg*oE*IY*LogAEQ*WB*DIC*fQ*FQ*Kg*DCQ*EI*gB*JwEAE*DQ*DwhD*DO*JwD*CC*CC*DC*Ti/DABMQI*xB*DI*GC*E4*EB*DQ*DghI*CI*IC*IQAI*EI*vI*CBEAQ*fB*IBK*MEABQ*Ecg*Cg*a6B*DY*HI*KIP*GE*HgCE*8gH*vg*Ig')
 ];
 
 function TestRunSignature(signature) {
@@ -361,21 +435,6 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
   this.positions.push(center);
   var count = this.positions.length;
   var max = 20 / count;
-  function adjustDistanceToCenter(self, dampening) {
-    for (var i = 0; i < count - 1; i++) {
-      var point = self.positions[i];
-      var x = point.x - center.x;
-      var y = point.y - center.y;
-      var dist = Math.sqrt(x * x + y * y);
-      if (dist == 0)
-        continue;
-      var idealDist = scores[point.id] / self.maxScore * 100;
-      var targetDist = dampening * idealDist + (1 - dampening) * dist;
-      var factor = idealDist / dist;
-      point.x *= factor;
-      point.y *= factor;
-    }
-  };
   for (var l = 0; l < kIterations; l++) {
     var temp = max * (1 - (l / kIterations));
     var pulls = [];
@@ -400,7 +459,19 @@ Plotter.prototype.runLassesSpringyAlgorithm = function (scores, adjustCenter) {
     }
   }
   this.positions.pop();
-  adjustDistanceToCenter(this, 1.0);
+  // Push points out so distance to center matches score
+  for (var i = 0; i < count - 1; i++) {
+    var point = this.positions[i];
+    var x = point.x - center.x;
+    var y = point.y - center.y;
+    var dist = Math.sqrt(x * x + y * y);
+    if (dist == 0)
+      continue;
+    var idealDist = scores[point.id] / this.maxScore * 100;
+    var factor = idealDist / dist;
+    point.x *= factor;
+    point.y *= factor;
+  }
   if (adjustCenter) {
     // Then move all the points to get the midpoint to (0, 0)
     for (var i = 0; i < this.positions.length; i++) {
@@ -919,8 +990,9 @@ TestCase.prototype.getHtmlUrl = function () {
 TestCase.prototype.getSource = function () {
   var rawSource = this.data_.source;
   var source = rawSource.replace(/\$ERROR/g, 'testFailed');
-  var source = source.replace(/\$FAIL/g, 'testFailed');
-  var source = source.replace(/\$PRINT/g, 'testPrint');
+  source = source.replace(/\$FAIL/g, 'testFailed');
+  source = source.replace(/\$PRINT/g, 'testPrint');
+  source = source.replace(/\$ENVIRONMENT\(\)/g, environment.get());
   source += "\ntestCompleted();";
   return source;
 };
