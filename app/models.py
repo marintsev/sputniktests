@@ -97,8 +97,9 @@ class Suite(db.Model):
 class Version(db.Model):
 
   current_suite = db.StringProperty()
+  created = db.DateTimeProperty(auto_now_add=True)
 
   @staticmethod
   def get():
-    query = Version.gql("LIMIT 1")
+    query = Version.gql("ORDER BY created DESC LIMIT 1")
     return query.get()
