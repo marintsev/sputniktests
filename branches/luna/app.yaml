@@ -1,0 +1,21 @@
+application: sputnik
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /([^/]*\.html)?
+  script: sputnik.py
+
+- url: /gwt
+  static_dir: gwt/war/
+
+- url: /data/.*
+  script: sputnik.py
+
+- url: /inspect/.*
+  script: sputnik.py
+
+- url: /remote_api
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
