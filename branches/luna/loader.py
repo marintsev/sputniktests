@@ -4,6 +4,7 @@
 from google.appengine.ext import db
 from google.appengine.tools import bulkloader
 import models
+import logging
 
 
 _SESSION_ID = 'session_id'
@@ -15,7 +16,10 @@ class AbstractLoader(bulkloader.Loader):
     super(AbstractLoader, self).__init__(self.get_kind(), self.get_properties())
 
   def initialize(self, filename, opts):
-    self.attribs = dict([p.split(':') for p in opts.split(',')])
+    if opts:
+      self.attribs = dict([p.split(':') for p in opts.split(',')])
+    else:
+      self.attribs = {}
 
   def get_attribute(self, key):
     return self.attribs.get(key, None)

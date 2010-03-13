@@ -3,7 +3,6 @@
 package com.google.client.rmi;
 
 import com.google.client.utils.Promise;
-import com.google.client.utils.RequestTarget;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 
@@ -33,6 +32,7 @@ public class Backend {
 
   public Promise<CaseBlock> getCases(Key suite, int from, int to) {
     return cases
+        .newRequest()
         .addParameter("from", from)
         .addParameter("to", to)
         .addParameter("suite", toString(suite))
@@ -60,13 +60,16 @@ public class Backend {
 
   public Promise<Suite> getActiveSuite(final String family, final String name) {
     return suite
+        .newRequest()
         .addParameter("family", family)
         .addParameter("name", name)
         .send();
   }
   
   public Promise<JsArray<Suite>> getSuites() {
-    return suites.send();
+    return suites
+        .newRequest()
+        .send();
   }
   
 }

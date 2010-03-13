@@ -98,7 +98,8 @@ class Sputnik(object):
     def render(req):
       path = os.path.join('dynamic', 'sputnik.html')
       self._render_template(req, path, 'text/html', {
-        'name': name
+        'name': name,
+        'version': '1'
       })
     return render
 

@@ -2,18 +2,18 @@
 // This code is governed by the BSD license found in the LICENSE file.
 package com.google.client;
 
-import com.google.client.rmi.Backend;
-import com.google.client.utils.Promise;
-import com.google.client.utils.Thunk;
-import com.google.gwt.core.client.JsArray;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.Tree;
-import com.google.gwt.user.client.ui.TreeItem;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.google.client.rmi.Backend;
+import com.google.client.utils.Promise;
+import com.google.client.utils.Thunk;
+import com.google.gwt.core.client.JsArray;
+import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.Tree;
+import com.google.gwt.user.client.ui.TreeItem;
 
 public class InspectRenderer extends MainPageRenderer {
 
@@ -21,7 +21,7 @@ public class InspectRenderer extends MainPageRenderer {
     public Promise<String> getLabel();
     public Promise<List<LazyTreeItem>> getChildren();
   }
-  
+
   private static class LazyTree extends Tree {
 
     private final Sputnik sputnik;
@@ -36,7 +36,7 @@ public class InspectRenderer extends MainPageRenderer {
       return result;
     }
 
-    
+
     private TreeItem adaptItem(LazyTreeItem item) {
       final TreeItem result = new TreeItem();
       item.getLabel().onValue(sputnik.new SimpleThunk<String>() {
@@ -47,7 +47,7 @@ public class InspectRenderer extends MainPageRenderer {
       });
       return result;
     }
-    
+
     public LazyTree(Sputnik sputnik, LazyTreeItem root) {
       this.sputnik = sputnik;
       getChildren(root).onValue(sputnik.new SimpleThunk<List<LazyTreeItem>>() {
@@ -58,38 +58,16 @@ public class InspectRenderer extends MainPageRenderer {
         }
       });
     }
-    
-  }
-  
-  private class LiteralItem implements LazyTreeItem {
 
-    private final Promise<String> name;
-    
-    public LiteralItem(String name) {
-      this.name = Promise.from(name);
-    }
-    
-    @Override
-    public Promise<List<LazyTreeItem>> getChildren() {
-      return null;
-    }
-
-    @Override
-    public Promise<String> getLabel() {
-      return name;
-    }
-    
-    
-    
   }
 
   private class RootItem implements LazyTreeItem {
-    
+
     @Override
     public Promise<String> getLabel() {
       return null;
     }
-    
+
     @Override
     public Promise<List<LazyTreeItem>> getChildren() {
       final Promise<List<LazyTreeItem>> result = new Promise<List<LazyTreeItem>>();
@@ -108,35 +86,35 @@ public class InspectRenderer extends MainPageRenderer {
       });
       return result;
     }
-    
+
   }
-  
+
   private class SuiteItem implements LazyTreeItem {
 
     private final Backend.Suite suite;
-    
+
     public SuiteItem(Backend.Suite suite) {
       this.suite = suite;
     }
-    
+
     @Override
     public Promise<String> getLabel() {
       String name = "{ family: " + suite.getFamily() + ", name: " + suite.getName() +
         ", size: " + suite.getSize() + " key: " + suite.getKey().asString() + "}";
       return Promise.from(name);
     }
-    
+
     @Override
     public Promise<List<LazyTreeItem>> getChildren() {
       return null;
     }
-    
+
   }
-  
+
   @Override
-  public void render() {
+  public void renderContents(Panel root) {
     LazyTree tree = new LazyTree(getSputnik(), new RootItem());
-    RootPanel.get().add(tree);
+    root.add(tree);
   }
 
 }

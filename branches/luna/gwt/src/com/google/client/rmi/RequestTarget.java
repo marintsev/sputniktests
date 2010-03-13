@@ -1,7 +1,8 @@
 // Copyright 2010 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
-package com.google.client.utils;
+package com.google.client.rmi;
 
+import com.google.client.utils.Promise;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsonUtils;
 import com.google.gwt.http.client.Request;
@@ -12,13 +13,13 @@ import com.google.gwt.http.client.Response;
 import com.google.gwt.http.client.URL;
 
 public class RequestTarget {
-  
-  public class Message<T extends JavaScriptObject> {
+
+  public class Message {
 
     private String path = url;
     private boolean first = true;
 
-    public Message<T> addParameter(String name, Object value) {
+    public Message addParameter(String name, Object value) {
       String prefix;
       if (first) {
         prefix = "?";
@@ -29,7 +30,7 @@ public class RequestTarget {
       path += prefix + URL.encode(name) + "=" + URL.encode(value.toString());
       return this;
     }
-    
+
     public <T extends JavaScriptObject> Promise<T> send() {
       RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, path);
       final Promise<T> result = new Promise<T>();
@@ -54,19 +55,15 @@ public class RequestTarget {
     }
 
   }
-  
+
   private final String url;
-  
+
   public RequestTarget(String url) {
     this.url = URL.encode("../../" + url);
   }
-  
-  public <T extends JavaScriptObject> Message<T> addParameter(String name, Object value) {
-    return new Message<T>().addParameter(name, value);
-  }
-  
-  public <T extends JavaScriptObject> Promise<T> send() {
-    return new Message<T>().send();
+
+  public Message newRequest() {
+    return new Message();
   }
 
 }

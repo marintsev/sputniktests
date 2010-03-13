@@ -2,19 +2,15 @@
 // This code is governed by the BSD license found in the LICENSE file.
 package com.google.client;
 
-import com.google.client.rmi.Backend;
-import com.google.client.rmi.Backend.Suite;
-import com.google.gwt.user.client.Window;
+import com.google.client.resources.Bundle;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.Panel;
 
 public class IndexRenderer extends MainPageRenderer {
 
-  @Override public void render() {
-    getBackend().getActiveSuite("sputnik", ".").onValue(getSputnik().new SimpleThunk<Backend.Suite>() {
-      @Override
-      public void onValue(Suite t) {
-        Window.alert(t.toString());
-      }
-    });
+  @Override
+  public void renderContents(Panel root) {
+  	root.add(new HTML(Bundle.INSTANCE.about().getText()));
   }
 
 }

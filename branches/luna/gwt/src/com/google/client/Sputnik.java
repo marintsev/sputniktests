@@ -2,22 +2,22 @@
 // This code is governed by the BSD license found in the LICENSE file.
 package com.google.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.client.rmi.Backend;
 import com.google.client.utils.Thunk;
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Label;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.google.gwt.user.client.ui.RootPanel;
 
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Sputnik implements EntryPoint {
-  
+
   private final Map<String, MainPageRenderer> RENDERERS = new HashMap<String, MainPageRenderer>() {{
     put("Index", new IndexRenderer());
     put("Inspect", new InspectRenderer());
@@ -28,7 +28,7 @@ public class Sputnik implements EntryPoint {
       fatalError(message);
     }
   }
-  
+
   /**
    * This is the entry point method.
    */
@@ -36,9 +36,9 @@ public class Sputnik implements EntryPoint {
     String rendererName = getParameters().getRendererName();
     MainPageRenderer renderer = RENDERERS.get(rendererName);
     renderer.initialize(new Backend(), this);
-    renderer.render();
+    renderer.renderPage(RootPanel.get());
   }
-  
+
   public void fatalError(String message) {
     DialogBox dialog = new DialogBox();
     dialog.setGlassEnabled(true);
@@ -50,17 +50,12 @@ public class Sputnik implements EntryPoint {
     dialog.center();
     dialog.show();
   }
-  
+
   public void fatalError(Exception e) {
     fatalError(e.getMessage());
   }
-  
-  private static final class AppParameters extends JavaScriptObject {
-    protected AppParameters() { }
-    public native String getRendererName() /*-{ return this.r; }-*/;
-  }
-  
-  private static native AppParameters getParameters() /*-{
+
+  public native Parameters getParameters() /*-{
     return top.kParameters;
   }-*/;
 
