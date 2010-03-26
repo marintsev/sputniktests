@@ -1,0 +1,16 @@
+html {
+  background: #e7ebf0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: transparent;
+}
+
+.mainPanel {
+  width: 600px;
+  height: 500px;
+  margin: 20px auto 20px auto;
+  background-color: transparent;
+  border: 1px solid black;
+}

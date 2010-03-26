@@ -3,11 +3,8 @@
 package com.google.client;
 
 import com.google.client.rmi.Backend;
-import com.google.client.ui.SputnikPanel;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.client.ui.Page;
+import com.google.gwt.dom.client.BodyElement;
 
 public abstract class MainPageRenderer {
 
@@ -31,48 +28,9 @@ public abstract class MainPageRenderer {
   	return this.sputnik.getParameters();
   }
 
-  public void renderPage(Panel root) {
-  	root.setStylePrimaryName("root");
-
-  	Panel main = new VerticalPanel();
-  	main.setStylePrimaryName("main");
-
-  	// Header
-  	Panel header = new VerticalPanel();
-  	header.setStylePrimaryName("header");
-  	main.add(header);
-  	Label title = new Label("Sputnik");
-  	title.setStylePrimaryName("title");
-  	header.add(title);
-  	int version = getParameters().getVersion();
-  	Label subtitle = new Label("JavaScript Conformance - version " + version);
-  	subtitle.setStylePrimaryName("subtitle");
-  	header.add(subtitle);
-    root.add(main);
-
-    // Navigation
-    Panel navigation = new HorizontalPanel();
-    navigation.setStylePrimaryName("navigation");
-    main.add(navigation);
-
-    Panel about = new SputnikPanel();
-    about.add(new Label("About"));
-    navigation.add(about);
-
-    Panel run = new SputnikPanel();
-    run.add(new Label("Run"));
-    navigation.add(run);
-
-    Panel compare = new SputnikPanel();
-    compare.add(new Label("Compare"));
-    navigation.add(compare);
-
-    // Contents
-    Panel contents = new SputnikPanel();
-    main.add(contents);
-    renderContents(contents);
+  public void renderPage(BodyElement root) {
+  	Page page = new Page();
+  	root.appendChild(page.getElement());
   }
-
-  public abstract void renderContents(Panel root);
 
 }

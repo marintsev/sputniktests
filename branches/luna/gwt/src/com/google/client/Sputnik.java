@@ -8,9 +8,9 @@ import java.util.Map;
 import com.google.client.rmi.Backend;
 import com.google.client.utils.Thunk;
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootPanel;
 
 
 /**
@@ -36,7 +36,7 @@ public class Sputnik implements EntryPoint {
     String rendererName = getParameters().getRendererName();
     MainPageRenderer renderer = RENDERERS.get(rendererName);
     renderer.initialize(new Backend(), this);
-    renderer.renderPage(RootPanel.get());
+    renderer.renderPage(Document.get().getBody());
   }
 
   public void fatalError(String message) {
