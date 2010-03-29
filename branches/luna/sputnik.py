@@ -116,7 +116,7 @@ def initialize_application():
     (r'/data/cases.json', dispatcher(sputnik.get_case_block)),
     (r'/data/suite.json', dispatcher(sputnik.get_suite)),
     (r'/(?:index.html)?', dispatcher(sputnik.get_page_renderer('Index'))),
-    (r'/inspect.html', dispatcher(sputnik.get_page_renderer('Inspect'))),
+    (r'/run.html', dispatcher(sputnik.get_page_renderer('Run'))),
     (r'/inspect/suites.json', dispatcher(sputnik.get_suites))
   ], debug=True)
 

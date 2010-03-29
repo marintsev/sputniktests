@@ -6,11 +6,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.client.rmi.Backend;
+import com.google.client.ui.AboutPage;
+import com.google.client.ui.Page;
+import com.google.client.ui.PageContents;
+import com.google.client.ui.RunPage;
+import com.google.client.ui.SputnikMessages;
 import com.google.client.utils.Thunk;
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.dom.client.Document;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RootPanel;
 
 
 /**
@@ -18,10 +24,12 @@ import com.google.gwt.user.client.ui.Label;
  */
 public class Sputnik implements EntryPoint {
 
-  private final Map<String, MainPageRenderer> RENDERERS = new HashMap<String, MainPageRenderer>() {{
-    put("Index", new IndexRenderer());
-    put("Inspect", new InspectRenderer());
+  private final Map<String, PageContents.Factory> FACTORIES = new HashMap<String, PageContents.Factory>() {{
+    put("Index", AboutPage.getFactory());
+    put("Run", RunPage.getFactory());
   }};
+
+  private static SputnikMessages MESSAGES = GWT.create(SputnikMessages.class);
 
   public abstract class SimpleThunk<T> implements Thunk<T> {
     public void onError(String message) {
@@ -29,14 +37,20 @@ public class Sputnik implements EntryPoint {
     }
   }
 
+  public static SputnikMessages getMessages() {
+  	return MESSAGES;
+  }
+
   /**
    * This is the entry point method.
    */
   public void onModuleLoad() {
     String rendererName = getParameters().getRendererName();
-    MainPageRenderer renderer = RENDERERS.get(rendererName);
-    renderer.initialize(new Backend(), this);
-    renderer.renderPage(Document.get().getBody());
+    PageContents.Factory factory = FACTORIES.get(rendererName);
+    PageContents contents = factory.create();
+    contents.initialize(new Backend());
+    Page page = new Page(contents);
+    RootPanel.get().add(page);
   }
 
   public void fatalError(String message) {
@@ -55,7 +69,7 @@ public class Sputnik implements EntryPoint {
     fatalError(e.getMessage());
   }
 
-  public native Parameters getParameters() /*-{
+  public static native Parameters getParameters() /*-{
     return top.kParameters;
   }-*/;
 

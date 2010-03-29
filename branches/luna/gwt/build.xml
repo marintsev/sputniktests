@@ -45,7 +45,7 @@
       <jvmarg value="-Xmx256M"/>
       <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
       <arg line="${gwt.args}"/>
-      <arg value="-style"/><arg value="OBF" />
+      <arg value="-style"/><arg value="PRETTY" />
       <arg value="-XdisableClassMetadata" />
       <arg value="-localWorkers" /><arg value="2" />
       <arg value="com.google.sputnik" />

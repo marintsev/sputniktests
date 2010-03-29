@@ -1,0 +1,14 @@
+<ui:UiBinder 
+    xmlns:ui='urn:ui:com.google.gwt.uibinder'
+    xmlns:g='urn:import:com.google.gwt.user.client.ui'
+    xmlns:s='urn:import:com.google.client.ui'>
+  
+  <ui:style src='TabButton.css'/>
+
+  <g:HTMLPanel>
+    <s:FramePanel styleName='{style.frame}'>
+      <g:Label ui:field='label' styleName='{style.text}'/>
+    </s:FramePanel>
+  </g:HTMLPanel>
+
+</ui:UiBinder>

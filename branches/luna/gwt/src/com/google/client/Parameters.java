@@ -11,6 +11,6 @@ public final class Parameters extends JavaScriptObject {
 
 	public native String getRendererName() /*-{ return this.r; }-*/;
 
-	public native int getVersion() /*-{ return this.v; }-*/;
+	public native String getVersion() /*-{ return this.v; }-*/;
 
 }
