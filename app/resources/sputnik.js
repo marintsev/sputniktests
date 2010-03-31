@@ -282,20 +282,12 @@ BrowserData.prototype.getTooltipHtml = function () {
   });
 };
 
-// var results = [
-//   new BrowserData('Chrome 4.0', 'cm', '5246:oAQ*/*/*/*uD*FE*Lw*DgC*Cc*cQ*vE/uAQoGDAF*V//8+/B*JQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*JJFEEGYD*Wg*EgB*GB*EgEFISB*IB*PD*dY*FCB*Ck*HgE*MB*CCY*CDAK*CE*CQ*DgBAD*DC*CI*EFAK*DI*DC*CJ*EQ*DFAgAY*OCACAg*CC*CU*JQ*DRAM*EB*FQEAgB*DEI*EE*DgAE*DC*CI*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*CQC*CDB*EC*DC*CU*DF*CG*DoAME*FE*CI*CgC*UgQ'),
-//   new BrowserData('Firefox 3.6', 'fx', '5246:B*EI*dg*Kg*GC*nk*/*FEAE*RI*MB*qD*FE*Lw*DgC*Cc*Ew///Dg*IE*JQ*vE/uAQoGDIF*IQ*DkxIie*E//8//B*CH*GQKQQCEBR*/*FJFEEGYD*Wg*EgB*GB*EYB*Dg*Iy*PD*dY*CQ*DB*Ck*HoE*DCEAQ*FB*GDAK*CE*CQ*DgBAD*CICAEJ*EFAK*DMACACoAJ*Ew*DFAgAYE*LQACAGgg*CCCAUI*CE*DEAQ*CBRBM*EB*FQEAgB*DEI*EE*DkAE*DCAII*EQ*Cy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*FI*EQC*CDBQAgICAIQC*CU*DFABGAgAoANE*FE*CJEAgC*KQ*CgC*FgQ'),
-//   new BrowserData('Safari 4.0.4', 'sf', '5246:*eI*TI*CC*/*/g*5D*FE*Lw*DgC*Cc*PggE*KQ*vEXKAQoECAB*OEBE*E7fE//*DVB*FQKQQCEBR*LBAEIQggAEEIIggABEQIQABBCIIEIIQgABEIIggACAIBBCQIg*rg*MgEFISB*IB*PD*RB*LdCAQ*FIE*HoAIAC*MCY*UI*CE*VUAgU*gI*GG*CKI*IC*oy8vdBCAEEA8*Cg*DQBQQRIBhR*Qi*HE*DIAk*HgAC*CE*Tg*SQ*CgC*FgQ'),
-//   new BrowserData('Internet Explorer 8.0', 'ie', '5246:*CgkAVAIgAEAQg*DQ4M*CIE*CCg*ECQMI*DBEAIg*CgBIAEAgS*ChJog*CIACAI*CQ*CJE*DCBRAgCAIAgIg*CIG*Ck*ChQAIEAU*EJAEgEgAQCABYAgAgAJ*DQg*CIEAQACC*CIABBQgEAIAQQ*CIxAhAgAEB*CcACBB*CUAEFQ*CBBQAB*DCCBEAEIAB*FBABABg*DCgg*DBAE*GCIJ*Ci*EHAI*DEAQI*IyC*CiG*CcB*HMI*SQ*HEg*DE*DB*GV*CoI*II*EC*FEUIgQgECAI*NsIqf*E7fE//IAJXB*FQKQQCEBR*/gQ*KI*DQC*IYABh*Jg*HQE//Pi0FIbB*HEB*CQ*HE*Er+//////AiCAB9q*CdB*CgQZAgQBACB*CQcC*MICI*CCACQ*EC*EY*KCAQB*FgO*CG*VgCgoI*GEAI*CBQC*ChUQAg*DFg*FIAQE*DEg*FBB*DC*GE*CE*DQAC*DSC*FC*CB*CQ*DC*CBAy8vdBCAEEA8*Cg*DQBQQRIBhR*CI*Ic*Ei*EE*CBABKJEk*CQgg*DIQ*DBK*Cgq7BAg*DC*JBE*NQ*CgC*FgQ'),
-//   new BrowserData('Opera 10.10', 'op', '5246:*SQo*JEI*GC*Ig*GC*DQC*QI*HI*/*LCAY*OBAQ*Cg*DC*MI*DB*WEACACI*DC*DIH*FE*LwC*CgG*CcBAg*HE*cCBAQ*HI*C9*CgO*Lg*GE/uAQoGDIF*IQ*DkxMje*E//+//B*CXB*FQKQQCEBRE*LB*/*FE*DJI*YI/AP*EC*Lg*ND*MU*QY*CQ*GE*CE*Eo*EDEAQ*eI*CE*OoB*FUAgU*JG*DI*CgQ*DQ*KI*GE*EBAB*uy8vdBCAEEA8*Cg*DQBQQRIBhR*CEC*CCE*Ii*QB*JE*CIQCQ*DQM*EQ*QQ*FQ*DC*CC*CgQ')
-// ];
-
 var results = [
   new BrowserData('Chrome 4.0', 'cm', '5246:*W//fvvB*S/AuxfD*qB*WM*/*/*/*pE*HwgB*DG*JwC*WwB*KM*2g/D*FC*Gg*CB*EQwAgB*KY*JD*FY*CwAG*Hw*Jw*FDD*JMYAYAMEADI*HGE*HB*cgB*DM*HgBAw*CCg*CG*DD*CDAgBAw*CgF*Mg*GG*GD*ED*Ew*QgB*FgB*CM*CgB*CM*CgB*Cw*DD*CM*FM*DGYEAgC*nQ*XgABAEIIAEBCEAQgAIQgABCEIQgABCEIQgABCEACEIQIQIAEEIAgAB'),
   new BrowserData('Firefox 3.6', 'fx', '5246:*W//f/vB*PG*C/AuxfDAwPAwPwB*iB*HCAY*MMg*Jx///D*9gB*FEAE*bg*HC*jQ*FQ*NB*0E*HwgB*DG*JwC*VQ*Eg*HM*18G*FCAC*EQAg*CB*DQQQAghI*CI*GYAC*HDQAI*CYAIwAG*FEAw*EE*Ew*FDD*JMYAYAMEADI*HGE*HB*YE*CCgBC*CM*FkOgBBw*CCgACG*DD*CDAgBAw*CgBAE*Fg*Eg*CC*DGYI*EDAI*CDACDAwAY*OgBAhD*CgB*CM*CgB*CM*CgB*Cw*DD*CM*FM*DGY*/'),
   new BrowserData('Safari 4.0.4', 'sf', '5246:*W51P/v*T/AuBALAIgAIAwB*iB*HCAY*MM*FIi*/*bQ*bC*lQ*FQ*8E*HwgB*DG*JwC*iM*UE*TE*Ng/D*DgACg*DQ*CQAB*DQ*DgZ*LB*JQhBAIAgB*2C*kQ*Kh*Rg*Ca*HE*P6B*DY*HI*/*FEAgC*/gABAEIIAEBCEAQgAIQgABCEIQgABCEIQgABCEACEIQIQIAEEIAgAB'),
   new BrowserData('Internet Explorer 8.0', 'ie', '5246:M*J4Z*EgR*E51P/v*TPBgBALAjuAjOwB*DE*CB*LB*NIAB*HCAY*MM*KO*EDB*CGC*CDBEBAYAYAOAQI*D8//*F/*YwAUG*DBAgAgAEQAC*CEA4K*DE*CQACAh*CCwQ*DEAM*DwQ*DgTC*DYI*DwQ*DYI*DME*DGC*EWC*EWC*EGC*Em*CYCT*DgJ*DwE*Cm*DW*Q8D*L0kCEg*CE*CgwlD*CgO*JwD*O4AgAM*CE*CYO*CI+/f*CtycGjAEwAGE+//////ANAE*QC*CF*CgJf*DQAMgBg/DQAH*Cgg*DQ*IQ*EgIg*IEAC*GgAQ*EE*CIAB*EIAII*FI*CII*DCgg*CC*DI*CQ*RC*RcM*Do*KE*CC*CC*IkPA+f*FQAgg*DQAQa*EEs*CEAC*Eg*EC*CCMAoBZ*GBI*Cg*Gb*GQ*DQ*CsX*gy*Fy*GgC*KE*JgD*RQAg*/'),
-  new BrowserData('Opera 10.10', 'op', '5246:AE*EIAE*E4f*H//f//BAG*NG*C/AuxfLA4vA4PwB*FE*mY*Hg*EM*HE*UCACg*oE*IY*LogAEQ*WB*DIC*fQ*FQ*Kg*DCQ*EI*gB*JwEAE*DQ*DwhD*DO*JwD*CC*CC*DC*Ti/DABMQI*xB*DI*GC*E4*EB*DQ*DghI*CI*IC*IQAI*EI*vI*CBEAQ*fB*IBK*MEABQ*Ecg*Cg*a6B*DY*HI*KIP*GE*HgCE*8gH*vg*Ig')
+  new BrowserData('Opera 10.50', 'op', '5246:*W99//nB*TwPgb83*HE*4M*/*WE*nC*fQ*FQ*1B*ME*HwgB*DG*Jw*jMQI*1I*GC*JB*FE*CgI*/*YS*yBQ*/*/*/')
 ];
 
 function TestRunSignature(signature) {
@@ -335,7 +327,7 @@ function Plotter(values) {
 
 Plotter.prototype.calcDistanceMatrix = function () {
   for (var i = 0; i < this.values.length; i++)
-    this.results.push(parseTestResults(this.values[i].data));
+    this.results.push(this.values[i].getSignature().getVector());
   this.matrix = [];
   for (var i = 0; i < this.results.length; i++)
     this.matrix[i] = [];
@@ -517,7 +509,7 @@ var plot;
 Plotter.prototype.displayOn = function (root) {
   var elm = document.createElement('object', true);
   elm.setAttribute('width', 450);
-  elm.setAttribute('height', 438);
+  elm.setAttribute('height', 450);
   elm.setAttribute('data', "compare/plot.svg?m=" + this.getUrl());
   elm.setAttribute('type', "image/svg+xml");
   elm.setAttribute('id', 'plot');
@@ -1361,7 +1353,6 @@ TestRun.prototype.allDone = function () {
     document.body.appendChild(sigDiv);
   }
   this.progress_.setText("Done");
-  storedTestStatus.clear();
   testControls.allDone();
 };
 
@@ -1378,7 +1369,7 @@ TestRun.prototype.updateCounts = function (runner, silent) {
     this.succeededCount_++;
   }
   if (!silent) {
-    storedTestStatus.set(this, runner.serial_);
+    storedTestStatus.set(this, runner.serial_ + 1);
   }
 };
 
@@ -1713,6 +1704,7 @@ function loaded() {
   }
   var testlist = gebi('testlist');
   var isContinuation = false;
+  var storedStatus = storedTestStatus.get();
   if (testlist) {
     var data;
     if (testRun) {
@@ -1726,8 +1718,12 @@ function loaded() {
       testRun.setTestList(testOutput);
       var storedStatus = storedTestStatus.get();
       if (storedStatus) {
-        isContinuation = true;
         testRun.fastForward(storedStatus);
+        if (testRun.current_ < suite.getSize()) {
+          isContinuation = true;
+        } else {
+          completeStoredResults = storedStatus;
+        }
       }
     }
   }
