@@ -166,14 +166,15 @@ class Sputnik(object):
       if not suite:
         self.do_500(req, "Suite '%s' not found" % current)
         return
+      test_suite_version = '2'
       inner = self.get_template('%s.html' % page, {
-        'test_suite_version': suite.name
+        'test_suite_version': test_suite_version
       })
       text = self.get_template('page.html', {
         'contents': inner,
         'default_suite_json': suite.to_json(),
         'page_name': '"%s"' % page,
-        'test_suite_version': suite.name
+        'test_suite_version': test_suite_version
       })
       self._main_page_cache[page] = text
     req.response.out.write(text)

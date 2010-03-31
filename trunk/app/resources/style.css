@@ -40,7 +40,7 @@ body {
 
 #contents {
   float: left;
-  height: 600px;
+  height: 624px;
   width: 640px;
   display: block;
   margin-top: 20px;
@@ -282,6 +282,7 @@ div.source {
 #plotBox {
   margin-top: 10px;
   margin-left: 95px;
+  margin-bottom: -12px;
 }
 
 div.description {

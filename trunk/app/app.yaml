@@ -1,5 +1,5 @@
-application: sputnik
-version: 2
+application: glabs20-sputnik
+version: 1
 runtime: python
 api_version: 1
 
