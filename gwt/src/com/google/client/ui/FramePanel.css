@@ -1,0 +1,48 @@
+.frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+div.border { }
+
+.container {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  right: 11px;
+  bottom: 11px;
+  background: white;
+}
+
+@sprite .nw {
+  gwt-image: 'northWest';
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+@sprite .ne {
+  gwt-image: 'northEast';
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 1;
+}
+
+@sprite .se {
+  gwt-image: 'southEast';
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  z-index: 1;
+}
+
+@sprite .sw {
+  gwt-image: 'southWest';
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  z-index: 1;
+}

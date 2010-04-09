@@ -1,0 +1,38 @@
+html {
+  background: #e7ebf0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: transparent;
+}
+
+.broadCenter {
+  width: 675px;
+  height: 600px;
+  margin: 0 auto 0 auto;
+}
+
+.title {
+  font-size: 58px;
+  margin-top: 0px;
+  margin-bottom: 13px;
+  font-weight: normal;
+}
+
+.subtitle {
+  font-weight: normal;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.tabButton {
+  width: 100px;
+  height: 100px;
+  margin: 10px;
+}
+
+.contents {
+  width: 600px;
+  height: 400px;
+}
