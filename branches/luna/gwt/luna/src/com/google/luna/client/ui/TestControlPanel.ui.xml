@@ -1,0 +1,20 @@
+<ui:UiBinder 
+    xmlns:ui='urn:ui:com.google.gwt.uibinder'
+    xmlns:g='urn:import:com.google.gwt.user.client.ui'
+    xmlns:l='urn:import:com.google.luna.client.ui'>
+
+  <ui:style src="TestControlPanel.css" />
+
+  <g:HTMLPanel>
+    <g:FlowPanel styleName='{style.outer}'>
+      <l:ProgressBar ui:field='progress' styleName='{style.progress}'></l:ProgressBar>
+      <g:Button ui:field='reset' addStyleNames='{style.controlButton}'>Reset</g:Button>
+      <g:Button ui:field='start' addStyleNames='{style.controlButton}'>Start</g:Button>
+    </g:FlowPanel>
+    <g:FlowPanel styleName='{style.stats}'>
+      <g:Label styleName='{style.caption}'>Current:</g:Label>
+      <g:Label ui:field='current' styleName='{style.value}'></g:Label>
+    </g:FlowPanel>
+  </g:HTMLPanel>
+
+</ui:UiBinder>

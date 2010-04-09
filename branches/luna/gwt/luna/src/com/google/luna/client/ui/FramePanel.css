@@ -1,0 +1,152 @@
+.frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.emphasis { }
+
+.container {
+  background: white;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  position: absolute;
+}
+
+@sprite .nw {
+  gwt-image: 'northWest';
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+@sprite .emphasis .nw {
+  gwt-image: 'northWestEmphasis';
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+@sprite .ne {
+  gwt-image: 'northEast';
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 1;
+}
+
+@sprite .emphasis .ne {
+  gwt-image: 'northEastEmphasis';
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 1;
+}
+
+@sprite .se {
+  gwt-image: 'southEast';
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  z-index: 1;
+}
+
+@sprite .emphasis .se {
+  gwt-image: 'southEastEmphasis';
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  z-index: 1;
+}
+
+@sprite .sw {
+  gwt-image: 'southWest';
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+@sprite .emphasis .sw {
+  gwt-image: 'southWestEmphasis';
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+@sprite .n {
+  gwt-image: 'north';
+  position: absolute;
+  top: 0px;
+  left: value('northWest.getWidth', 'px');
+  right: value('northEast.getWidth', 'px');
+  z-index: 1;
+}
+
+@sprite .emphasis .n {
+  gwt-image: 'northEmphasis';
+  position: absolute;
+  top: 0px;
+  left: value('northWestEmphasis.getWidth', 'px');
+  right: value('northEastEmphasis.getWidth', 'px');
+  z-index: 1;
+}
+
+@sprite .e {
+  gwt-image: 'east';
+  position: absolute;
+  right: 0px;
+  top: value('northEast.getHeight', 'px');
+  bottom: value('southEast.getHeight', 'px');
+  z-index: 1;
+}
+
+@sprite .emphasis .e {
+  gwt-image: 'eastEmphasis';
+  position: absolute;
+  right: 0px;
+  top: value('northEastEmphasis.getHeight', 'px');
+  bottom: value('southEastEmphasis.getHeight', 'px');
+  z-index: 1;
+}
+
+@sprite .s {
+  gwt-image: 'south';
+  position: absolute;
+  bottom: 0px;
+  left: value('southWest.getWidth', 'px');
+  right: value('southEast.getWidth', 'px');
+  z-index: 1;
+}
+
+@sprite .emphasis .s {
+  gwt-image: 'southEmphasis';
+  position: absolute;
+  bottom: 0px;
+  left: value('southWestEmphasis.getWidth', 'px');
+  right: value('southEastEmphasis.getWidth', 'px');
+  z-index: 1;
+}
+
+@sprite .w {
+  gwt-image: 'west';
+  position: absolute;
+  left: 0px;
+  top: value('northWest.getHeight', 'px');
+  bottom: value('southWest.getHeight', 'px');
+  z-index: 1;
+}
+
+@sprite .emphasis .w {
+  gwt-image: 'westEmphasis';
+  position: absolute;
+  left: 0px;
+  top: value('northWestEmphasis.getHeight', 'px');
+  bottom: value('southWestEmphasis.getHeight', 'px');
+  z-index: 1;
+}
