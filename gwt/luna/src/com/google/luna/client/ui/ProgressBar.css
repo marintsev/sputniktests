@@ -1,0 +1,53 @@
+.outer {
+  position: relative;
+  border: 1px solid #9494AD;
+  height: 100%;
+}
+
+.loadBarHolder {
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;  
+}
+
+.loadBar {
+  z-index: 0;
+  position: relative;
+  height: 100%;
+}
+
+.loadBarFiller {
+  background: #F7F7F7;
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+}
+
+.runBar {
+  position: relative;
+  height: 100%;
+  z-index: 1;
+}
+
+.runBarFiller {
+  background: #D4E4FF;
+  left: 1px;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  position: absolute;
+}
+
+.label {
+  z-index: 2;
+  position: absolute;
+  text-align: center;
+  left: 0px;
+  right: 0px;
+  top: 50%;
+  margin-top: -0.7em;
+}

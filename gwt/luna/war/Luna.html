@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <!-- {% if 1 %} -->
+      <script type="text/javascript">
+        var kParameters = {'p':'{{page}}','d':{{is_server_side_devel}},'c':0,'s':'{{relative_path}}{{data_path}}'};
+        var kCannedRequests = {'activePackage.json': {{active_package}}};
+      </script>
+      <script type="text/javascript" language="javascript" src="{{relative_path}}luna/luna.nocache.js"></script>
+    <!--  {% else %} -->
+      <script type="text/javascript">
+        var kParameters = {'p':'Run','m':1,'d':0,'c':1,'s':'http://localhost:8080/data/'};
+        var kCannedRequests = { };
+      </script>
+      <script type="text/javascript" language="javascript" src="../luna/luna.nocache.js"></script>
+    <!-- {% endif %} -->
+    <style>
+.gwt-DialogBox {
+  z-index: 2;
+}
+    </style>
+    <title>Sputnik</title>
+  </head>
+  <body>
+    <noscript>
+      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+        Your web browser must have JavaScript enabled
+        in order for this application to display correctly.
+      </div>
+    </noscript>
+  </body>
+</html>

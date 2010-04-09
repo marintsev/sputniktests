@@ -1,0 +1,21 @@
+# Copyright 2010 the Sputnik authors.  All rights reserved.
+# This code is governed by the BSD license found in the LICENSE file.
+
+application: luna
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /(m/)?([^/]*\.html)?
+  script: luna.py
+
+- url: /luna
+  static_dir: gwt/luna/war/luna
+
+- url: /data/.*
+  script: luna.py
+
+- url: /remote_api
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin

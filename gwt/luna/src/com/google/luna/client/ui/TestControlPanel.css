@@ -1,0 +1,31 @@
+.outer {
+  width: 100%;
+  height: 1.7em;
+}
+
+.progress {
+  width: 434px;
+  height: 100%;
+  float: left;
+}
+
+.controlButton {
+  margin-left: 10px;
+  width: 65px;
+  height: 100%;
+  font-family: sans-serif;
+  float: left;
+}
+
+.stats {
+  margin-top: 10px;
+}
+
+.caption {
+  float: left;
+}
+
+.value {
+  float: right;
+  font-weight: bold;
+}
