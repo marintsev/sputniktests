@@ -26,6 +26,9 @@ public class TestControlPanel extends Composite implements ITestControlPanel {
   @UiField Button reset;
   @UiField Button start;
   @UiField Label current;
+  @UiField Label total;
+  @UiField Label succeeded;
+  @UiField Label failed;
   private IRunView.Mode currentMode = IRunView.Mode.DISABLED;
 
 	public TestControlPanel() {
@@ -55,8 +58,12 @@ public class TestControlPanel extends Composite implements ITestControlPanel {
 	}
 
 	@Override
-	public void updateStats(String testName) {
+	public void updateStats(String testName, int totalCount,
+			int succeededCount, int failedCount) {
 		current.setText(testName);
+		total.setText(Integer.toString(totalCount));
+		succeeded.setText(Integer.toString(succeededCount));
+		failed.setText(Integer.toString(failedCount));
 	}
 
 	@Override

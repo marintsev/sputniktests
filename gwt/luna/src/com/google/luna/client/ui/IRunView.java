@@ -3,6 +3,8 @@
 
 package com.google.luna.client.ui;
 
+import com.google.gwt.dom.client.Element;
+
 
 public interface IRunView extends IPageView {
 
@@ -13,5 +15,7 @@ public interface IRunView extends IPageView {
 	public ITestControlPanel getController();
 
 	public void setMode(Mode mode);
+
+	public Element getWorkspace();
 
 }

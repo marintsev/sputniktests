@@ -11,10 +11,24 @@
       <g:Button ui:field='reset' addStyleNames='{style.controlButton}'>Reset</g:Button>
       <g:Button ui:field='start' addStyleNames='{style.controlButton}'>Start</g:Button>
     </g:FlowPanel>
-    <g:FlowPanel styleName='{style.stats}'>
-      <g:Label styleName='{style.caption}'>Current:</g:Label>
-      <g:Label ui:field='current' styleName='{style.value}'></g:Label>
-    </g:FlowPanel>
+    <g:VerticalPanel styleName='{style.stats}'>
+      <g:FlowPanel>
+        <g:Label styleName='{style.caption}'>Current:</g:Label>
+        <g:Label ui:field='current' styleName='{style.value}'></g:Label>
+      </g:FlowPanel>
+      <g:FlowPanel>
+        <g:Label styleName='{style.caption}'>Total:</g:Label>
+        <g:Label ui:field='total' styleName='{style.value}'></g:Label>
+      </g:FlowPanel>
+      <g:FlowPanel>
+        <g:Label styleName='{style.caption}'>Succeeded:</g:Label>
+        <g:Label ui:field='succeeded' styleName='{style.value}'></g:Label>
+      </g:FlowPanel>
+      <g:FlowPanel>
+        <g:Label styleName='{style.caption}'>Failed:</g:Label>
+        <g:Label ui:field='failed' styleName='{style.value}'></g:Label>
+      </g:FlowPanel>
+    </g:VerticalPanel>
   </g:HTMLPanel>
 
 </ui:UiBinder>

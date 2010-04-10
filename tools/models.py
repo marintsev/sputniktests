@@ -38,16 +38,18 @@ class Suite(db.Model):
     }
 
 
-class Case(db.Expando):
+class Case(db.Model):
 
   suite = db.ReferenceProperty(Suite)
   name = db.StringProperty()
   serial = db.IntegerProperty()
   section = db.StringProperty()
+  source = db.TextProperty()
   
   def to_json(self):
     return {
       'n': self.name,
-      's': self.section
+      's': self.section,
+      'c': unicode(self.source)
     }
 

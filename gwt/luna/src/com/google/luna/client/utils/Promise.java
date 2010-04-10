@@ -62,15 +62,19 @@ public class Promise<T> {
   }
 
   public static Promise<Object> defer() {
+  	return defer(0);
+  }
+
+  public static Promise<Object> defer(int delay) {
   	final Promise<Object> result = new Promise<Object>();
-  	schedule(result);
+  	schedule(result, delay);
   	return result;
   }
 
-  private static native void schedule(Promise<Object> promise) /*-{
+  private static native void schedule(Promise<Object> promise, int delay) /*-{
     setTimeout(function () {
     	promise.@com.google.luna.client.utils.Promise::setValue(Ljava/lang/Object;)(null);
-    }, 0);
+    }, delay);
   }-*/;
 
 }

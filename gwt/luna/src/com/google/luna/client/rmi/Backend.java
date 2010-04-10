@@ -51,6 +51,7 @@ public class Backend {
   	protected Case() { }
   	public final native String getName() /*-{ return this.n; }-*/;
   	public final native String getSection() /*-{ return this.s; }-*/;
+  	public final native String getSource() /*-{ return this.c; }-*/;
   }
 
   public static class CaseBlock extends JavaScriptObject {

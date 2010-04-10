@@ -4,8 +4,13 @@
 package com.google.luna.client.test;
 
 
+
 public interface ITestController {
 
-	public void run(TestCase testCase);
+	public void schedule(ITestRun runner, TestCase testCase);
+
+	public String buildSource(TestCase test);
+
+	public boolean isNegative(TestCase test);
 
 }

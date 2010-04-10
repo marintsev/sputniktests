@@ -12,7 +12,8 @@ import com.google.luna.client.ui.ITestControlPanel;
 import com.google.luna.client.ui.RunView;
 import com.google.luna.client.utils.Thunk;
 
-public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler {
+public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
+		TestRun.IListener {
 
 	public static IFactory<IRunView> getFactory() {
 		return new IFactory<IRunView>() {
@@ -48,31 +49,23 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler {
 
 	}
 
-	private void allDone() {
+	public void allDone() {
 		view.getController().setRunProgress(1);
 	}
 
-	private void testStarted(TestCase test) {
-		double runCount = test.getSerial();
+	public void testStarted(TestCase test) {
+		int runCount = test.getSerial();
 		double count = pack.getTestCount();
 		view.getController().setRunProgress(runCount / count);
-		view.getController().updateStats(test.getSection() + "/" + test.getName());
+		String name = test.getSection() + "/" + test.getName();
+		view.getController().updateStats(name, runCount, run.getResults().getExpectedCount(),
+				run.getResults().getUnexpectedCount());
 	}
 
 	@Override
 	public void startClicked() {
 		view.setMode(IRunView.Mode.RUNNING);
-		TestRun.Listener listener = new TestRun.Listener() {
-			@Override
-			public void testStarted(TestCase test) {
-				RunPage.this.testStarted(test);
-			}
-			@Override
-			public void allDone() {
-				RunPage.this.allDone();
-			}
-		};
-		this.run = new TestRun(pack, listener);
+		this.run = new TestRun(pack, this, view.getWorkspace());
 		run.start();
 	}
 

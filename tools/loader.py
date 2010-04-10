@@ -30,7 +30,8 @@ class CaseLoader(bulkloader.Loader):
       ('suite', self.get_suite),
       ('name', str),
       ('serial', int),
-      ('section', str)
+      ('section', str),
+      ('source', unicode)
     ])
     self.suite_ = None
 
@@ -38,11 +39,13 @@ class CaseLoader(bulkloader.Loader):
     suite = bundleutils.load(filename)
     for (serial, case) in suite.generate_tests():
       section = '.'.join(case.section())
+      source = case.source()
       yield [
         suite.hash(),
         case.name(),
         serial,
-        section
+        section,
+        source
       ]
 
   def get_suite(self, hash):
