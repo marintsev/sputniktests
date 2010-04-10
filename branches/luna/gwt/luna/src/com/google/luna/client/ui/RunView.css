@@ -5,3 +5,11 @@
 .outer {
   width: 100%;
 }
+
+.workspace {
+  float: left;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  z-index: -1;
+}

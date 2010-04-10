@@ -4,8 +4,10 @@
 package com.google.luna.client.ui;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class RunView extends PageView implements IRunView {
@@ -14,6 +16,7 @@ public class RunView extends PageView implements IRunView {
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
 	@UiField TestControlPanel controls;
+	@UiField FlowPanel workspace;
 
 	public RunView() {
 		this.initWidget(BINDER.createAndBindUi(this));
@@ -27,6 +30,11 @@ public class RunView extends PageView implements IRunView {
 	@Override
 	public void setMode(Mode mode) {
 		controls.setMode(mode);
+	}
+
+	@Override
+	public Element getWorkspace() {
+		return workspace.getElement();
 	}
 
 }

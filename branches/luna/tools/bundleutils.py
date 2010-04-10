@@ -3,10 +3,12 @@
 # Copyright 2010 the Sputnik authors.  All rights reserved.
 # This code is governed by the BSD license found in the LICENSE file.
 
+import codecs
 import time
 import hashlib
 import pickle
 import os
+import re
 import sys
 from os.path import exists, join
 
@@ -36,10 +38,13 @@ class TestCase(object):
   def section(self):
     return self.section_
   
+  def source(self):
+    return self.source_
+  
   def add_to_hash(self, m):
     m.update(self.name_)
     m.update('.'.join(self.section_))
-    m.update(self.source_)
+    m.update(self.source_.encode('utf-8'))
   
   def __str__(self):
     return 'case { file: %s, name: %s, section: %s }' % (self.filename_, self.name_, str(self.section_))
@@ -166,7 +171,6 @@ class Bundler(object):
     finally:
       o.close()
     log('Done writing bundle')
-    
   
   def build_bundle(self):
     # Preliminary checks
@@ -198,7 +202,7 @@ class Bundler(object):
     log('Building test cases')
     cases_by_section = { }
     for test_file in test_files:
-      o = open(test_file, 'rt')
+      o = codecs.open(test_file, 'r', 'utf-8')
       try:
         source = o.read()
       finally:

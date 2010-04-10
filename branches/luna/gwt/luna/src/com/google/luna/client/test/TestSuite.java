@@ -22,7 +22,7 @@ public class TestSuite {
 	}
 
 	private final int BLOCK_SIZE = 128;
-	private final int BLOCK_AHEAD_COUNT = 3;
+	private final int BLOCK_AHEAD_COUNT = 2;
 
 	private final Backend.Suite data;
 	private final ITestController controller;

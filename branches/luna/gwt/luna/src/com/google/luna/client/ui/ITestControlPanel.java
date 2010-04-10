@@ -16,6 +16,7 @@ public interface ITestControlPanel {
 
 	public void setRunProgress(double value);
 	public void setLoadProgress(double value);
-	public void updateStats(String testName);
+	public void updateStats(String testName, int totalCount,
+			int succeededCount, int failedCount);
 
 }

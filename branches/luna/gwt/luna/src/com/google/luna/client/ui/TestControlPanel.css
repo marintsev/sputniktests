@@ -19,6 +19,7 @@
 
 .stats {
   margin-top: 10px;
+  width: 100%;
 }
 
 .caption {
@@ -28,4 +29,5 @@
 .value {
   float: right;
   font-weight: bold;
+  text-align: right;
 }
