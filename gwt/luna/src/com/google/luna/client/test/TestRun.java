@@ -97,8 +97,11 @@ public class TestRun implements ITestRun {
 
 	@Override
 	public void testDone(TestCase test) {
-		if (!test.isNegative())
+		if (test.isNegative()) {
 			results.setResult(test.getSerial(), TestResults.Outcome.EXPECTED);
+		} else {
+			results.setResult(test.getSerial(), TestResults.Outcome.UNEXPECTED_IF_UNSET);
+		}
 		deferredScheduleNextTest();
 	}
 
