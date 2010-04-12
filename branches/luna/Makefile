@@ -1,6 +1,7 @@
+APPCFG=$(GAE)/appcfg.py
 SPUTNIK_BUNDLE=sputnik.bundle
 SERVER=localhost:8080
-UPLOAD_COMMAND=appcfg.py upload_data --config_file=tools/loader.py --server=$(SERVER)
+UPLOAD_COMMAND=$(APPCFG) upload_data --config_file=tools/loader.py --server=$(SERVER)
 CLEAN_BULKLOAD=rm bulkloader-*
 
 upload-sputnik: bundle-sputnik upload-sputnik-bundle

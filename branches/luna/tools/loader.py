@@ -1,19 +1,24 @@
 # Copyright 2010 the Sputnik authors.  All rights reserved.
 # This code is governed by the BSD license found in the LICENSE file.
 
-from tools import bundleutils, models
+import sys
+
+sys.path.append('tools')
+
+import bundleutils
+import models
 from google.appengine.ext import db
 from google.appengine.tools import bulkloader
 
 class SuiteLoader(bulkloader.Loader):
-  
+
   def __init__(self):
     super(SuiteLoader, self).__init__('Suite', [
       ('type', str),
       ('hash', str),
       ('case_count', int)
     ])
-  
+
   def generate_records(self, filename):
     suite = bundleutils.load(filename)
     yield [
