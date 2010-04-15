@@ -14,7 +14,7 @@ from os.path import exists, join
 
 
 class TestCase(object):
-  
+
   # Args:
   #   filename: the name of the file containing this test
   #   name: the name of the test within its section.  For instance 'A1 T3' for
@@ -31,27 +31,27 @@ class TestCase(object):
     self.section_ = section
     self.source_ = source
     self.extra_ = extra
-  
+
   def name(self):
     return self.name_
-  
+
   def section(self):
     return self.section_
-  
+
   def source(self):
     return self.source_
-  
+
   def add_to_hash(self, m):
     m.update(self.name_)
     m.update('.'.join(self.section_))
     m.update(self.source_.encode('utf-8'))
-  
+
   def __str__(self):
     return 'case { file: %s, name: %s, section: %s }' % (self.filename_, self.name_, str(self.section_))
 
 
 class Section(object):
-  
+
   # Args:
   #   index: the index of this section, for instance '9'.
   #   parent: a list of strings giving the path to the parent of this section,
@@ -62,19 +62,19 @@ class Section(object):
     self.index_ = index
     self.parent_ = parent
     self.title_ = title
-  
+
   def add_to_hash(self, m):
     m.update(self.index_)
     m.update('.'.join(self.parent_))
     if self.title_:
       m.update(self.title_)
-  
+
   def full_path(self):
     return tuple(self.parent_ + [self.index_])
-  
+
   def parent(self):
     return self.parent_
-  
+
   def __str__(self):
     return 'section { index: %s, parent: %s, title: "%s" }' % (self.index_, str(self.parent_), self.title_)
 
@@ -93,25 +93,25 @@ def load(name):
 
 
 class TestSuite(object):
-  
+
   def __init__(self, info, sections, cases):
     self.info_ = info
     self.sections_ = sections
     self.cases_ = cases
     self.hash_ = self.calculate_hash()
-  
+
   def hash(self):
     return self.hash_
-  
+
   def info(self):
     return self.info_
-  
+
   def case_count(self):
     size = 0
     for (serial, case) in self.generate_tests():
       size += 1
     return size
-  
+
   def generate_tests(self):
     def compare_strings(a, b):
       return int(a) - int(b)
@@ -129,7 +129,7 @@ class TestSuite(object):
       for name in sorted(cases.keys()):
         yield (serial, cases[name])
         serial += 1
-  
+
   def calculate_hash(self):
     log('Calculating hash')
     m = hashlib.md5()
@@ -149,19 +149,19 @@ class TestSuite(object):
 # Extra information about a test suite that can be used by the app to determine
 # how to handle the tests.
 class TestSuiteInfo(object):
-  
+
   def __init__(self, type):
     self.type_ = type
-  
+
   def type(self):
     return self.type_
 
 
 class Bundler(object):
-  
+
   def __init__(self, root):
     self.root_ = root
-  
+
   def run(self, output):
     o = open(output, 'w')
     bundle = self.build_bundle()
@@ -171,7 +171,18 @@ class Bundler(object):
     finally:
       o.close()
     log('Done writing bundle')
-  
+
+  def read_file(self, name, encoding = 'utf-8', errors = 'strict'):
+    o = codecs.open(name, 'r', encoding, errors)
+    try:
+      source = o.read()
+    finally:
+      o.close()
+    return source
+
+  def get_file(self, *name):
+    return os.path.join(self.root_, *name)
+
   def build_bundle(self):
     # Preliminary checks
     if not self._verify_root():
@@ -201,12 +212,9 @@ class Bundler(object):
     # Read test files
     log('Building test cases')
     cases_by_section = { }
+    (encoding, errors) = self.encoding()
     for test_file in test_files:
-      o = codecs.open(test_file, 'r', 'utf-8')
-      try:
-        source = o.read()
-      finally:
-        o.close()
+      source = self.read_file(test_file, encoding, errors)
       test_case = self.make_test_case(test_file, source)
       section = tuple(test_case.section())
       if not section in section_map:
@@ -222,6 +230,9 @@ class Bundler(object):
     info = self.get_info()
     return TestSuite(info, section_map, cases_by_section)
 
+  def encoding(self):
+    return ('utf-8', 'strict')
+
   def _verify_root(self):
     for dirs in self.get_expected_directories():
       path = join(self.root_, dirs)
@@ -234,11 +245,11 @@ class Bundler(object):
   # that must be present for the bundler to work must be listed here.
   def get_expected_directories(self):
     raise NotImplemented
-  
+
   # Returns a generator generating all names of files containing test cases.
   def test_files(self, root):
     raise NotImplemented
-  
+
   # Returns a generator generating Section objects for all sections in this
   # test suite.
   def test_sections(self, root):
@@ -248,14 +259,14 @@ class Bundler(object):
   # stored in the test case database
   def make_test_case(self, name, source):
     raise NotImplemented
-  
+
   # Destructively removes hidden directories from a list of directory names.
   def remove_hidden_directories(self, dirs):
     def is_hidden(dir):
       return dir.startswith('.')
     for dir in [d for d in dirs if is_hidden(d)]:
       dirs.remove(dir)
-  
+
   # Returns a generator generating all unhidden files under the specified
   # directory.
   def unhidden_files(self, path):
@@ -264,18 +275,23 @@ class Bundler(object):
       yield (root, dirs, files)
 
 
+_INCLUDE_RE = re.compile(r'\$INCLUDE\(\s*\"([^"]*)\"\s*\)')
 class SputnikBundler(Bundler):
+
+  def __init__(self, root):
+    super(SputnikBundler, self).__init__(root)
+    self.includes_ = {}
 
   def get_expected_directories(self):
     return ['lib', 'tests', join('tests', 'Conformance')]
-  
+
   def test_files(self, root):
     tests_root = join(root, 'tests', 'Conformance')
     for (root, dirs, files) in self.unhidden_files(tests_root):
       for file in files:
         if file.endswith('.js'):
           yield join(root, file)
-  
+
   def split_test_filename(self, filename):
     assert filename.endswith('.js')
     assert filename.startswith('S')
@@ -284,7 +300,7 @@ class SputnikBundler(Bundler):
     section = [str(int(p)) for p in base_name[:first_sep].split('.')]
     id = base_name[first_sep+1:]
     return (section, id)
-  
+
   def test_sections(self, root):
     tests_root = join(root, 'tests', 'Conformance')
     # Sections based on directories
@@ -317,24 +333,105 @@ class SputnikBundler(Bundler):
         name = str(extra_section[-1])
         parent = [str(s) for s in extra_section[:-1]]
         yield Section(name, parent, None)
-  
+
   def relative_path_parts(self, name):
     tests_root = join(self.root_, 'tests', 'Conformance')
     relative_path = name[len(tests_root):]
     return [p for p in relative_path.split(os.path.sep) if p]
-  
+
+  def resolve_include(self, name):
+    if name == 'environment.js':
+      return '$ENVIRONMENT()'
+    if not name in self.includes_:
+      source = self.read_file(self.get_file('lib', name))
+      self.includes_[name] = source
+    return self.includes_[name]
+
+  def expand_includes(self, source):
+    def expand_include(match):
+      name = match.group(1)
+      return self.resolve_include(name)
+    return _INCLUDE_RE.sub(expand_include, source)
+
   def make_test_case(self, file, source):
     relative_path = self.relative_path_parts(file)
     filename = relative_path[-1]
     (section, id) = self.split_test_filename(filename)
+    source = self.expand_includes(source)
     return TestCase(file, id, section, source)
-  
+
   def get_info(self):
     return TestSuiteInfo('sputnik')
 
 
 class Es5ConformBundler(Bundler):
-  pass
+
+  def get_expected_directories(self):
+    return ['TestCases']
+
+  def relative_path_parts(self, name):
+    tests_root = join(self.root_, 'TestCases')
+    relative_path = name[len(tests_root):]
+    return [p for p in relative_path.split(os.path.sep) if p]
+
+  def test_sections(self, root):
+    tests_root = join(root, 'TestCases')
+    def ensure_section(parts):
+      t = tuple(parts)
+      if t in sections:
+        return
+      sections.add(t)
+      if len(parts) > 1:
+        ensure_section(parts[:-1])
+    # Sections based on directories
+    sections = set()
+    # Sections inferred from test files
+    extra_sections = set()
+    for (root, dirs, files) in self.unhidden_files(tests_root):
+      parts = self.relative_path_parts(root)
+      if not parts:
+        continue
+      last = parts[-1]
+      if last.startswith('chapter'):
+        continue
+      split = last.split('.')
+      ensure_section(split)
+      for file in files:
+        if file.endswith('.js'):
+          (file_section, file_id) = self.split_test_filename(file)
+          ensure_section(file_section)
+    for sect in sections:
+      yield Section(sect[-1], list(sect[:-1]), '.'.join(sect))
+
+  def test_files(self, root):
+    tests_root = join(root, 'TestCases')
+    for (root, dirs, files) in self.unhidden_files(tests_root):
+      for file in files:
+        if file.endswith('.js'):
+          yield join(root, file)
+
+  def split_test_filename(self, filename):
+    assert filename.endswith('.js')
+    base_name = filename[:-3]
+    try:
+      first_sep = base_name.index('-')
+    except ValueError:
+      first_sep = len(base_name)
+    section = [str(int(p)) for p in base_name[:first_sep].split('.')]
+    id = base_name[first_sep+1:]
+    return (section, id)
+
+  def make_test_case(self, file, source):
+    relative_path = self.relative_path_parts(file)
+    filename = relative_path[-1]
+    (section, id) = self.split_test_filename(filename)
+    return TestCase(file, id, section, source)
+
+  def encoding(self):
+    return ('utf-8', 'replace')
+
+  def get_info(self):
+    return TestSuiteInfo('es5conform')
 
 
 def build_option_parser():
