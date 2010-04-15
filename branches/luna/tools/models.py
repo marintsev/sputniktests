@@ -29,7 +29,7 @@ class Suite(db.Model):
   hash = db.StringProperty()
   case_count = db.IntegerProperty()
   created = db.DateTimeProperty(auto_now_add=True)
-  
+
   def to_json(self):
     return {
       't': self.type,
@@ -45,11 +45,10 @@ class Case(db.Model):
   serial = db.IntegerProperty()
   section = db.StringProperty()
   source = db.TextProperty()
-  
+
   def to_json(self):
     return {
       'n': self.name,
       's': self.section,
       'c': unicode(self.source)
     }
-

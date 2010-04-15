@@ -7,7 +7,7 @@
 
   <g:HTMLPanel styleName='{style.broadCenter}'>
     <g:VerticalPanel>
-      <g:Label styleName='{style.title}'>Sputnik</g:Label>
+      <g:Label styleName='{style.title}'>Luna</g:Label>
       <g:Label ui:field='subtitle' styleName='{style.subtitle}'/>
       <g:HorizontalPanel>
   	<l:TabButton ui:field='aboutButton' styleName='{style.tabButton}' target="about.html">About</l:TabButton>

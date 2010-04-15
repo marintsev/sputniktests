@@ -79,7 +79,7 @@ class LunaHandler(object):
         'relative_path': relative_path
       })
     return render
-  
+
   def _emit_json(self, req, obj):
     text = to_json(obj)
     req.response.headers['Content-Type'] = 'text/javascript'
@@ -88,16 +88,16 @@ class LunaHandler(object):
       req.response.out.write('%s(%s)' % (callback, text))
     else:
       req.response.out.write(text)
-  
+
   def get_suite(self, req):
     self._emit_json(req, models.Suite.all()[0])
-  
+
   def get_active_package_object(self):
     return {
       's': [s for s in models.Suite.all()],
       'v': '0'
     }
-  
+
   def get_active_package(self, req):
     self._emit_json(req, self.get_active_package_object())
 
