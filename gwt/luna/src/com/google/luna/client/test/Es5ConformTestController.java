@@ -7,6 +7,7 @@ import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.IFrameElement;
+import com.google.luna.client.Luna;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
@@ -63,7 +64,16 @@ public class Es5ConformTestController implements ITestController {
 
   private void runTest(ITestRun runner, TestCase test, JavaScriptObject fun,
       JavaScriptObject prereq, IFrameElement frame) {
-    if (shouldExecute(prereq)) {
+    boolean skip = true;
+    try {
+      skip = !shouldExecute(prereq);
+    } catch (JavaScriptException jse) {
+      Luna.reportError(jse);
+      return;
+    }
+    if (skip) {
+      testSkipped(runner, test, frame);
+    } else {
       try {
         if (execute(fun)) {
           runner.testScriptComplete(test);
@@ -74,8 +84,6 @@ public class Es5ConformTestController implements ITestController {
         runner.testFailed(test, jse.getMessage());
       }
       testDone(runner, test, frame);
-    } else {
-      testSkipped(runner, test, frame);
     }
   }
 
@@ -88,11 +96,7 @@ public class Es5ConformTestController implements ITestController {
   }-*/;
 
   private static native boolean shouldExecute(JavaScriptObject prereq) /*-{
-    try {
-      return !prereq || prereq();
-    } catch (e) {
-      return false;
-    }
+    return !prereq || prereq();
   }-*/;
 
   private static native boolean execute(JavaScriptObject fun) /*-{
