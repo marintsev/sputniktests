@@ -39,7 +39,7 @@ public class SputnikTestController implements ITestController {
   public void start(ITestRun runner, TestCase test) {
     IFrameElement frame = Document.get().createIFrameElement();
     runner.getWorkspace().appendChild(frame);
-    installCallbacks(frame, runner, test);
+    installGlobals(frame, runner, test);
     TestUtils.injectScript(frame, "testStarted();");
     String fullSource = test.getSource() + "\ntestScriptComplete();";
     TestUtils.injectScript(frame, fullSource);
@@ -67,7 +67,7 @@ public class SputnikTestController implements ITestController {
     runner.testDone(test);
   }
 
-  private native void installCallbacks(IFrameElement frame, ITestRun runner,
+  private native void installGlobals(IFrameElement frame, ITestRun runner,
       TestCase test) /*-{
 	var self = this;
 	var global = frame.contentWindow;

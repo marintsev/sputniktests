@@ -7,6 +7,7 @@
 
   <g:VerticalPanel styleName='{style.outer}'>
     <l:TestControlPanel ui:field='controls' styleName='{style.controls}'/>
+    <l:ResultList ui:field='results' styleName='{style.results}'/>
     <g:FlowPanel ui:field='workspace' styleName='{style.workspace}'/>
   </g:VerticalPanel>
   

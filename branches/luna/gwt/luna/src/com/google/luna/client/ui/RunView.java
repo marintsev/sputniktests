@@ -16,6 +16,7 @@ public class RunView extends PageView implements IRunView {
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
 	@UiField TestControlPanel controls;
+	@UiField ResultList results;
 	@UiField FlowPanel workspace;
 
 	public RunView() {
