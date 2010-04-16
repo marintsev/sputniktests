@@ -7,11 +7,10 @@ import com.google.gwt.dom.client.Element;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
-public class TestRun implements ITestRun {
+public class TestRun implements ITestProgressSink {
 
-  public interface IListener {
+  public interface IListener extends TestResults.IListener {
     public void testStarted(TestCase test);
-    public void testFailed(TestCase test, String message);
     public void allDone();
   }
 
@@ -27,6 +26,7 @@ public class TestRun implements ITestRun {
     this.listener = listener;
     this.workspace = workspace;
     this.results = new TestResults(pack);
+    this.results.addListener(listener);
   }
 
   public TestResults getResults() {
@@ -79,17 +79,20 @@ public class TestRun implements ITestRun {
 
   @Override
   public void testScriptComplete(TestCase test) {
-    results.setResult(test.getSerial(), test.isNegative()
-        ? TestResults.Outcome.UNEXPECTED
-            : TestResults.Outcome.EXPECTED);
+    if (test.isNegative()) {
+      results.recordUnexpectedResult(test);
+    } else {
+      results.recordExpectedResult(test);
+    }
   }
 
   @Override
   public void testFailed(TestCase test, String message) {
-    listener.testFailed(test, message);
-    results.setResult(test.getSerial(), test.isNegative()
-        ? TestResults.Outcome.EXPECTED
-            : TestResults.Outcome.UNEXPECTED);
+    if (test.isNegative()) {
+      results.recordExpectedResult(test);
+    } else {
+      results.recordUnexpectedResult(test);
+    }
   }
 
   @Override
@@ -99,17 +102,14 @@ public class TestRun implements ITestRun {
 
   @Override
   public void testDone(TestCase test) {
-    if (test.isNegative()) {
-      results.setResult(test.getSerial(), TestResults.Outcome.EXPECTED);
-    } else {
-      results.setResult(test.getSerial(), TestResults.Outcome.UNEXPECTED_IF_UNSET);
-    }
+    results.testOver(test);
     deferredScheduleNextTest();
   }
 
   @Override
   public void testSkipped(TestCase test) {
-    results.setResult(test.getSerial(), TestResults.Outcome.EXPECTED);
+    results.recordExpectedResult(test);
+    results.testOver(test);
     deferredScheduleNextTest();
   }
 

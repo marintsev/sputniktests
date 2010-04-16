@@ -4,8 +4,13 @@
   margin: 1px;
   display: block;
   height: 1.25em;
+  cursor: pointer;
+}
+
+.outer:hover {
+  background: #ffffee;
 }
 
 .description {
-  color: grey;
+  color: #ccc;
 }

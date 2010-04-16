@@ -33,14 +33,16 @@ public class TestPackage {
     };
 
     JsArray<Backend.Suite> suites = data.getSuites();
+    int serialOffset = 0;
     for (int i = 0; i < suites.length(); i++) {
       Backend.Suite suiteData = suites.get(i);
       String type = suiteData.getType();
       ITestController.Factory factory = Luna.getTestControllerFactory(type);
       ITestController controller = factory.create();
-      TestSuite suite = new TestSuite(suiteData, controller);
+      TestSuite suite = new TestSuite(suiteData, controller, serialOffset);
       this.suites.add(suite);
       suite.addLoadListener(loadListener);
+      serialOffset += suiteData.getCaseCount();
     }
   }
 

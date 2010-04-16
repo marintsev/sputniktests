@@ -23,8 +23,8 @@ public class ResultEntry extends Composite {
   public ResultEntry(TestCase test, String text) {
     this.test = test;
     initWidget(BINDER.createAndBindUi(this));
-    this.name.setInnerText(test.getName());
-    this.description.setInnerText(text);
+    this.name.setInnerText(test.getLabel());
+    this.description.setInnerText(test.getDescription());
   }
 
 }
