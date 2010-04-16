@@ -15,27 +15,32 @@ public class RunView extends PageView implements IRunView {
   interface IMyUiBinder extends UiBinder<Widget, RunView> {}
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
-	@UiField TestControlPanel controls;
-	@UiField ResultList results;
-	@UiField FlowPanel workspace;
+  @UiField TestControlPanel controls;
+  @UiField ResultList results;
+  @UiField FlowPanel workspace;
 
-	public RunView() {
-		this.initWidget(BINDER.createAndBindUi(this));
-	}
+  public RunView() {
+    this.initWidget(BINDER.createAndBindUi(this));
+  }
 
-	@Override
-	public ITestControlPanel getController() {
-		return controls;
-	}
+  @Override
+  public ITestControlPanel getController() {
+    return controls;
+  }
 
-	@Override
-	public void setMode(Mode mode) {
-		controls.setMode(mode);
-	}
+  @Override
+  public IResultList getResults() {
+    return this.results;
+  }
 
-	@Override
-	public Element getWorkspace() {
-		return workspace.getElement();
-	}
+  @Override
+  public void setMode(Mode mode) {
+    controls.setMode(mode);
+  }
+
+  @Override
+  public Element getWorkspace() {
+    return workspace.getElement();
+  }
 
 }

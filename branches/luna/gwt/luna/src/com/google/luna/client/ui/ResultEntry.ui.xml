@@ -3,11 +3,10 @@
     xmlns:g='urn:import:com.google.gwt.user.client.ui'
     xmlns:l='urn:import:com.google.luna.client.ui'>
 
-  <ui:style src="ResultList.css" />
+  <ui:style src="ResultEntry.css" />
 
   <g:HTMLPanel styleName='{style.outer}'>
-    <g:FlowPanel ui:field='body' styleName='{style.inner}'>
-    </g:FlowPanel>
+    <span ui:field='name'/> - <span ui:field='description' styleName='{style.description}'/>
   </g:HTMLPanel>
 
 </ui:UiBinder>
