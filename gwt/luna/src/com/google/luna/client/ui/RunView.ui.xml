@@ -5,10 +5,10 @@
 
   <ui:style src="RunView.css" />
 
-  <g:VerticalPanel styleName='{style.outer}'>
+  <g:FlowPanel styleName='{style.outer}'>
     <l:TestControlPanel ui:field='controls' styleName='{style.controls}'/>
-    <l:ResultList ui:field='results' styleName='{style.results}'/>
+    <l:ResultList ui:field='results' addStyleNames='{style.results}'/>
     <g:FlowPanel ui:field='workspace' styleName='{style.workspace}'/>
-  </g:VerticalPanel>
-  
+  </g:FlowPanel>
+
 </ui:UiBinder>

@@ -11,6 +11,7 @@ public class TestRun implements ITestRun {
 
   public interface IListener {
     public void testStarted(TestCase test);
+    public void testFailed(TestCase test, String message);
     public void allDone();
   }
 
@@ -85,6 +86,7 @@ public class TestRun implements ITestRun {
 
   @Override
   public void testFailed(TestCase test, String message) {
+    listener.testFailed(test, message);
     results.setResult(test.getSerial(), test.isNegative()
         ? TestResults.Outcome.EXPECTED
             : TestResults.Outcome.UNEXPECTED);

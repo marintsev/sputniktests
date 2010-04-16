@@ -63,6 +63,11 @@ TestRun.IListener {
   }
 
   @Override
+  public void testFailed(TestCase test, String message) {
+    view.getResults().addResult(test, message);
+  }
+
+  @Override
   public void startClicked() {
     view.setMode(IRunView.Mode.RUNNING);
     this.run = new TestRun(pack, this, view.getWorkspace());

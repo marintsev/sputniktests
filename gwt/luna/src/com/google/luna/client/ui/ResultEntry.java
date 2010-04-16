@@ -4,27 +4,27 @@
 package com.google.luna.client.ui;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.SpanElement;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.luna.client.test.TestCase;
 
-public class ResultList extends Composite implements IResultList {
+public class ResultEntry extends Composite {
 
-  interface IMyUiBinder extends UiBinder<Widget, ResultList> {}
+  interface IMyUiBinder extends UiBinder<Widget, ResultEntry> {}
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
-  @UiField FlowPanel body;
+  @UiField SpanElement name;
+  @UiField SpanElement description;
+  private final TestCase test;
 
-  public ResultList() {
+  public ResultEntry(TestCase test, String text) {
+    this.test = test;
     initWidget(BINDER.createAndBindUi(this));
-  }
-
-  @Override
-  public void addResult(TestCase test, String str) {
-    body.insert(new ResultEntry(test, str), 0);
+    this.name.setInnerText(test.getName());
+    this.description.setInnerText(text);
   }
 
 }

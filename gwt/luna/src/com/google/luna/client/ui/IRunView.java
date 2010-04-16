@@ -8,14 +8,16 @@ import com.google.gwt.dom.client.Element;
 
 public interface IRunView extends IPageView {
 
-	public enum Mode {
-		DISABLED, READY, RUNNING, PAUSED
-	}
+  public enum Mode {
+    DISABLED, READY, RUNNING, PAUSED
+  }
 
-	public ITestControlPanel getController();
+  public ITestControlPanel getController();
 
-	public void setMode(Mode mode);
+  public void setMode(Mode mode);
 
-	public Element getWorkspace();
+  public Element getWorkspace();
+
+  public IResultList getResults();
 
 }
