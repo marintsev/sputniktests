@@ -2,7 +2,7 @@ package com.google.luna.client.test;
 
 import com.google.gwt.dom.client.Element;
 
-public interface ITestRun {
+public interface ITestProgressSink {
 
 	public void testStarted(TestCase test);
 	public void testScriptComplete(TestCase test);

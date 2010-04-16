@@ -7,6 +7,8 @@ import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
+import java.util.HashMap;
+
 public class TestCase {
 
   private enum Negativity { UNKNOWN, NEGATIVE, POSITIVE }
@@ -17,11 +19,25 @@ public class TestCase {
 
   private String source = null;
   private Negativity negativity = Negativity.UNKNOWN;
+  private String description = null;
+  private HashMap<String, Object> attribs = null;
 
   public TestCase(Backend.Case data, int serial, ITestController controller) {
     this.data = data;
     this.serial = serial;
     this.controller = controller;
+  }
+
+  public void setAttribute(String key, Object value) {
+    if (attribs == null)
+      attribs = new HashMap<String, Object>();
+    attribs.put(key, value);
+  }
+
+  public Object getAttribute(String key) {
+    if (attribs == null)
+      return null;
+    return attribs.get(key);
   }
 
   public int getSerial() {
@@ -36,10 +52,20 @@ public class TestCase {
     return data.getSection();
   }
 
+  public String getLabel() {
+    return controller.getLabel(this);
+  }
+
   public String getSource() {
     if (source == null)
       source = controller.buildSource(this);
     return source;
+  }
+
+  public String getDescription() {
+    if (description == null)
+      description = controller.buildDescription(this);
+    return description;
   }
 
   public String getRawSource() {

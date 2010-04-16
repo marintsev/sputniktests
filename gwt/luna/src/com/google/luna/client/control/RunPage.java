@@ -13,7 +13,7 @@ import com.google.luna.client.ui.RunView;
 import com.google.luna.client.utils.Thunk;
 
 public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
-TestRun.IListener {
+    TestRun.IListener {
 
   public static IFactory<IRunView> getFactory() {
     return new IFactory<IRunView>() {
@@ -57,14 +57,14 @@ TestRun.IListener {
     int runCount = test.getSerial();
     double count = pack.getTestCount();
     view.getController().setRunProgress(runCount / count);
-    String name = test.getSection() + "/" + test.getName();
-    view.getController().updateStats(name, runCount, run.getResults().getExpectedCount(),
-        run.getResults().getUnexpectedCount());
+    view.getController().updateStats(test.getLabel(), runCount,
+        run.getResults().getExpectedCount(), run.getResults().getUnexpectedCount());
   }
 
   @Override
-  public void testFailed(TestCase test, String message) {
-    view.getResults().addResult(test, message);
+  public void testOver(TestCase test, boolean hadExpectedResult) {
+    if (!hadExpectedResult)
+      view.getResults().addResult(test, "");
   }
 
   @Override

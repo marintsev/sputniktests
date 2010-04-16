@@ -29,13 +29,14 @@ public class TestSuite {
   private final BlockList<TestCase> cases;
   private final ArrayList<ILoadListener> listeners = new ArrayList<ILoadListener>();
 
-  public TestSuite(final Backend.Suite data, ITestController controller) {
+  public TestSuite(final Backend.Suite data, ITestController controller,
+      final int serialOffset) {
     this.data = data;
     this.controller = controller;
     this.cases = new BlockList<TestCase>(this.getCaseCount(), BLOCK_SIZE, BLOCK_AHEAD_COUNT) {
       @Override
       protected Promise<List<TestCase>> fetchBlock(int from, int to) {
-        return fetchCaseBlock(from, to);
+        return fetchCaseBlock(from, to, serialOffset);
       }
     };
     this.cases.addListener(new BlockList.IListener() {
@@ -61,7 +62,7 @@ public class TestSuite {
   }
 
   protected Promise<List<TestCase>> fetchCaseBlock(final int from,
-      final int to) {
+      final int to, final int serialOffset) {
     final Promise<List<TestCase>> result = new Promise<List<TestCase>>();
     Luna.getBackend().getCases(data, from, to).onValue(new Thunk<Backend.CaseBlock>() {
       @Override
@@ -71,7 +72,7 @@ public class TestSuite {
         JsArray<Case> cases = block.getCases();
         ArrayList<TestCase> list = new ArrayList<TestCase>();
         for (int i = 0; i < cases.length(); i++) {
-          int serial = from + i;
+          int serial = serialOffset + from + i;
           list.add(new TestCase(cases.get(i), serial, controller));
         }
         result.setValue(list);

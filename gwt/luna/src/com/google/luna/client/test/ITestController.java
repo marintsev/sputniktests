@@ -11,10 +11,14 @@ public interface ITestController {
     public ITestController create();
   }
 
-  public void start(ITestRun runner, TestCase testCase);
+  public void start(ITestProgressSink runner, TestCase testCase);
 
   public String buildSource(TestCase test);
 
+  public String buildDescription(TestCase testCase);
+
   public boolean isNegative(TestCase test);
+
+  public String getLabel(TestCase testCase);
 
 }

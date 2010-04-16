@@ -6,7 +6,7 @@
   <ui:style src="ResultEntry.css" />
 
   <g:HTMLPanel styleName='{style.outer}'>
-    <span ui:field='name'/> - <span ui:field='description' styleName='{style.description}'/>
+    <span ui:field='name'/> - <span ui:field='description' class='{style.description}'/>
   </g:HTMLPanel>
 
 </ui:UiBinder>
