@@ -17,4 +17,6 @@ public final class Parameters extends JavaScriptObject {
 
 	public native boolean isClientSideDevel() /*-{ return !!this.c; }-*/;
 
+	public native UserState getUserState() /*-{ return this.u; }-*/;
+
 }

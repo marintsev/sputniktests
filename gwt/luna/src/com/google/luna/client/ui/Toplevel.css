@@ -50,3 +50,18 @@ body {
   left: 20px;
   right: 20px;
 }
+
+.footer {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  width: 100%;
+  font-size: 11px;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
