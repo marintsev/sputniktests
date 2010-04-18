@@ -4,13 +4,29 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <!-- {% if 1 %} -->
       <script type="text/javascript">
-        var kParameters = {'p':'{{page}}','d':{{is_server_side_devel}},'c':0,'s':'{{relative_path}}{{data_path}}'};
+        var kParameters = {'p': '{{page}}','u': {{user}},'d': {{is_server_side_devel}},'c': 0,'s': '{{relative_path}}{{data_path}}'};
         var kCannedRequests = {'activePackage.json': {{active_package}}};
       </script>
       <script type="text/javascript" language="javascript" src="{{relative_path}}luna/luna.nocache.js"></script>
     <!--  {% else %} -->
       <script type="text/javascript">
-        var kParameters = {'p':'Run','m':1,'d':0,'c':1,'s':'http://localhost:8080/data/'};
+        var kParameters = {
+          'p': 'Run',
+          'u': {
+            "u": {
+              "u": {
+                "i": "xxx",
+                "e": "devuser@example.com",
+                "n": "Dev User"
+              },
+              "m": 0
+            },
+            "o": "."
+          },
+          'd': 0,
+          'c': 1,
+          's': 'http://localhost:8080/data/'
+        };
         var kCannedRequests = { };
       </script>
       <script type="text/javascript" language="javascript" src="../luna/luna.nocache.js"></script>

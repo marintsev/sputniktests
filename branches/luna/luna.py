@@ -4,6 +4,7 @@
 
 import os
 from tools import models
+from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -62,6 +63,19 @@ class LunaHandler(object):
     req.response.headers['Content-Type'] = 'text/html'
     text = self._render(path, values)
     req.response.out.write(text)
+  
+  def get_login(self, req):
+    user = users.get_current_user()
+    if user:
+      return to_json({
+        'u': models.user_info_to_json(True, user),
+        'o': users.create_logout_url(req.request.path)
+      })
+    else:
+      return to_json({
+        'i': users.create_login_url(req.request.path)
+      })
+    
 
   def get_page_renderer(self, page, is_mobile=False):
     def render(req):
@@ -70,13 +84,15 @@ class LunaHandler(object):
         relative_path = '../'
       else:
         relative_path = ''
+      user = users.get_current_user()
       self._render_template(req, path, 'text/html', {
         'page': page,
         'version': '1',
         'is_server_side_devel': int(False),
         'active_package': to_json(self.get_active_package_object()),
         'data_path': '../../data/',
-        'relative_path': relative_path
+        'relative_path': relative_path,
+        'user': self.get_login(req)
       })
     return render
 
@@ -127,12 +143,15 @@ def dispatcher(method, cache=None):
 def initialize_application():
   handler = LunaHandler()
   return webapp.WSGIApplication([
+    # Data
     (r'/data/suite.json', dispatcher(handler.get_suite)),
     (r'/data/cases.json', dispatcher(handler.get_cases)),
     (r'/data/activePackage.json', dispatcher(handler.get_active_package)),
+    # Desktop
     (r'/(?:about.html)?', dispatcher(handler.get_page_renderer('About'))),
     (r'/run.html', dispatcher(handler.get_page_renderer('Run'))),
     (r'/compare.html', dispatcher(handler.get_page_renderer('Compare'))),
+    # Mobile
     (r'/m/(?:about.html)?', dispatcher(handler.get_page_renderer('About', is_mobile=True))),
     (r'/m/run.html', dispatcher(handler.get_page_renderer('Run', is_mobile=True))),
     (r'/m/compare.html', dispatcher(handler.get_page_renderer('Compare', is_mobile=True))),

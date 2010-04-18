@@ -6,6 +6,8 @@ version: 1
 runtime: python
 api_version: 1
 
+default_expiration: 7d
+
 handlers:
 - url: /(m/)?([^/]*\.html)?
   script: luna.py
@@ -16,13 +18,9 @@ handlers:
 - url: /data/.*
   script: luna.py
 
-- url: /favicon.ico
-  static_files: static/favicon.ico
-  upload: favicon.ico
-
-- url: /robots.txt
-  static_files: static/robots.txt
-  upload: robots.txt
+- url: /(robots.txt|favicon.ico)
+  static_files: static/\1
+  upload: static/(robots.txt|favicon.ico)
 
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py

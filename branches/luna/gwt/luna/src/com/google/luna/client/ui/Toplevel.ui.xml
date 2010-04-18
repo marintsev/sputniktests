@@ -21,6 +21,26 @@
           <l:PageView ui:field='contents'/>
         </g:FlowPanel>
       </l:FramePanel>
+      <g:FlowPanel styleName='{style.footer}'>
+        <g:HTMLPanel styleName='{style.left}'>
+          <a href="http://www.google.com">Home</a>
+          - <a href="http://sputniktests.googlecode.com">Source</a>
+          - <a href="http://www.google.com/privacy">Privacy</a>
+          - <a href="http://www.google.com/accounts/TOS">Terms</a>
+          <span ui:field='whenUser'>
+            - <span ui:field='userName'/> (<a ui:field='logout'>Log out</a>)
+          </span>
+          <span ui:field='whenNoUser'>
+            - <a ui:field='login'>Log in</a>
+          </span>
+          <span ui:field='manage'>
+            - <a href='manage.html'>Manage</a>
+          </span>
+        </g:HTMLPanel>
+        <g:HTMLPanel styleName='{style.right}'>
+          Made by Google | Google
+        </g:HTMLPanel>
+      </g:FlowPanel>
     </g:VerticalPanel>
   </g:HTMLPanel>
 

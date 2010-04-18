@@ -52,3 +52,27 @@ class Case(db.Model):
       's': self.section,
       'c': unicode(self.source)
     }
+
+
+def user_to_json(u):
+  return {
+    'n': u.nickname(),
+    'e': u.email(),
+    'i': u.user_id()
+  }
+
+
+def user_info_to_json(is_manager, user):
+  return {
+    'u': user_to_json(user),
+    'm': is_manager
+  }
+
+
+class UserInfo(db.Model):
+
+  user = db.UserProperty()
+  is_manager = db.BooleanProperty()
+
+  def to_json(self):
+    return user_info_to_json(self.is_manager, self.user)
