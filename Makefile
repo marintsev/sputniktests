@@ -9,7 +9,7 @@ ES5CONFORM_BUNDLE=es5conform.bundle
 UPLOAD_COMMAND=$(APPCFG) upload_data --config_file=tools/loader.py --server=$(SERVER)
 CLEAN_BULKLOAD=rm bulkloader-*
 
-upload: upload-sputnik upload-es5conform
+upload: upload-es5conform upload-sputnik
 
 upload-sputnik: bundle-sputnik upload-sputnik-bundle
 

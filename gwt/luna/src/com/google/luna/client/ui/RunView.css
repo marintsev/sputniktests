@@ -15,8 +15,12 @@
   z-index: -1;
 }
 
-.results {
+.desktop .results {
   margin-top: 10px;
-  width: 100%;
-  height: 438px;
+  height: 430px;
+}
+
+.mobile .results {
+  margin-top: 5px;
+  height: 187px;
 }

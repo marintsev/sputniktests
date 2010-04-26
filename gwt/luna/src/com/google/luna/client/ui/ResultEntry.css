@@ -13,4 +13,9 @@
 
 .description {
   color: #ccc;
+  display: inline;
+}
+
+.name {
+  display: inline;
 }

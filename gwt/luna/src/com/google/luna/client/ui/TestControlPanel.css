@@ -1,33 +1,70 @@
-.outer {
+.desktop { }
+.mobile { }
+
+table.outer {
+  width: 100%;
+  spacing: 5px;
+  border-spacing: 0px;
+}
+
+.progress {
   width: 100%;
   height: 1.7em;
 }
 
-.progress {
-  width: 434px;
-  height: 100%;
-  float: left;
+.mobile .progress {
+  font-size: 8pt;
 }
 
-.controlButton {
-  margin-left: 10px;
+.desktop .controlButton {
   width: 65px;
-  height: 100%;
-  font-family: sans-serif;
-  float: left;
+  height: 1.7em;
+  margin-left: 10px;
+}
+
+.mobile .controlButton {
+  width: 50px;
+  height: 1.7em;
+  font-size: 8pt;
+  margin-top: 4px;
+  margin-left: 5px;
 }
 
 .stats {
-  margin-top: 10px;
   width: 100%;
+}
+
+.desktop .stats {
+  margin-top: 5px;
+}
+
+.mobile .stats {
+  margin-top: 0px;
 }
 
 .caption {
   float: left;
 }
 
+.mobile .caption {
+  font-size: 8pt;
+}
+
 .value {
   float: right;
   font-weight: bold;
   text-align: right;
+}
+
+.mobile .value {
+  font-size: 8pt;
+}
+
+tr.progressRow {
+  height: 100%;
+}
+
+td.progressCol {
+  width: 100%;
+  height: 100%;
 }

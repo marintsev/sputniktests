@@ -2,6 +2,9 @@
 // This code is governed by the BSD license found in the LICENSE file.
 
 package com.google.luna.client.ui;
+
+import com.google.luna.client.utils.Promise;
+
 public interface ITestControlPanel {
 
 	public interface IHandler {
@@ -16,7 +19,7 @@ public interface ITestControlPanel {
 
 	public void setRunProgress(double value);
 	public void setLoadProgress(double value);
-	public void updateStats(String testName, int totalCount,
+	public void updateStats(Promise<String> testName, int totalCount,
 			int succeededCount, int failedCount);
 
 }

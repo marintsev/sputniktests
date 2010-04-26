@@ -3,12 +3,12 @@
 
 package com.google.luna.client.test;
 
+import java.util.ArrayList;
+
 import com.google.gwt.core.client.JsArray;
 import com.google.luna.client.Luna;
 import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.utils.Promise;
-
-import java.util.ArrayList;
 
 public class TestPackage {
 
@@ -37,9 +37,8 @@ public class TestPackage {
     for (int i = 0; i < suites.length(); i++) {
       Backend.Suite suiteData = suites.get(i);
       String type = suiteData.getType();
-      ITestController.Factory factory = Luna.getTestControllerFactory(type);
-      ITestController controller = factory.create();
-      TestSuite suite = new TestSuite(suiteData, controller, serialOffset);
+      ITestCase.IFactory factory = Luna.getTestCaseFactory(type);
+      TestSuite suite = new TestSuite(suiteData, factory, serialOffset);
       this.suites.add(suite);
       suite.addLoadListener(loadListener);
       serialOffset += suiteData.getCaseCount();
@@ -77,7 +76,7 @@ public class TestPackage {
     return result;
   }
 
-  public Promise<TestCase> getCase(int index) {
+  public Promise<ITestCase> getCase(int index) {
     for (TestSuite suite : suites) {
       int count = suite.getCaseCount();
       if (index < count)

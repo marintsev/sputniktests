@@ -3,8 +3,12 @@
 
 package com.google.luna.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Node;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.luna.client.control.IPage;
 import com.google.luna.client.control.RunPage;
@@ -13,19 +17,19 @@ import com.google.luna.client.rmi.CrossDomainServerConnection;
 import com.google.luna.client.rmi.DirectServerConnection;
 import com.google.luna.client.rmi.ServerConnection;
 import com.google.luna.client.rmi.Backend.Package;
-import com.google.luna.client.test.Es5ConformTestController;
-import com.google.luna.client.test.ITestController;
-import com.google.luna.client.test.SputnikTestController;
+import com.google.luna.client.test.Es5ConformTestCase;
+import com.google.luna.client.test.ITestCase;
+import com.google.luna.client.test.SputnikTestCase;
 import com.google.luna.client.test.TestPackage;
 import com.google.luna.client.ui.ErrorDialog;
 import com.google.luna.client.ui.IPageView;
 import com.google.luna.client.ui.IUiMessages;
+import com.google.luna.client.ui.ResultEntry;
+import com.google.luna.client.ui.RunView;
+import com.google.luna.client.ui.TestControlPanel;
 import com.google.luna.client.ui.Toplevel;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Luna implements EntryPoint {
 
@@ -40,23 +44,43 @@ public class Luna implements EntryPoint {
     put("Run", RunPage.getFactory());
   }};
 
-  private static final Map<String, ITestController.Factory> CONTROLLERS = new HashMap<String, ITestController.Factory>() {{
-    put("sputnik", SputnikTestController.getFactory());
-    put("es5conform", Es5ConformTestController.getFactory());
+  private static final Map<String, ITestCase.IFactory> TEST_CASE_FACTORIES = new HashMap<String, ITestCase.IFactory>() {{
+    put("sputnik", SputnikTestCase.getFactory());
+    put("es5conform", Es5ConformTestCase.getFactory());
   }};
 
   private static final IUiMessages MESSAGES = GWT.create(IUiMessages.class);
 
+  private static Node workspace;
+
   @Override
   public void onModuleLoad() {
+  	ensureCssInjected();
     String pageName = getParameters().getPageName();
     IPage.IFactory<?> factory = PAGES.get(pageName);
     IPage<?> page = factory.createPage();
     IPageView view = page.bindView();
-    final Toplevel toplevel = new Toplevel(view);
+    final Toplevel toplevel = Toplevel.create(view);
     toplevel.init();
     page.init();
     RootPanel.get().add(toplevel);
+  }
+
+  public static Node getWorkspace() {
+  	assert workspace != null;
+  	return workspace;
+  }
+
+  public static void setWorkspace(Node value) {
+  	assert workspace == null;
+  	workspace = value;
+  }
+
+  private void ensureCssInjected() {
+  	Toplevel.getResources().css().ensureInjected();
+  	TestControlPanel.getResources().css().ensureInjected();
+  	RunView.getResources().css().ensureInjected();
+  	ResultEntry.getResources().css().ensureInjected();
   }
 
   public static void reportError(Throwable error) {
@@ -65,8 +89,8 @@ public class Luna implements EntryPoint {
     dialog.center();
   }
 
-  public static ITestController.Factory getTestControllerFactory(String type) {
-    return CONTROLLERS.get(type);
+  public static ITestCase.IFactory getTestCaseFactory(String type) {
+    return TEST_CASE_FACTORIES.get(type);
   }
 
   public static IUiMessages getMessages() {
