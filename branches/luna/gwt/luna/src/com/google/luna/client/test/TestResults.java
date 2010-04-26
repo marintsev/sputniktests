@@ -7,7 +7,7 @@ import java.util.List;
 public class TestResults {
 
   public interface IListener {
-    public void testOver(TestCase test, boolean hadExpectedResult);
+    public void testOver(ITestCase test, boolean hadExpectedResult);
   }
 
   private enum State { RUNNING, UNEXPECTED, EXPECTED }
@@ -30,26 +30,26 @@ public class TestResults {
     this.listeners.remove(listener);
   }
 
-  public void recordUnexpectedResult(TestCase test) {
+  public void recordUnexpectedResult(ITestCase test) {
     int index = test.getSerial();
     assert results[index] != null;
     results[index] = State.UNEXPECTED;
   }
 
-  public void recordExpectedResult(TestCase test) {
+  public void recordExpectedResult(ITestCase test) {
     int index = test.getSerial();
     if (results[index] == State.UNEXPECTED)
       return;
     results[index] = State.EXPECTED;
   }
 
-  public void testStarted(TestCase test) {
+  public void testStarted(ITestCase test) {
     int index = test.getSerial();
     assert results[index] == null;
     results[index] = State.RUNNING;
   }
 
-  public void testOver(TestCase test) {
+  public void testOver(ITestCase test) {
     int index = test.getSerial();
     assert results[index] != null;
     if (results[index] == State.RUNNING) {

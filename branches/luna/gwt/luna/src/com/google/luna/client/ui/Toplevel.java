@@ -4,58 +4,57 @@
 package com.google.luna.client.ui;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.AnchorElement;
-import com.google.gwt.dom.client.SpanElement;
-import com.google.gwt.dom.client.Style.Display;
-import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.luna.client.Luna;
-import com.google.luna.client.UserInfo;
-import com.google.luna.client.UserState;
 import com.google.luna.client.test.TestPackage;
+import com.google.luna.client.ui.Toplevel.Resources.MobileModeCss;
 import com.google.luna.client.utils.Thunk;
 
-public class Toplevel extends Composite {
+public abstract class Toplevel extends Composite {
 
-  interface IMyUiBinder extends UiBinder<Widget, Toplevel> {}
-  private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
+	public interface Resources extends ClientBundle {
+
+		public interface MobileModeCss extends CssResource {
+			String desktop();
+			String mobile();
+		}
+
+		@Source("MobileMode.css")
+		public MobileModeCss css();
+
+	}
+
+	private static Resources RESOURCES = GWT.create(Resources.class);
+
+	public static Resources getResources() {
+		return RESOURCES;
+	}
+
+	public static String getMobileMode(MobileModeCss css) {
+		return Luna.getParameters().isMobile() ? css.mobile() : css.desktop();
+	}
 
   @UiField Label subtitle;
   @UiField TabButton aboutButton;
   @UiField TabButton runButton;
   @UiField TabButton compareButton;
-  @UiField SpanElement whenUser;
-  @UiField SpanElement whenNoUser;
-  @UiField SpanElement userName;
-  @UiField AnchorElement login;
-  @UiField AnchorElement logout;
-  @UiField SpanElement manage;
+  @UiField(provided=true) final Resources resources = getResources();
   @UiField(provided=true) final PageView contents;
 
-  public Toplevel(IPageView contents) {
+  protected Toplevel(IPageView contents) {
   	this.contents = (PageView) contents;
-  	initWidget(BINDER.createAndBindUi(this));
-  	UserState state = Luna.getParameters().getUserState();
-  	boolean showManage = false;
-  	if (state.hasUser()) {
-  		UserInfo userInfo = state.withUser().getUserInfo();
-  		whenNoUser.getStyle().setDisplay(Display.NONE);
-  		userName.setInnerText(userInfo.getUser().getNickname());
-  		logout.setHref(state.withUser().getLogoutUrl());
-  		showManage = userInfo.isManager();
-  	} else {
-  		whenUser.getStyle().setDisplay(Display.NONE);
-  		login.setHref(state.withoutUser().getLoginUrl());
-  	}
-  	if (!showManage)
-  		manage.getStyle().setDisplay(Display.NONE);
+  }
+
+  public void initUi() {
   	setVersion("#");
   }
 
   public void init() {
+  	this.initUi();
   	Luna.getActivePackage().onValue(new Thunk<TestPackage>() {
   		@Override
   		public void onValue(TestPackage pack) {
@@ -70,5 +69,13 @@ public class Toplevel extends Composite {
   		subtitleText += " (DEVEL)";
   	subtitle.setText(subtitleText);
   }
+
+	public static Toplevel create(IPageView page) {
+		if (Luna.getParameters().isMobile()) {
+			return new MobileToplevel(page);
+		} else {
+			return new DesktopToplevel(page);
+		}
+	}
 
 }

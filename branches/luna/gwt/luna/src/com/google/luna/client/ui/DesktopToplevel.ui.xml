@@ -3,11 +3,12 @@
     xmlns:g='urn:import:com.google.gwt.user.client.ui'
     xmlns:l='urn:import:com.google.luna.client.ui'>
 
-  <ui:style src="Toplevel.css" />
+  <ui:style src="DesktopToplevel.css"/>
+  <ui:with field='resources' type='com.google.luna.client.ui.Toplevel.Resources'/>
 
   <g:HTMLPanel styleName='{style.broadCenter}'>
     <g:VerticalPanel>
-      <g:Label styleName='{style.title}'>Luna</g:Label>
+      <g:Label styleName='{style.title}'>Sputnik</g:Label>
       <g:Label ui:field='subtitle' styleName='{style.subtitle}'/>
       <g:HorizontalPanel>
   	<l:TabButton ui:field='aboutButton' styleName='{style.tabButton}' target="about.html">About</l:TabButton>

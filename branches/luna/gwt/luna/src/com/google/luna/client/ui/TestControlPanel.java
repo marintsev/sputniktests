@@ -3,29 +3,56 @@
 
 package com.google.luna.client.ui;
 
+import java.util.ArrayList;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-
-import java.util.ArrayList;
+import com.google.luna.client.utils.Promise;
 
 public class TestControlPanel extends Composite implements ITestControlPanel {
+
+	public interface Resources extends ClientBundle {
+
+		public interface Css extends Toplevel.Resources.MobileModeCss {
+			String outer();
+			String progressRow();
+			String progressCol();
+			String progress();
+			String controlButton();
+			String stats();
+			String caption();
+			String value();
+		}
+
+		@Source("TestControlPanel.css")
+		public Css css();
+
+	}
+
+	private static final Resources RESOURCES = GWT.create(Resources.class);
+
+	public static Resources getResources() {
+		return RESOURCES;
+	}
 
   interface IMyUiBinder extends UiBinder<Widget, TestControlPanel> {}
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
   private final ArrayList<IHandler> handlers = new ArrayList<IHandler>();
 
+  @UiField(provided=true) final Resources resources = getResources();
   @UiField ProgressBar progress;
   @UiField Button reset;
   @UiField Button start;
-  @UiField Label current;
+  @UiField PromiseLabel current;
   @UiField Label total;
   @UiField Label succeeded;
   @UiField Label failed;
@@ -33,6 +60,7 @@ public class TestControlPanel extends Composite implements ITestControlPanel {
 
   public TestControlPanel() {
     this.initWidget(BINDER.createAndBindUi(this));
+    this.addStyleName(Toplevel.getMobileMode(getResources().css()));
     start.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
@@ -58,7 +86,7 @@ public class TestControlPanel extends Composite implements ITestControlPanel {
   }
 
   @Override
-  public void updateStats(String testName, int totalCount,
+  public void updateStats(Promise<String> testName, int totalCount,
       int succeededCount, int failedCount) {
     current.setText(testName);
     total.setText(Integer.toString(totalCount));

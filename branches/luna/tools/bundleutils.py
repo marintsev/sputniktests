@@ -414,9 +414,12 @@ class Es5ConformBundler(Bundler):
     assert filename.endswith('.js')
     base_name = filename[:-3]
     try:
-      first_sep = base_name.index('-')
+      first_sep = base_name.index('@')
     except ValueError:
-      first_sep = len(base_name)
+      try:
+        first_sep = base_name.index('-')
+      except ValueError:
+        first_sep = len(base_name)
     section = [str(int(p)) for p in base_name[:first_sep].split('.')]
     id = base_name[first_sep+1:]
     return (section, id)

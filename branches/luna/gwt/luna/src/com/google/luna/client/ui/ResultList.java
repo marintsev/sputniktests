@@ -9,7 +9,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.luna.client.test.TestCase;
+import com.google.luna.client.test.ITestCase;
 
 public class ResultList extends Composite implements IResultList {
 
@@ -23,7 +23,7 @@ public class ResultList extends Composite implements IResultList {
   }
 
   @Override
-  public void addResult(TestCase test, String str) {
+  public void addResult(ITestCase test, String str) {
     body.insert(new ResultEntry(test, str), 0);
   }
 

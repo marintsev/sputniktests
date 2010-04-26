@@ -3,28 +3,25 @@
 
 package com.google.luna.client.test;
 
-import com.google.gwt.dom.client.Element;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
 public class TestRun implements ITestProgressSink {
 
   public interface IListener extends TestResults.IListener {
-    public void testStarted(TestCase test);
+    public void testStarted(ITestCase test);
     public void allDone();
   }
 
   private final TestPackage pack;
   private final IListener listener;
-  private final Element workspace;
   private int current = 0;
   private boolean isPaused = false;
   private final TestResults results;
 
-  public TestRun(TestPackage pack, IListener listener, Element workspace) {
+  public TestRun(TestPackage pack, IListener listener) {
     this.pack = pack;
     this.listener = listener;
-    this.workspace = workspace;
     this.results = new TestResults(pack);
     this.results.addListener(listener);
   }
@@ -51,9 +48,9 @@ public class TestRun implements ITestProgressSink {
       return;
     }
     int nextCase = current++;
-    pack.getCase(nextCase).onValue(new Thunk<TestCase>() {
+    pack.getCase(nextCase).onValue(new Thunk<ITestCase>() {
       @Override
-      public void onValue(TestCase test) {
+      public void onValue(ITestCase test) {
         test.schedule(TestRun.this);
       }
     });
@@ -68,17 +65,14 @@ public class TestRun implements ITestProgressSink {
     });
   }
 
-  public Element getWorkspace() {
-    return this.workspace;
-  }
-
   @Override
-  public void testStarted(TestCase test) {
+  public void testStarted(ITestCase test) {
+    results.testStarted(test);
     listener.testStarted(test);
   }
 
   @Override
-  public void testScriptComplete(TestCase test) {
+  public void testScriptComplete(ITestCase test) {
     if (test.isNegative()) {
       results.recordUnexpectedResult(test);
     } else {
@@ -87,7 +81,7 @@ public class TestRun implements ITestProgressSink {
   }
 
   @Override
-  public void testFailed(TestCase test, String message) {
+  public void testFailed(ITestCase test, String message) {
     if (test.isNegative()) {
       results.recordExpectedResult(test);
     } else {
@@ -96,18 +90,18 @@ public class TestRun implements ITestProgressSink {
   }
 
   @Override
-  public void testPrint(TestCase test, String message) {
+  public void testPrint(ITestCase test, String message) {
     // ignore for now
   }
 
   @Override
-  public void testDone(TestCase test) {
+  public void testDone(ITestCase test) {
     results.testOver(test);
     deferredScheduleNextTest();
   }
 
   @Override
-  public void testSkipped(TestCase test) {
+  public void testSkipped(ITestCase test) {
     results.recordExpectedResult(test);
     results.testOver(test);
     deferredScheduleNextTest();

@@ -3,12 +3,12 @@
     xmlns:g='urn:import:com.google.gwt.user.client.ui'
     xmlns:l='urn:import:com.google.luna.client.ui'>
 
-  <ui:style src="RunView.css" />
+  <ui:with field='resources' type='com.google.luna.client.ui.RunView.Resources'/>
 
-  <g:FlowPanel styleName='{style.outer}'>
-    <l:TestControlPanel ui:field='controls' styleName='{style.controls}'/>
-    <l:ResultList ui:field='results' addStyleNames='{style.results}'/>
-    <g:FlowPanel ui:field='workspace' styleName='{style.workspace}'/>
+  <g:FlowPanel styleName='{resources.css.outer}'>
+    <l:TestControlPanel ui:field='controls' addStyleNames='{resources.css.controls}'/>
+    <l:ResultList ui:field='results' addStyleNames='{resources.css.results}'/>
+    <g:FlowPanel ui:field='workspace' styleName='{resources.css.workspace}'/>
   </g:FlowPanel>
 
 </ui:UiBinder>

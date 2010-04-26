@@ -6,7 +6,7 @@
   <ui:style src='ProgressBar.css'/>
 
   <g:HTMLPanel>
-    <g:FlowPanel styleName='{style.outer}'>
+    <g:FlowPanel addStyleNames='{style.outer}'>
       <g:FlowPanel ui:field='runBar' styleName='{style.runBar}'>
         <g:FlowPanel styleName='{style.runBarFiller}'/>
       </g:FlowPanel>

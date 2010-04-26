@@ -4,7 +4,7 @@
 package com.google.luna.client.control;
 
 import com.google.luna.client.Luna;
-import com.google.luna.client.test.TestCase;
+import com.google.luna.client.test.ITestCase;
 import com.google.luna.client.test.TestPackage;
 import com.google.luna.client.test.TestRun;
 import com.google.luna.client.ui.IRunView;
@@ -53,7 +53,7 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
     view.getController().setRunProgress(1);
   }
 
-  public void testStarted(TestCase test) {
+  public void testStarted(ITestCase test) {
     int runCount = test.getSerial();
     double count = pack.getTestCount();
     view.getController().setRunProgress(runCount / count);
@@ -62,7 +62,7 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
   }
 
   @Override
-  public void testOver(TestCase test, boolean hadExpectedResult) {
+  public void testOver(ITestCase test, boolean hadExpectedResult) {
     if (!hadExpectedResult)
       view.getResults().addResult(test, "");
   }
@@ -70,7 +70,7 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
   @Override
   public void startClicked() {
     view.setMode(IRunView.Mode.RUNNING);
-    this.run = new TestRun(pack, this, view.getWorkspace());
+    this.run = new TestRun(pack, this);
     run.start();
   }
 

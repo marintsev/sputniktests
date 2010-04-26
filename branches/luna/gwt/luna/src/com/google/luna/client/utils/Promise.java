@@ -26,17 +26,36 @@ public class Promise<T> {
     return new Promise<T>(value);
   }
 
-  public boolean onValue(IThunk<T> thunk) {
+  public boolean eagerOnValue(IThunk<T> thunk) {
     switch (state) {
-      case EMPTY:
-        listeners.add(thunk);
-        return false;
-      case HAS_VALUE:
-        thunk.onValue(value);
-        return true;
-      case HAS_ERROR:
-        thunk.onError(error);
-        return true;
+    case EMPTY:
+      listeners.add(thunk);
+      return false;
+    case HAS_VALUE:
+      thunk.onValue(value);
+      return true;
+    case HAS_ERROR:
+      thunk.onError(error);
+      return true;
+    }
+    return false;
+  }
+
+  public boolean onValue(IThunk<T> thunk) {
+    return eagerOnValue(thunk);
+  }
+
+  public boolean lazyOnValue(IThunk<T> thunk) {
+    switch (state) {
+    case EMPTY:
+      listeners.add(thunk);
+      break;
+    case HAS_VALUE:
+      scheduleOnValue(thunk, value);
+      break;
+    case HAS_ERROR:
+      scheduleOnError(thunk, error);
+      break;
     }
     return false;
   }
@@ -54,6 +73,11 @@ public class Promise<T> {
       onValue(t);
   }
 
+  public void ensureValueSet(T value) {
+    if (this.state == State.EMPTY)
+      setValue(value);
+  }
+
   public void setError(Throwable error) {
     this.state = State.HAS_ERROR;
     this.error = error;
@@ -62,14 +86,26 @@ public class Promise<T> {
   }
 
   public static Promise<Object> defer() {
-  	return defer(0);
+    return defer(0);
   }
 
   public static Promise<Object> defer(int delay) {
-  	final Promise<Object> result = new Promise<Object>();
-  	schedule(result, delay);
-  	return result;
+    final Promise<Object> result = new Promise<Object>();
+    schedule(result, delay);
+    return result;
   }
+
+  private native void scheduleOnValue(IThunk<T> thunk, Object value) /*-{
+    setTimeout(function () {
+      thunk.@com.google.luna.client.utils.IThunk::onValue(Ljava/lang/Object;)(value);
+    });
+  }-*/;
+
+  private native void scheduleOnError(IThunk<T> thunk, Throwable error) /*-{
+    setTimeout(function () {
+      thunk.@com.google.luna.client.utils.IThunk::onError(Ljava/lang/Throwable;)(value);
+    });
+  }-*/;
 
   private static native void schedule(Promise<Object> promise, int delay) /*-{
     setTimeout(function () {

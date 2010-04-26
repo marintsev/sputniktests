@@ -54,6 +54,10 @@ def to_json(obj):
     return to_json(obj.to_json())
 
 
+_DESKTOP_DOCTYPE = ('-//W3C//DTD XHTML 1.0 Transitional//EN', 'DTD/xhtml1-transitional.dtd')
+_MOBILE_DOCTYPE = ('-//WAPFORUM//DTD XHTML Mobile 1.0//EN', 'http://www.wapforum.org/DTD/xhtml-mobile10.dtd')
+
+
 class LunaHandler(object):
 
   def _render(self, path, values):
@@ -85,14 +89,21 @@ class LunaHandler(object):
       else:
         relative_path = ''
       user = users.get_current_user()
+      if is_mobile:
+        doctype = _MOBILE_DOCTYPE
+      else:
+        doctype = _DESKTOP_DOCTYPE
       self._render_template(req, path, 'text/html', {
+        'sheet': doctype[0],
+        'dtd': doctype[1],
         'page': page,
         'version': '1',
         'is_server_side_devel': int(False),
         'active_package': to_json(self.get_active_package_object()),
         'data_path': '../../data/',
         'relative_path': relative_path,
-        'user': self.get_login(req)
+        'user': self.get_login(req),
+        'is_mobile': int(is_mobile)
       })
     return render
 
