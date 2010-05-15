@@ -3,14 +3,12 @@
 
 package com.google.luna.client;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.luna.client.control.AboutPage;
+import com.google.luna.client.control.ComparePage;
 import com.google.luna.client.control.IPage;
 import com.google.luna.client.control.RunPage;
 import com.google.luna.client.rmi.Backend;
@@ -32,6 +30,9 @@ import com.google.luna.client.ui.Toplevel;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Luna implements EntryPoint {
 
   /**
@@ -44,6 +45,7 @@ public class Luna implements EntryPoint {
   private static final Map<String, IPage.IFactory<?>> PAGES = new HashMap<String, IPage.IFactory<?>>() {{
     put("About", AboutPage.getFactory());
     put("Run", RunPage.getFactory());
+    put("Compare", ComparePage.getFactory());
   }};
 
   private static final Map<String, ITestCase.IFactory> TEST_CASE_FACTORIES = new HashMap<String, ITestCase.IFactory>() {{

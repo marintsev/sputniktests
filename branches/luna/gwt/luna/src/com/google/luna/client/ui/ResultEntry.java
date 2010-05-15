@@ -39,10 +39,8 @@ public class ResultEntry extends Composite {
   @UiField(provided=true) final Resources resources = getResources();
   @UiField PromiseLabel name;
   @UiField PromiseLabel description;
-  private final ITestCase test;
 
   public ResultEntry(ITestCase test, String text) {
-    this.test = test;
     initWidget(BINDER.createAndBindUi(this));
     this.name.setText(test.getLabel());
     this.description.setText(test.getDescription());

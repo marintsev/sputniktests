@@ -30,7 +30,7 @@ public class AboutPage implements IPage<IAboutView> {
     Luna.getActivePackage().onValue(new Thunk<TestPackage>() {
       public void onValue(TestPackage t) {
         view.setVersion(t.getVersion());
-      };
+      }
     });
   }
 
