@@ -10,12 +10,12 @@ import com.google.luna.client.ui.IPageView;
  */
 public interface IPage<View extends IPageView> {
 
-	public interface IFactory<View extends IPageView> {
-		IPage<View> createPage();
-	}
+  public interface IFactory<View extends IPageView> {
+    IPage<View> createPage();
+  }
 
-	public View bindView();
+  public View bindView();
 
-	public void init();
+  public void init();
 
 }

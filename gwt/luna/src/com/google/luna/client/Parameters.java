@@ -7,18 +7,18 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public final class Parameters extends JavaScriptObject {
 
-	protected Parameters() { }
+  protected Parameters() { }
 
-	public native String getPageName() /*-{ return this.p; }-*/;
+  public native String getPageName() /*-{ return this.p; }-*/;
 
-	public native String getDataPath() /*-{ return this.s; }-*/;
+  public native String getDataPath() /*-{ return this.s; }-*/;
 
-	public native boolean isServerSideDevel() /*-{ return !!this.d; }-*/;
+  public native boolean isServerSideDevel() /*-{ return !!this.d; }-*/;
 
-	public native boolean isClientSideDevel() /*-{ return !!this.c; }-*/;
+  public native boolean isClientSideDevel() /*-{ return !!this.c; }-*/;
 
-	public native boolean isMobile() /*-{ return !!this.m; }-*/;
+  public native boolean isMobile() /*-{ return !!this.m; }-*/;
 
-	public native UserState getUserState() /*-{ return this.u; }-*/;
+  public native UserState getUserState() /*-{ return this.u; }-*/;
 
 }

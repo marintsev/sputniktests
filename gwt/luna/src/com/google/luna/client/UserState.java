@@ -7,30 +7,30 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public final class UserState extends JavaScriptObject {
 
-	protected UserState() { }
+  protected UserState() { }
 
-	public static final class WithoutUser extends JavaScriptObject {
+  public static final class WithoutUser extends JavaScriptObject {
 
-		protected WithoutUser() { }
+    protected WithoutUser() { }
 
-		public native String getLoginUrl() /*-{ return this.i; }-*/;
+    public native String getLoginUrl() /*-{ return this.i; }-*/;
 
-	}
+  }
 
-	public static final class WithUser extends JavaScriptObject {
+  public static final class WithUser extends JavaScriptObject {
 
-		protected WithUser() { }
+    protected WithUser() { }
 
-		public native UserInfo getUserInfo() /*-{ return this.u; }-*/;
+    public native UserInfo getUserInfo() /*-{ return this.u; }-*/;
 
-		public native String getLogoutUrl() /*-{ return this.o; }-*/;
+    public native String getLogoutUrl() /*-{ return this.o; }-*/;
 
-	}
+  }
 
-	public native boolean hasUser() /*-{ return 'u' in this; }-*/;
+  public native boolean hasUser() /*-{ return 'u' in this; }-*/;
 
-	public native WithoutUser withoutUser() /*-{ return this; }-*/;
+  public native WithoutUser withoutUser() /*-{ return this; }-*/;
 
-	public native WithUser withUser() /*-{ return this; }-*/;
+  public native WithUser withUser() /*-{ return this; }-*/;
 
 }

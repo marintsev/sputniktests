@@ -10,6 +10,7 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.google.luna.client.control.AboutPage;
 import com.google.luna.client.control.IPage;
 import com.google.luna.client.control.RunPage;
 import com.google.luna.client.rmi.Backend;
@@ -41,6 +42,7 @@ public class Luna implements EntryPoint {
   private static final boolean enableDevelMode = true;
 
   private static final Map<String, IPage.IFactory<?>> PAGES = new HashMap<String, IPage.IFactory<?>>() {{
+    put("About", AboutPage.getFactory());
     put("Run", RunPage.getFactory());
   }};
 
