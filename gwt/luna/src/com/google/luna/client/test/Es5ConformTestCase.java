@@ -63,10 +63,12 @@ public class Es5ConformTestCase extends AbstractTestCase {
     return pTestObject;
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void registerTest(Promise<JavaScriptObject> pResult, JavaScriptObject value) {
     pResult.setValue(value);
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void ensureRegistered(Promise<JavaScriptObject> pResult, IFrameElement frame) {
     pResult.ensureValueSet(null);
   }
@@ -152,22 +154,27 @@ public class Es5ConformTestCase extends AbstractTestCase {
     ensureDetached();
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void testSkipped(ITestProgressSink runner) {
     runner.testSkipped(this);
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void testScriptComplete(ITestProgressSink runner) {
     runner.testScriptComplete(this);
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void testFailed(ITestProgressSink runner, String message) {
     runner.testFailed(this, message);
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void testStarted(ITestProgressSink runner) {
     runner.testStarted(this);
   }
 
+  @SuppressWarnings("unused") // Used from JS code
   private void testDone(ITestProgressSink runner) {
     runner.testDone(this);
   }
@@ -193,82 +200,6 @@ public class Es5ConformTestCase extends AbstractTestCase {
     } finally {
       this.@com.google.luna.client.test.Es5ConformTestCase::testDone(Lcom/google/luna/client/test/ITestProgressSink;)(runner);
     }
-  }-*/;
-
-  /*
-
-  @Override
-  public void start(ITestProgressSink runner, AbstractTestCase test) {
-    IFrameElement frame = Document.get().createIFrameElement();
-    runner.getWorkspace().appendChild(frame);
-    installGlobals(frame, runner, test);
-    TestUtils.injectScript(frame, test.getSource());
-  }
-
-  public void addTest(final ITestProgressSink runner, final AbstractTestCase test, String description,
-      final JavaScriptObject fun, final JavaScriptObject prereq,
-      final IFrameElement frame) {
-    test.setAttribute(DESCRIPTION_KEY, description);
-    runner.testStarted(test);
-    Promise.defer().onValue(new Thunk<Object>() {
-      @Override
-      public void onValue(Object t) {
-        runTest(runner, test, fun, prereq, frame);
-      }
-    });
-  }
-
-  private void testDone(ITestProgressSink runner, AbstractTestCase test, IFrameElement frame) {
-    runner.getWorkspace().removeChild(frame);
-    runner.testDone(test);
-  }
-
-
-  @Override
-  public String buildDescription(AbstractTestCase testCase) {
-    String description = (String) testCase.getAttribute(DESCRIPTION_KEY);
-    return (description == null) ? testCase.getName() : description;
-  }
-
-  @Override
-  public String getLabel(AbstractTestCase test) {
-    return test.getSection() + "-" + test.getName();
-  }
-
-  private void runTest(ITestProgressSink runner, AbstractTestCase test, JavaScriptObject fun,
-      JavaScriptObject prereq, IFrameElement frame) {
-    boolean skip = true;
-    try {
-      skip = !shouldExecute(prereq);
-    } catch (JavaScriptException jse) {
-      Luna.reportError(jse);
-      return;
-    }
-    if (skip) {
-      testSkipped(runner, test, frame);
-    } else {
-      try {
-        if (execute(fun)) {
-          runner.testScriptComplete(test);
-        } else {
-          runner.testFailed(test, "Failed");
-        }
-      } catch (JavaScriptException jse) {
-        runner.testFailed(test, jse.getMessage());
-      }
-      testDone(runner, test, frame);
-    }
-  }
-
-   */
-
-  private static native boolean shouldExecute(JavaScriptObject prereq) /*-{
-    return !prereq || prereq();
-  }-*/;
-
-  private static native boolean execute(JavaScriptObject fun) /*-{
-    var result = fun();
-    return result;
   }-*/;
 
 }
