@@ -27,21 +27,25 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
   private IRunView view;
   private TestPackage pack;
   private TestRun run;
+  private int maxTestCaseLoaded = 0;
 
   private void onReceivedPackage(TestPackage pack) {
     view.setMode(IRunView.Mode.READY);
     this.pack = pack;
-    pack.addLoadListener(new TestPackage.ILoadListener() {
+    pack.addListener(new TestPackage.IListener() {
       @Override
-      public void hasLoaded(int max) {
-        maxTestCaseLoaded(max);
+      public void onTestBlockLoaded(int from, int to) {
+        onTestCaseBlockLoaded(to);
       }
     });
   }
 
-  private void maxTestCaseLoaded(int value) {
-    double ratio = ((double) value) / pack.getTestCount();
-    view.getController().setLoadProgress(ratio);
+  private void onTestCaseBlockLoaded(int value) {
+    if (value > maxTestCaseLoaded) {
+      maxTestCaseLoaded = value;
+      double ratio = ((double) value) / pack.getTestCount();
+      view.getController().setLoadProgress(ratio);
+    }
   }
 
   @Override

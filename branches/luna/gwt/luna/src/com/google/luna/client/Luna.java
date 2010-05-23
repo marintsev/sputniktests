@@ -3,6 +3,9 @@
 
 package com.google.luna.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Node;
@@ -10,6 +13,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.luna.client.control.AboutPage;
 import com.google.luna.client.control.ComparePage;
 import com.google.luna.client.control.IPage;
+import com.google.luna.client.control.ManagePage;
 import com.google.luna.client.control.RunPage;
 import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.rmi.CrossDomainServerConnection;
@@ -30,9 +34,12 @@ import com.google.luna.client.ui.Toplevel;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * Entry point for the Luna app.  Also provides access to app-global
+ * state such as app parameters, current user information, etc.
+ *
+ *
+ */
 public class Luna implements EntryPoint {
 
   /**
@@ -42,49 +49,50 @@ public class Luna implements EntryPoint {
    */
   private static final boolean enableDevelMode = true;
 
-  private static final Map<String, IPage.IFactory<?>> PAGES = new HashMap<String, IPage.IFactory<?>>() {{
+  private static final Map<String, IPage.IFactory<?>> kPages = new HashMap<String, IPage.IFactory<?>>() {{
     put("About", AboutPage.getFactory());
     put("Run", RunPage.getFactory());
     put("Compare", ComparePage.getFactory());
+    put("Manage", ManagePage.getFactory());
   }};
 
-  private static final Map<String, ITestCase.IFactory> TEST_CASE_FACTORIES = new HashMap<String, ITestCase.IFactory>() {{
+  private static final Map<String, ITestCase.IFactory> kTestCaseFactories = new HashMap<String, ITestCase.IFactory>() {{
     put("sputnik", SputnikTestCase.getFactory());
     put("es5conform", Es5ConformTestCase.getFactory());
   }};
 
-  private static final IUiMessages MESSAGES = GWT.create(IUiMessages.class);
+  private static final IUiMessages kMessages = GWT.create(IUiMessages.class);
 
   private static Node workspace;
 
   @Override
   public void onModuleLoad() {
-  	ensureCssInjected();
+    ensureCssInjected();
     String pageName = getParameters().getPageName();
-    IPage.IFactory<?> factory = PAGES.get(pageName);
+    IPage.IFactory<?> factory = kPages.get(pageName);
     IPage<?> page = factory.createPage();
     IPageView view = page.bindView();
-    final Toplevel toplevel = Toplevel.create(view);
+    Toplevel toplevel = Toplevel.create(view);
     toplevel.init();
     page.init();
     RootPanel.get().add(toplevel);
   }
 
   public static Node getWorkspace() {
-  	assert workspace != null;
-  	return workspace;
+    assert workspace != null;
+    return workspace;
   }
 
   public static void setWorkspace(Node value) {
-  	assert workspace == null;
-  	workspace = value;
+    assert workspace == null;
+    workspace = value;
   }
 
   private void ensureCssInjected() {
-  	Toplevel.getResources().css().ensureInjected();
-  	TestControlPanel.getResources().css().ensureInjected();
-  	RunView.getResources().css().ensureInjected();
-  	ResultEntry.getResources().css().ensureInjected();
+    Toplevel.getResources().css().ensureInjected();
+    TestControlPanel.getResources().css().ensureInjected();
+    RunView.getResources().css().ensureInjected();
+    ResultEntry.getResources().css().ensureInjected();
   }
 
   public static void reportError(Throwable error) {
@@ -93,21 +101,31 @@ public class Luna implements EntryPoint {
     dialog.center();
   }
 
+  /**
+   * Returns the test case factory for a given test type identifier.
+   */
   public static ITestCase.IFactory getTestCaseFactory(String type) {
-    return TEST_CASE_FACTORIES.get(type);
+    return kTestCaseFactories.get(type);
   }
 
   public static IUiMessages getMessages() {
-    return MESSAGES;
+    return kMessages;
   }
 
+  /**
+   * Returns the app parameters.
+   */
   public static native Parameters getParameters() /*-{
     return top.kParameters;
-	}-*/;
+  }-*/;
 
+  /**
+   * Looks up a request path in the set of pre-populated server
+   * requests.
+   */
   public static native Object getCannedRequest(String path) /*-{
-	  return top.kCannedRequests[path];
-	}-*/;
+    return top.kCannedRequests[path];
+  }-*/;
 
   private static ServerConnection.IFactory getServerConnectionFactory() {
     String dataPath = getParameters().getDataPath();

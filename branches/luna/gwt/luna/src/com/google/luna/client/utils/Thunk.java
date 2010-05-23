@@ -7,9 +7,9 @@ import com.google.luna.client.Luna;
 
 public abstract class Thunk<T> implements IThunk<T> {
 
-	@Override
-	public void onError(Throwable error) {
-		Luna.reportError(error);
-	}
+  @Override
+  public void onError(Throwable error) {
+    Luna.reportError(error);
+  }
 
 }

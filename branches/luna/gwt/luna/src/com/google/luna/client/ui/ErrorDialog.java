@@ -7,9 +7,9 @@ import com.google.gwt.user.client.ui.DialogBox;
 
 public class ErrorDialog extends DialogBox {
 
-	public ErrorDialog(Throwable error) {
-		this.setText(error.getMessage());
-		this.add(new ErrorDialogBody(error));
-	}
+  public ErrorDialog(Throwable error) {
+    this.setText(error.getMessage());
+    this.add(new ErrorDialogBody(error));
+  }
 
 }

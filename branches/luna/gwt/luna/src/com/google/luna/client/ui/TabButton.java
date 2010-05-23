@@ -18,64 +18,64 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class TabButton extends Composite implements HasText {
 
-	interface IMyUiBinder extends UiBinder<Widget, TabButton> {}
+  interface IMyUiBinder extends UiBinder<Widget, TabButton> {}
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
-	public interface IResources extends ClientBundle {
+  public interface IResources extends ClientBundle {
 
-		public interface ICss extends CssResource {
+    public interface ICss extends CssResource {
 
-			String current();
-			String text();
-			String frame();
-			String middle();
+      String current();
+      String text();
+      String frame();
+      String middle();
 
-		}
+    }
 
-		@Source("TabButton.css")
-		ICss css();
+    @Source("TabButton.css")
+    ICss css();
 
-	}
+  }
 
-	public static IResources RESOURCES = GWT.create(IResources.class);
+  public static IResources RESOURCES = GWT.create(IResources.class);
 
-	public static IResources getResources() {
-		return RESOURCES;
-	}
+  public static IResources getResources() {
+    return RESOURCES;
+  }
 
-	public static IResources.ICss getCss() {
-		return getResources().css();
-	}
+  public static IResources.ICss getCss() {
+    return getResources().css();
+  }
 
 
   @UiField Label label;
 
   public TabButton() {
-  	initWidget(BINDER.createAndBindUi(this));
+    initWidget(BINDER.createAndBindUi(this));
   }
 
   public void setTarget(final String target) {
-  	this.addDomHandler(new ClickHandler() {
-  		@Override
-  		public void onClick(ClickEvent event) {
-  			Window.open(target, "_top", null);
-  		}
-  	}, ClickEvent.getType());
+    this.addDomHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        Window.open(target, "_top", null);
+      }
+    }, ClickEvent.getType());
   }
 
   @Override
   public void setText(String text) {
-  	label.setText(text);
+    label.setText(text);
   }
 
   @Override
   public String getText() {
-  	return label.getText();
+    return label.getText();
   }
 
-	public void select() {
-		getCss().ensureInjected();
-		this.addStyleName(getCss().current());
-	}
+  public void select() {
+    getCss().ensureInjected();
+    this.addStyleName(getCss().current());
+  }
 
 }

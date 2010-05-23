@@ -14,7 +14,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class ProgressBar extends Composite {
 
-	interface IMyUiBinder extends UiBinder<Widget, ProgressBar> {}
+  interface IMyUiBinder extends UiBinder<Widget, ProgressBar> {}
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
   @UiField FlowPanel runBar;
@@ -22,18 +22,18 @@ public class ProgressBar extends Composite {
   @UiField Label label;
 
   public ProgressBar() {
-  	this.initWidget(BINDER.createAndBindUi(this));
-  	setRunProgress(0);
-  	setLoadProgress(0);
+    this.initWidget(BINDER.createAndBindUi(this));
+    setRunProgress(0);
+    setLoadProgress(0);
   }
 
   public void setRunProgress(double value) {
-  	label.setText(Math.round(100 * value) + "%");
-  	runBar.getElement().getStyle().setWidth(100 * value, Style.Unit.PCT);
+    label.setText(Math.round(100 * value) + "%");
+    runBar.getElement().getStyle().setWidth(100 * value, Style.Unit.PCT);
   }
 
   public void setLoadProgress(double value) {
-  	loadBar.getElement().getStyle().setWidth(100 * value, Style.Unit.PCT);
+    loadBar.getElement().getStyle().setWidth(100 * value, Style.Unit.PCT);
   }
 
 }

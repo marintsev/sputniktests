@@ -19,23 +19,23 @@ public abstract class AbstractTestCase implements ITestCase {
 
   @Override
   public int getSerial() {
-  	return this.serial;
+    return this.serial;
   }
 
   @Override
   public void schedule(final ITestProgressSink progress) {
-  	Promise.defer().onValue(new Thunk<Object>() {
-  		@Override
-  		public void onValue(Object t) {
-  			AbstractTestCase.this.run(progress);
-  		}
-  	});
+    Promise.defer().onValue(new Thunk<Object>() {
+      @Override
+      public void onValue(Object t) {
+        AbstractTestCase.this.run(progress);
+      }
+    });
   }
 
   protected abstract void run(ITestProgressSink runner);
 
-	protected Backend.Case getData() {
-  	return this.data;
+  protected Backend.Case getData() {
+    return this.data;
   }
 
 }

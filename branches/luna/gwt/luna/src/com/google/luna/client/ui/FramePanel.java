@@ -25,145 +25,145 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class FramePanel extends Composite implements HasWidgets {
 
-	interface IMyUiBinder extends UiBinder<Widget, FramePanel> {}
+  interface IMyUiBinder extends UiBinder<Widget, FramePanel> {}
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
-	public interface IResources extends ClientBundle {
+  public interface IResources extends ClientBundle {
 
-		@Source("gfx/ne.png")
-		ImageResource northEast();
+    @Source("gfx/ne.png")
+    ImageResource northEast();
 
-		@Source("gfx/nw.png")
-		ImageResource northWest();
+    @Source("gfx/nw.png")
+    ImageResource northWest();
 
-		@Source("gfx/sw.png")
-		ImageResource southWest();
+    @Source("gfx/sw.png")
+    ImageResource southWest();
 
-		@Source("gfx/se.png")
-		ImageResource southEast();
+    @Source("gfx/se.png")
+    ImageResource southEast();
 
-		@Source("gfx/n.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Horizontal)
-		ImageResource north();
+    @Source("gfx/n.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Horizontal)
+    ImageResource north();
 
-		@Source("gfx/e.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Vertical)
-		ImageResource east();
+    @Source("gfx/e.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Vertical)
+    ImageResource east();
 
-		@Source("gfx/s.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Horizontal)
-		ImageResource south();
+    @Source("gfx/s.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Horizontal)
+    ImageResource south();
 
-		@Source("gfx/w.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Vertical)
-		ImageResource west();
+    @Source("gfx/w.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Vertical)
+    ImageResource west();
 
-		@Source("gfx/ne_emph.png")
-		ImageResource northEastEmphasis();
+    @Source("gfx/ne_emph.png")
+    ImageResource northEastEmphasis();
 
-		@Source("gfx/nw_emph.png")
-		ImageResource northWestEmphasis();
+    @Source("gfx/nw_emph.png")
+    ImageResource northWestEmphasis();
 
-		@Source("gfx/sw_emph.png")
-		ImageResource southWestEmphasis();
+    @Source("gfx/sw_emph.png")
+    ImageResource southWestEmphasis();
 
-		@Source("gfx/se_emph.png")
-		ImageResource southEastEmphasis();
+    @Source("gfx/se_emph.png")
+    ImageResource southEastEmphasis();
 
-		@Source("gfx/n_emph.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Horizontal)
-		ImageResource northEmphasis();
+    @Source("gfx/n_emph.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Horizontal)
+    ImageResource northEmphasis();
 
-		@Source("gfx/e_emph.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Vertical)
-		ImageResource eastEmphasis();
+    @Source("gfx/e_emph.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Vertical)
+    ImageResource eastEmphasis();
 
-		@Source("gfx/s_emph.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Horizontal)
-		ImageResource southEmphasis();
+    @Source("gfx/s_emph.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Horizontal)
+    ImageResource southEmphasis();
 
-		@Source("gfx/w_emph.png")
-		@ImageOptions(repeatStyle=RepeatStyle.Vertical)
-		ImageResource westEmphasis();
+    @Source("gfx/w_emph.png")
+    @ImageOptions(repeatStyle=RepeatStyle.Vertical)
+    ImageResource westEmphasis();
 
 
-		public interface ICss extends CssResource {
+    public interface ICss extends CssResource {
 
-			String frame();
-			String container();
-			String emphasis();
+      String frame();
+      String container();
+      String emphasis();
 
-			String nw();
-			String ne();
-			String se();
-			String sw();
-			String n();
-			String e();
-			String s();
-			String w();
+      String nw();
+      String ne();
+      String se();
+      String sw();
+      String n();
+      String e();
+      String s();
+      String w();
 
-		}
+    }
 
-		@Source("FramePanel.css")
-		ICss css();
+    @Source("FramePanel.css")
+    ICss css();
 
-	}
+  }
 
-	public static IResources RESOURCES = GWT.create(IResources.class);
+  public static IResources RESOURCES = GWT.create(IResources.class);
 
-	public static IResources getResources() {
-		return RESOURCES;
-	}
+  public static IResources getResources() {
+    return RESOURCES;
+  }
 
-	public static IResources.ICss getCss() {
-		return getResources().css();
-	}
+  public static IResources.ICss getCss() {
+    return getResources().css();
+  }
 
-	@UiField FlowPanel container;
-	@UiField DivElement frame;
+  @UiField FlowPanel container;
+  @UiField DivElement frame;
 
-	public FramePanel() {
-		getCss().ensureInjected();
-		this.initWidget(BINDER.createAndBindUi(this));
-	}
+  public FramePanel() {
+    getCss().ensureInjected();
+    this.initWidget(BINDER.createAndBindUi(this));
+  }
 
-	private class HoverHandler implements MouseOverHandler, MouseOutHandler {
-		@Override
-		public void onMouseOut(MouseOutEvent event) {
-			frame.removeClassName(getResources().css().emphasis());
-		}
-		@Override
-		public void onMouseOver(MouseOverEvent event) {
-			frame.addClassName(getResources().css().emphasis());
-		}
-	}
+  private class HoverHandler implements MouseOverHandler, MouseOutHandler {
+    @Override
+    public void onMouseOut(MouseOutEvent event) {
+      frame.removeClassName(getResources().css().emphasis());
+    }
+    @Override
+    public void onMouseOver(MouseOverEvent event) {
+      frame.addClassName(getResources().css().emphasis());
+    }
+  }
 
-	public void setEmphasisOnHover(boolean value) {
-		if (value) {
-			HoverHandler handler = new HoverHandler();
-			this.addDomHandler(handler, MouseOverEvent.getType());
-			this.addDomHandler(handler, MouseOutEvent.getType());
-		}
-	}
+  public void setEmphasisOnHover(boolean value) {
+    if (value) {
+      HoverHandler handler = new HoverHandler();
+      this.addDomHandler(handler, MouseOverEvent.getType());
+      this.addDomHandler(handler, MouseOutEvent.getType());
+    }
+  }
 
-	@Override
-	public void add(Widget w) {
-		container.add(w);
-	}
+  @Override
+  public void add(Widget w) {
+    container.add(w);
+  }
 
-	@Override
-	public void clear() {
-		container.clear();
-	}
+  @Override
+  public void clear() {
+    container.clear();
+  }
 
-	@Override
-	public Iterator<Widget> iterator() {
-		return container.iterator();
-	}
+  @Override
+  public Iterator<Widget> iterator() {
+    return container.iterator();
+  }
 
-	@Override
-	public boolean remove(Widget w) {
-		return container.remove(w);
-	}
+  @Override
+  public boolean remove(Widget w) {
+    return container.remove(w);
+  }
 
 }

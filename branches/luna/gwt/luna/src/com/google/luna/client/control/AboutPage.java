@@ -34,5 +34,4 @@ public class AboutPage implements IPage<IAboutView> {
     });
   }
 
-
 }

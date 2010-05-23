@@ -4,6 +4,11 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
+/**
+ * Label that can show both plain text and promises.  For promises
+ * the label waits for a value to be available and only displays the
+ * contants if a new text has not been set while waiting.
+ */
 public class PromiseLabel extends Label {
 
   private Promise<String> pText = null;
@@ -13,9 +18,8 @@ public class PromiseLabel extends Label {
     pText.eagerOnValue(new Thunk<String>() {
       @Override
       public void onValue(String value) {
-        if (pText == PromiseLabel.this.pText) {
+        if (pText == PromiseLabel.this.pText)
           setText(value);
-        }
       }
     });
   }
