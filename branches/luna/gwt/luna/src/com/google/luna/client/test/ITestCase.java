@@ -5,18 +5,18 @@ import com.google.luna.client.utils.Promise;
 
 public interface ITestCase {
 
-	public interface IFactory {
-		public ITestCase create(Case data, int serial);
-	}
+  public interface IFactory {
+    public ITestCase create(Case data, int serial);
+  }
 
-	public int getSerial();
+  public int getSerial();
 
-	public Promise<String> getDescription();
+  public Promise<String> getDescription();
 
-	public Promise<String> getLabel();
+  public Promise<String> getLabel();
 
-	public boolean isNegative();
+  public boolean isNegative();
 
-	public void schedule(ITestProgressSink progress);
+  public void schedule(ITestProgressSink progress);
 
 }
