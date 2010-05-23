@@ -153,20 +153,20 @@ def dispatcher(method, cache=None):
 
 def initialize_application():
   handler = LunaHandler()
-  return webapp.WSGIApplication([
+  matchers = [
     # Data
     (r'/data/suite.json', dispatcher(handler.get_suite)),
     (r'/data/cases.json', dispatcher(handler.get_cases)),
     (r'/data/activePackage.json', dispatcher(handler.get_active_package)),
-    # Desktop
-    (r'/(?:about.html)?', dispatcher(handler.get_page_renderer('About'))),
-    (r'/run.html', dispatcher(handler.get_page_renderer('Run'))),
-    (r'/compare.html', dispatcher(handler.get_page_renderer('Compare'))),
-    # Mobile
-    (r'/m/(?:about.html)?', dispatcher(handler.get_page_renderer('About', is_mobile=True))),
-    (r'/m/run.html', dispatcher(handler.get_page_renderer('Run', is_mobile=True))),
-    (r'/m/compare.html', dispatcher(handler.get_page_renderer('Compare', is_mobile=True))),
-  ], debug=True)
+  ]
+  for (prefix, is_mobile) in [("", False), ("/m", True)]:
+    matchers += [
+      (r'%s/(?:about.html)?' % prefix, dispatcher(handler.get_page_renderer('About', is_mobile=is_mobile))),
+      (r'%s/run.html' % prefix, dispatcher(handler.get_page_renderer('Run', is_mobile=is_mobile))),
+      (r'%s/compare.html' % prefix, dispatcher(handler.get_page_renderer('Compare', is_mobile=is_mobile))),
+      (r'%s/manage.html' % prefix, dispatcher(handler.get_page_renderer('Manage', is_mobile=is_mobile)))
+    ]
+  return webapp.WSGIApplication(matchers, debug=True)
 
 application = initialize_application()
 

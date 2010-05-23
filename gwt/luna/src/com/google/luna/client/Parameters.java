@@ -5,6 +5,11 @@ package com.google.luna.client;
 
 import com.google.gwt.core.client.JavaScriptObject;
 
+/**
+ * The parameters and settings set for this instance of sputnik.  This
+ * includes selecting which page to show and which user is visiting
+ * the page.
+ */
 public final class Parameters extends JavaScriptObject {
 
   protected Parameters() { }

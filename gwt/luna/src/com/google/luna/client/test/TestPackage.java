@@ -8,64 +8,81 @@ import java.util.ArrayList;
 import com.google.gwt.core.client.JsArray;
 import com.google.luna.client.Luna;
 import com.google.luna.client.rmi.Backend;
+import com.google.luna.client.utils.Listeners;
 import com.google.luna.client.utils.Promise;
-
+/**
+ * A complete collection of tests potentially made up of several different
+ * types of test suites.
+ */
 public class TestPackage {
 
-  public interface ILoadListener {
-    public void hasLoaded(int max);
+  /**
+   * Listener for events related to loading test case packages.
+   */
+  public interface IListener {
+
+    /**
+     * Invoked when another block of tests has been fetched from the
+     * server.  The range of serial numbers of the test block is passed
+     * as parameters.
+     */
+    public void onTestBlockLoaded(int from, int to);
+
   }
 
+  /**
+   * Underlying definition of this package.
+   */
   private final Backend.Package data;
+
+  /**
+   * The test suites making up this package.
+   */
   private final ArrayList<TestSuite> suites;
-  private final ArrayList<ILoadListener> listeners = new ArrayList<ILoadListener>();
-  private int maxLoaded = 0;
+
+  private final Listeners<IListener> listeners = new Listeners<IListener>();
 
   public TestPackage(Backend.Package data) {
     this.data = data;
     this.suites = new ArrayList<TestSuite>();
-
-    TestSuite.ILoadListener loadListener = new TestSuite.ILoadListener() {
-      @Override
-      public void hasLoaded(TestSuite suite, int max) {
-        testSuiteCaseLoaded(suite, max);
-      }
-    };
-
     JsArray<Backend.Suite> suites = data.getSuites();
     int serialOffset = 0;
     for (int i = 0; i < suites.length(); i++) {
       Backend.Suite suiteData = suites.get(i);
       String type = suiteData.getType();
       ITestCase.IFactory factory = Luna.getTestCaseFactory(type);
-      TestSuite suite = new TestSuite(suiteData, factory, serialOffset);
+      final TestSuite suite = new TestSuite(suiteData, factory, serialOffset);
       this.suites.add(suite);
-      suite.addLoadListener(loadListener);
+      suite.addListener(new TestSuite.IListener() {
+        @Override
+        public void onTestBlockLoaded(int from, int to) {
+          onTestSuiteCaseLoaded(suite, from, to);
+        }
+      });
       serialOffset += suiteData.getCaseCount();
     }
   }
 
-  private void testSuiteCaseLoaded(TestSuite suite, int max) {
-    int base = 0;
+  private void onTestSuiteCaseLoaded(TestSuite suite, int from, int to) {
+    int serialOffset = 0;
     for (TestSuite s : suites) {
-      if (suite == s) {
-        int value = base + max;
-        if (value > maxLoaded) {
-          for (ILoadListener listener : listeners)
-            listener.hasLoaded(value);
-          return;
-        }
+      if (s == suite) {
+        int adjustedFrom = serialOffset + from;
+        int adjustedTo = serialOffset + to;
+        for (IListener listener : listeners)
+          listener.onTestBlockLoaded(adjustedFrom, adjustedTo);
+        return;
       } else {
-        base += s.getCaseCount();
+        serialOffset += s.getCaseCount();
       }
     }
   }
 
-  public void addLoadListener(ILoadListener listener) {
+  public void addListener(IListener listener) {
     listeners.add(listener);
   }
 
-  public void removeLoadListener(ILoadListener listener) {
+  public void removeListener(IListener listener) {
     listeners.remove(listener);
   }
 

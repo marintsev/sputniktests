@@ -7,33 +7,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.core.client.JsArray;
+import com.google.luna.client.Constants;
 import com.google.luna.client.Luna;
 import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.rmi.BlockList;
 import com.google.luna.client.rmi.Backend.Case;
 import com.google.luna.client.rmi.Backend.CaseBlock;
+import com.google.luna.client.utils.Listeners;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
 public class TestSuite {
 
-  public interface ILoadListener {
-    public void hasLoaded(TestSuite suite, int max);
-  }
+  /**
+   * Listener for test suite related load events.
+   */
+  public interface IListener {
 
-  private final int BLOCK_SIZE = 128;
-  private final int BLOCK_AHEAD_COUNT = 2;
+    /**
+     * Called when this test suite has fetched a new test block.  The
+     * range of serial numbers within the test suite is given as parameters.
+     */
+    public void onTestBlockLoaded(int from, int to);
+
+  }
 
   private final Backend.Suite data;
   private final ITestCase.IFactory factory;
   private final BlockList<ITestCase> cases;
-  private final ArrayList<ILoadListener> listeners = new ArrayList<ILoadListener>();
+  private final Listeners<IListener> listeners = new Listeners<IListener>();
 
   public TestSuite(final Backend.Suite data, ITestCase.IFactory factory,
       final int serialOffset) {
     this.data = data;
     this.factory = factory;
-    this.cases = new BlockList<ITestCase>(this.getCaseCount(), BLOCK_SIZE, BLOCK_AHEAD_COUNT) {
+    this.cases = new BlockList<ITestCase>(this.getCaseCount(), Constants.kTestBlockSize,
+        Constants.kTestBlockAheadCount) {
       @Override
       protected Promise<List<ITestCase>> fetchBlock(int from, int to) {
         return fetchCaseBlock(from, to, serialOffset);
@@ -41,23 +50,22 @@ public class TestSuite {
     };
     this.cases.addListener(new BlockList.IListener() {
       @Override
-      public void hasLoaded(int max) {
-        fireCasesLoaded(max);
+      public void onBlockLoaded(int from, int to) {
+        fireTestBlockLoaded(from, to);
       }
     });
   }
 
-  private void fireCasesLoaded(int max) {
-    for (ILoadListener listener : listeners) {
-      listener.hasLoaded(this, max);
-    }
+  private void fireTestBlockLoaded(int from, int to) {
+    for (IListener listener : listeners)
+      listener.onTestBlockLoaded(from, to);
   }
 
-  public void addLoadListener(ILoadListener listener) {
+  public void addListener(IListener listener) {
     this.listeners.add(listener);
   }
 
-  public void removeLoadListener(ILoadListener listener) {
+  public void removeListener(IListener listener) {
     this.listeners.remove(listener);
   }
 

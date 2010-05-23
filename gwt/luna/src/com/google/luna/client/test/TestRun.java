@@ -3,6 +3,7 @@
 
 package com.google.luna.client.test;
 
+import com.google.luna.client.utils.FlatBitVector;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
@@ -18,6 +19,7 @@ public class TestRun implements ITestProgressSink {
   private int current = 0;
   private boolean isPaused = false;
   private final TestResults results;
+  public final FlatBitVector vector = new FlatBitVector(1000);
 
   public TestRun(TestPackage pack, IListener listener) {
     this.pack = pack;

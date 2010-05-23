@@ -1,8 +1,11 @@
 package com.google.luna.client.utils;
 
 import java.util.Iterator;
-
-
+/**
+ * The simplest possible bit vector backed by an array of booleans.
+ * The vector has a fixed size and accessing elements outside the range
+ * is an error.
+ */
 public class FlatBitVector implements IBitVector {
 
   public interface IListener {
