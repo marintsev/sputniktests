@@ -1,5 +1,6 @@
 package com.google.luna.client.utils;
 
+
 public class PseudoRandom {
 
   private int i, j;
@@ -18,8 +19,8 @@ public class PseudoRandom {
   }
 
   public int nextInt(int low, int high) {
-    int k = (j * 237) + 37;
-    j = (i + -83) + 61;
+    int k = ((j * 237) + 37) & 0xFFFFFFFF;
+    j = ((i + -83) + 61) & 0xFFFFFFFF;
     i = k;
     int random = k;
     // If the random value is negative we don't just invert it since
@@ -31,6 +32,11 @@ public class PseudoRandom {
 
   public boolean nextBoolean() {
     return nextInt(0, 2) == 0;
+  }
+
+  public <T> T nextElement(T[] elms) {
+    int index = nextInt(0, elms.length);
+    return elms[index];
   }
 
 }

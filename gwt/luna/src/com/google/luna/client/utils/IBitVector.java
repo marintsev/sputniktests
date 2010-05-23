@@ -1,7 +1,7 @@
 package com.google.luna.client.utils;
 
 
-public interface IBitSet extends Iterable<Integer> {
+public interface IBitVector extends Iterable<Integer> {
 
   public interface IBitIterator {
     public int getNext();

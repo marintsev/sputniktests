@@ -5,22 +5,22 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.google.gwt.junit.client.GWTTestCase;
+import com.google.luna.LunaTestCase;
 
-public class BitSetTest extends GWTTestCase {
+public class BitVectorTest extends LunaTestCase {
 
   @Test
   public void testFlatBitSet() {
-    runSettingAndGettingTest(new FlatBitSet(1024), 1024);
+    runSettingAndGettingTest(new FlatBitVector(1024), 1024);
   }
 
   @Test
   public void testSegmentedBitSets() {
     for (int i = 1; i < 2048; i += Math.max((int) (i * 0.2), 1))
-      runSettingAndGettingTest(new SegmentBitSet(i), 1024);
+      runSettingAndGettingTest(new SegmentBitVector(i), 1024);
   }
 
-  public void runSettingAndGettingTest(IBitSet set, int size) {
+  public void runSettingAndGettingTest(IBitVector set, int size) {
     Set<Integer> nums = new HashSet<Integer>();
     for (int i = 0; i < size; i += Math.max((int) (i * 0.1), 1)) {
       set.set(i, true);
@@ -35,7 +35,6 @@ public class BitSetTest extends GWTTestCase {
       nums.remove(i);
       last = i;
     }
-    System.out.println(nums);
     assertTrue(nums.isEmpty());
   }
 
@@ -47,11 +46,11 @@ public class BitSetTest extends GWTTestCase {
   public void testFlatBitSetListeners() {
     PseudoRandom pr = new PseudoRandom();
     final boolean[] reference = new boolean[1024];
-    FlatBitSet bits = new FlatBitSet(1024);
+    FlatBitVector bits = new FlatBitVector(1024);
     final int[] expectedIndex = {0};
     final boolean[] expectedValue = {false};
     final boolean[] hadCallback = {false};
-    bits.addListener(new FlatBitSet.IListener() {
+    bits.addListener(new FlatBitVector.IListener() {
       @Override
       public void onBitChanged(int index, boolean value) {
         assertEquals(expectedIndex[0], index);
@@ -70,11 +69,6 @@ public class BitSetTest extends GWTTestCase {
       bits.set(index, value);
       assertEquals(doChange, hadCallback[0]);
     }
-  }
-
-  @Override
-  public String getModuleName() {
-    return "com.google.luna.Test";
   }
 
 }

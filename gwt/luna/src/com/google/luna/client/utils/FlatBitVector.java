@@ -3,7 +3,7 @@ package com.google.luna.client.utils;
 import java.util.Iterator;
 
 
-public class FlatBitSet implements IBitSet {
+public class FlatBitVector implements IBitVector {
 
   public interface IListener {
     public void onBitChanged(int index, boolean value);
@@ -12,8 +12,16 @@ public class FlatBitSet implements IBitSet {
   private final Listeners<IListener> listeners = new Listeners<IListener>();
   private final boolean[] bits;
 
-  public FlatBitSet(int size) {
+  public FlatBitVector(int size) {
     bits = new boolean[size];
+  }
+
+  public FlatBitVector(int size, Iterable<Integer> bits) {
+    this(size);
+    for (int bit : bits) {
+      assert bit < size;
+      this.bits[bit] = true;
+    }
   }
 
   public void addListener(IListener listener) {
