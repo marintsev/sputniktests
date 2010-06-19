@@ -1,5 +1,7 @@
 package com.google.luna.client.test;
 
+import com.google.luna.client.test.data.ITestCase;
+
 
 public interface ITestProgressSink {
 

@@ -3,6 +3,9 @@ package com.google.luna.client.test;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.luna.client.test.data.ITestCase;
+import com.google.luna.client.test.data.ITestPackage;
+
 
 public class TestResults {
 
@@ -18,7 +21,7 @@ public class TestResults {
   private int unexpectedCount = 0;
   private List<IListener> listeners = new ArrayList<IListener>();
 
-  public TestResults(TestPackage pack) {
+  public TestResults(ITestPackage pack) {
     this.results = new State[pack.getTestCount()];
   }
 

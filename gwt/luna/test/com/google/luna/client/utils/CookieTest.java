@@ -6,7 +6,7 @@ import com.google.luna.client.utils.Cookie.Factory;
 public class CookieTest extends LunaTestCase {
 
   public void testIntsSimple() {
-    Factory domain = new Factory(new TestCookieJar());
+    Factory domain = new Factory(new FakeCookieJar());
 
     Cookie<Integer> cookie = domain.integer("foo");
     assertFalse(cookie.exists());

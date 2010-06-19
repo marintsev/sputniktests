@@ -10,7 +10,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 import com.google.luna.client.Luna;
-import com.google.luna.client.test.TestPackage;
+import com.google.luna.client.test.data.ITestPackage;
 import com.google.luna.client.ui.Toplevel.Resources.MobileModeCss;
 import com.google.luna.client.utils.Thunk;
 
@@ -55,9 +55,9 @@ public abstract class Toplevel extends Composite {
 
   public void init() {
     this.initUi();
-    Luna.getActivePackage().onValue(new Thunk<TestPackage>() {
+    Luna.getActivePackage().onValue(new Thunk<ITestPackage>() {
       @Override
-      public void onValue(TestPackage pack) {
+      public void onValue(ITestPackage pack) {
         setVersion(pack.getVersion());
       }
     });

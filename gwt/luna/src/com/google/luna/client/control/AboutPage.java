@@ -1,7 +1,7 @@
 package com.google.luna.client.control;
 
 import com.google.luna.client.Luna;
-import com.google.luna.client.test.TestPackage;
+import com.google.luna.client.test.data.ITestPackage;
 import com.google.luna.client.ui.AboutView;
 import com.google.luna.client.ui.IAboutView;
 import com.google.luna.client.utils.Thunk;
@@ -27,8 +27,8 @@ public class AboutPage implements IPage<IAboutView> {
 
   @Override
   public void init() {
-    Luna.getActivePackage().onValue(new Thunk<TestPackage>() {
-      public void onValue(TestPackage t) {
+    Luna.getActivePackage().onValue(new Thunk<ITestPackage>() {
+      public void onValue(ITestPackage t) {
         view.setVersion(t.getVersion());
       }
     });

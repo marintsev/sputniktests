@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestCookieJar implements ICookieJar {
+import com.google.luna.client.utils.Cookie.Factory;
+
+public class FakeCookieJar implements ICookieJar {
 
   private final Map<String, String> cookies = new HashMap<String, String>();
 
@@ -31,6 +33,11 @@ public class TestCookieJar implements ICookieJar {
 
   public Map<String, String> getCookies() {
     return Collections.<String, String>unmodifiableMap(cookies);
+  }
+
+  @Override
+  public Factory factory() {
+    return new Cookie.Factory(this);
   }
 
 }
