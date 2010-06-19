@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="Luna" default="sputnik.upload" basedir=".">
+
+  <property environment="env"/>
+  <property name="url" value="http://localhost:8080"/>
+  <property name="app.id" value="luna"/>
+  <property name="sputnik.root" value="symlinks/sputniktests"/>
+  <property name="sputnik.bundle.path" value="sputnik.bundle"/>
+  <property name="appengine.root" value="${env.GAE_PATH}"/>
+
+  <property name="bulkloader.db.path" value="bulkloader.db"/>
+  <property name="bulkloader.log.path" value="bulkloader.log"/>
+
+  <target name="login">
+    <input message="Email:" addproperty="user.email"/>
+    <input message="Password:" addproperty="user.password">
+      <handler classname="org.apache.tools.ant.input.SecureInputHandler" />
+    </input>
+  </target>
+
+  <target name="sputnik.upload" depends="login">
+    <run-bulkloader file="${sputnik.bundle.path}" kind="Suite"/>
+    <run-bulkloader file="${sputnik.bundle.path}" kind="Case"/>
+  </target>
+
+  <target name="sputnik.bundle">
+    <run-bundle-builder root="${sputnik.root}" type="sputnik" output="${sputnik.bundle.path}"/>
+  </target>
+
+  <macrodef name="run-bundle-builder">
+    <attribute name="root"/>
+    <attribute name="type"/>
+    <attribute name="output"/>
+    <sequential>
+      <exec executable="tools/bundle.py" failonerror="true">
+        <arg value="--root"/>
+        <arg path="@{root}"/>
+        <arg value="--type"/>
+        <arg value="@{type}"/>
+        <arg value="--output"/>
+	<arg path="@{output}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="run-bulkloader">
+    <attribute name="file"/>
+    <attribute name="kind"/>
+    <sequential>
+      <exec executable="${appengine.root}/appcfg.py" inputstring="${user.password}" failonerror="true">
+        <arg value="upload_data"/>
+	<arg value="--config_file"/>
+	<arg path="tools/loader.py"/>
+	<arg value="--url"/>
+	<arg value="${url}/remote_api"/>
+        <arg value="--filename"/>
+	<arg value="@{file}"/>
+	<arg value="--kind"/>
+	<arg value="@{kind}"/>
+        <arg value="--application"/>
+	<arg value="${app.id}"/>
+        <arg value="--email"/>
+	<arg value="${user.email}"/>
+	<arg value="--passin"/>
+        <arg value="--db_filename"/>
+	<arg path="${bulkloader.db.path}"/>
+        <arg value="--log_file"/>
+	<arg path="${bulkloader.log.path}"/>
+      </exec>
+      <delete file="${bulkloader.db.path}"/>
+      <delete file="${bulkloader.log.path}"/>
+    </sequential>
+  </macrodef>
+
+</project>
