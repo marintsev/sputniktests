@@ -37,4 +37,8 @@ public class PersistentTestResults {
     states.set(serial, state);
   }
 
+  public TestState getState(int serial) {
+    return states.get(serial);
+  }
+
 }

@@ -1,5 +1,7 @@
 package com.google.luna.client.test;
 
+import com.google.luna.client.test.PersistentTestResults.TestState;
+import com.google.luna.client.test.TestOutcome.Status;
 import com.google.luna.client.test.data.ITestCase;
 import com.google.luna.client.test.data.ITestPackage;
 import com.google.luna.client.utils.Cookie;
@@ -13,26 +15,28 @@ public class TestProgress {
 
   private final ITestPackage pack;
   private final PersistentTestResults results;
-  private final TestEventTranslater eventTranslater = new TestEventTranslater();
+  private final EventTranslater eventTranslater;
   private int nextTest;
-  private int currentTest = -1;
+
+  private int expectedOutcomeCount = 0;
+  private int unexpectedOutcomeCount = 0;
 
   public class TestMonitor {
 
     private final ITestCase test;
-    private final ITestEventListener listener;
+    private final ITestEventHandler handler;
 
     public TestMonitor(ITestCase test) {
       this.test = test;
-      this.listener = eventTranslater.getEventListener(test);
+      this.handler = eventTranslater.getEventListener(test);
     }
 
     public ITestCase getCase() {
       return this.test;
     }
 
-    public ITestEventListener getListener() {
-      return this.listener;
+    public ITestEventHandler getHandler() {
+      return this.handler;
     }
 
   }
@@ -41,6 +45,17 @@ public class TestProgress {
     this.pack = pack;
     this.results = new PersistentTestResults(pack, cookieFactory.child("results"));
     this.nextTest = results.getResultCount();
+    this.eventTranslater = new EventTranslater();
+    this.eventTranslater.addListener(new EventTranslater.ITestResultListener() {
+      @Override
+      public void onTestDone(TestOutcome outcome) {
+        registerResult(outcome);
+      }
+      @Override
+      public void onTestStarting(ITestCase test) {
+        // ignore
+      }
+    });
   }
 
   public boolean hasNext() {
@@ -51,7 +66,6 @@ public class TestProgress {
     assert hasNext();
     final Promise<TestMonitor> pResult = new Promise<TestMonitor>();
     int serial = nextTest++;
-    this.currentTest = serial;
     pack.getCase(serial).onValue(new Thunk<ITestCase>() {
       @Override
       public void onValue(ITestCase test) {
@@ -59,6 +73,28 @@ public class TestProgress {
       }
     });
     return pResult;
+  }
+
+  protected void registerResult(TestOutcome outcome) {
+    if (outcome.getStatus() == Status.EXPECTED) {
+      results.setState(outcome.getSerial(), TestState.PASSED);
+      expectedOutcomeCount++;
+    } else {
+      results.setState(outcome.getSerial(), TestState.FAILED);
+      unexpectedOutcomeCount++;
+    }
+  }
+
+  public int getExpectedOutcomeCount() {
+    return expectedOutcomeCount;
+  }
+
+  public int getUnexpectedOutcomeCount() {
+    return unexpectedOutcomeCount;
+  }
+
+  public int getTestCompleteCount() {
+    return expectedOutcomeCount + unexpectedOutcomeCount;
   }
 
 }

@@ -22,7 +22,6 @@ public class Log {
     return isEnabled;
   }
 
-
   public enum Component {
 
     COOKIES("Cookies"),
