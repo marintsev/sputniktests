@@ -56,23 +56,22 @@ public class ProgressTest extends LunaTestCase {
     assertFalse(progress.hasNext());
   }
 
-  /*
-
   @Test
   public void testContinueAfterInterruption() {
     for (int i = 0; i < kTestCount / 2; i++) {
       TestMonitor result = forceNext(progress);
       assertEquals(i, result.getCase().getSerial());
-      if (i % 5 == 0) result.testFailed();
-      else result.testPassed();
+      if (i % 5 == 0) result.getHandler().onError("");
+      else result.getHandler().onComplete();
+      result.getHandler().onDone();
     }
 
     TestProgress newProgress = new TestProgress(pack, jar.factory());
     for (int i = kTestCount / 2; i < kTestCount; i++) {
       TestMonitor result = forceNext(newProgress);
       assertEquals(i, result.getCase().getSerial());
-      if (i % 5 == 0) result.testFailed();
-      else result.testPassed();
+      if (i % 5 == 0) result.getHandler().onError("");
+      else result.getHandler().onComplete();
     }
   }
 
@@ -80,12 +79,11 @@ public class ProgressTest extends LunaTestCase {
   public void testFail() {
     for (int i = 0; i < kTestCount; i++) {
       TestMonitor monitor = forceNext(progress);
-      monitor.testFailed();
-      assertEquals(i + 1, progress.getFailureCount());
-      assertEquals(0, progress.getSuccessCount());
+      monitor.getHandler().onError("");
+      monitor.getHandler().onDone();
+      assertEquals(i + 1, progress.getUnexpectedOutcomeCount());
+      assertEquals(0, progress.getExpectedOutcomeCount());
     }
   }
-
-  */
 
 }
