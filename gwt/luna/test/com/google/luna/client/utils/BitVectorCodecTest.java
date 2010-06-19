@@ -5,27 +5,47 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.google.luna.LunaTestCase;
+import com.google.luna.client.LunaTestCase;
+
 
 public class BitVectorCodecTest extends LunaTestCase {
 
   @Test
   public void testCodec() {
-    for (int i = 80; i < 90; i += 1) {
-      for (int j = 150; j < 160; j += 1) {
-        PseudoRandom pr = new PseudoRandom(i, j);
-        FlatBitVector vector = new FlatBitVector(512);
-        Set<Integer> reference = new HashSet<Integer>();
-        for (int k = 0; k < 100; k += 5) {
-          int value = pr.nextInt(0, 512);
-          vector.set(value, true);
-          reference.add(value);
-        }
-        String coded = BitVectorCodec.encode(vector);
-        FlatBitVector decoded = new FlatBitVector(512, BitVectorCodec.decode(coded));
-        for (int k = 0; k < 512; k++)
-          assertEquals(reference.contains(k), decoded.get(k));
+    final int kSize = 512;
+    for (int i = 1800; i < 1900; i++) {
+      PseudoRandom pr = new PseudoRandom(i);
+      FlatBitVector vector = new FlatBitVector(kSize);
+      Set<Integer> reference = new HashSet<Integer>();
+      int count = pr.nextInt(0, kSize);
+      for (int k = 0; k < count; k++) {
+        int value = pr.nextInt(0, kSize);
+        vector.set(value, true);
+        reference.add(value);
       }
+      String coded = BitVectorCodec.encode(vector);
+      FlatBitVector decoded = new FlatBitVector(kSize, BitVectorCodec.decode(coded));
+      for (int k = 0; k < kSize; k++)
+        assertEquals(reference.contains(k), decoded.get(k));
+    }
+  }
+
+  @Test
+  public void testSparse() {
+    final int kSize = 1024;
+    for (int i = 2100; i < 2200; i++) {
+      PseudoRandom pr = new PseudoRandom(i);
+      FlatBitVector vector = new FlatBitVector(kSize);
+      Set<Integer> reference = new HashSet<Integer>();
+      for (int k = 0; k < kSize / 16; k++) {
+        int value = pr.nextInt(0, kSize);
+        vector.set(value, true);
+        reference.add(value);
+      }
+      String coded = BitVectorCodec.encode(vector);
+      FlatBitVector decoded = new FlatBitVector(kSize, BitVectorCodec.decode(coded));
+      for (int k = 0; k < kSize; k++)
+        assertEquals(reference.contains(k), decoded.get(k));
     }
   }
 

@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.google.luna.LunaTestCase;
+import com.google.luna.client.LunaTestCase;
 import com.google.luna.client.utils.Cookie.Factory;
 
 public class PersistentBitVectorTest extends LunaTestCase {
@@ -16,7 +16,7 @@ public class PersistentBitVectorTest extends LunaTestCase {
     Factory factory = new Factory(testJar);
     SegmentBitVector bits = new PersistentBitVector(50, factory);
     Set<Integer> reference = new HashSet<Integer>();
-    PseudoRandom pr = new PseudoRandom(49, 35);
+    PseudoRandom pr = new PseudoRandom(49);
     for (int i = 0; i < 100; i++) {
       int value = pr.nextInt(0, 1000);
       bits.set(value, true);

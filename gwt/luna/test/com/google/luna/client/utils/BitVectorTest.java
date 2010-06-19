@@ -5,7 +5,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.google.luna.LunaTestCase;
+import com.google.luna.client.LunaTestCase;
+
 
 public class BitVectorTest extends LunaTestCase {
 

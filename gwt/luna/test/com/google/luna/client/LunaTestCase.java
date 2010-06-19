@@ -1,4 +1,4 @@
-package com.google.luna;
+package com.google.luna.client;
 
 import org.junit.Ignore;
 

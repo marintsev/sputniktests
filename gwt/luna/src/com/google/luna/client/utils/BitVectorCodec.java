@@ -10,36 +10,118 @@ public class BitVectorCodec {
   // encoded data.
   private static final char kVersion = 'a';
 
-  private static char toBase64(int value) {
-    return kBase64.charAt(value);
-  }
-
-  private static int fromBase64(char value) {
-    if ('a' <= value && value <= 'z') {
-      return value - 'a';
-    } else if ('A' <= value && value <= 'Z') {
-      return (value - 'A') + 26;
-    } else if ('0' <= value && value <= '9') {
-      return (value - '0') + 52;
-    } else if ('-' == value) {
-      return 62;
-    } else {
-      assert '*' == value;
-      return 63;
-    }
-  }
-
   private static final String kBase64 = "abcdefghijklmnopqrstuvwxyz" +
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-*";
 
   private static final int kChunkSize = 6;
 
+  private static class EncodingOutputStream {
+
+    private static char toBase64(int value) {
+      return kBase64.charAt(value);
+    }
+
+    private final StringBuffer buf = new StringBuffer();
+    private int zeroCount = 0;
+
+    public void flushZeros() {
+      assert zeroCount > 0;
+      if (zeroCount == 1) {
+        buf.append(toBase64(0));
+      } else {
+        buf.append('$').append(toBase64(zeroCount));
+      }
+      zeroCount = 0;
+    }
+
+    public void add(int chunk) {
+      if (chunk == 0) {
+        if (zeroCount == 63)
+          flushZeros();
+        zeroCount++;
+      } else {
+        if (zeroCount > 0)
+          flushZeros();
+        buf.append(toBase64(chunk));
+      }
+    }
+
+    public String getString() {
+      if (zeroCount > 0)
+        flushZeros();
+      return kVersion + ":" + buf.toString();
+    }
+
+  }
+
+  private static class DecodingInputStream {
+
+    private static int fromBase64(char value) {
+      if ('a' <= value && value <= 'z') {
+        return value - 'a';
+      } else if ('A' <= value && value <= 'Z') {
+        return (value - 'A') + 26;
+      } else if ('0' <= value && value <= '9') {
+        return (value - '0') + 52;
+      } else if ('-' == value) {
+        return 62;
+      } else {
+        assert '*' == value : value;
+        return 63;
+      }
+    }
+
+    private final String str;
+    private int cursor = 2;
+    private int zeroCount = 0;
+    private int nextValue;
+
+    public DecodingInputStream(String str) {
+      this.str = str;
+      advance();
+    }
+
+    public boolean hasMore() {
+      return zeroCount > 0 || cursor <= str.length();
+    }
+
+    private void advance() {
+      assert zeroCount == 0;
+      if (hasMore()) {
+        if (cursor == str.length()) {
+          cursor++;
+        } else {
+          if (str.charAt(cursor) == '$') {
+            zeroCount += fromBase64(str.charAt(cursor + 1));
+            cursor += 2;
+          } else {
+            nextValue = fromBase64(str.charAt(cursor));
+            cursor += 1;
+          }
+        }
+      }
+    }
+
+    public int next() {
+      if (zeroCount > 0) {
+        zeroCount--;
+        if (zeroCount == 0)
+          advance();
+        return 0;
+      } else {
+        int result = nextValue;
+        advance();
+        return result;
+      }
+    }
+
+  }
+
   /**
    * Encode the given bits as a string.
    */
   public static String encode(Iterable<Integer> bits) {
-    StringBuffer buf = new StringBuffer();
-    buf.append(kVersion).append(":");
+    EncodingOutputStream buf = new EncodingOutputStream();
     Iterator<Integer> iter = bits.iterator();
     int cursor = 0;
     int chunk = 0;
@@ -70,7 +152,7 @@ public class BitVectorCodec {
           }
         }
         if (chunkLength == kChunkSize) {
-          buf.append(toBase64(chunk));
+          buf.add(chunk);
           chunk = 0;
           chunkLength = 0;
         }
@@ -84,9 +166,9 @@ public class BitVectorCodec {
     // Finish the current chunk if we've started one.
     if (chunkLength > 0) {
       chunk <<= (kChunkSize - chunkLength);
-      buf.append(kBase64.charAt(chunk));
+      buf.add(chunk);
     }
-    return buf.toString();
+    return buf.getString();
   }
 
 
@@ -97,10 +179,10 @@ public class BitVectorCodec {
   public static Iterable<Integer> decode(String code) {
     if (code.length() < 2 || code.charAt(0) != kVersion || code.charAt(1) != ':')
       return null;
-    final String data = code.substring(2);
-    FlatBitVector vector = new FlatBitVector(kChunkSize * code.length());
-    for (int i = 0; i < data.length(); i++) {
-      int chunk = fromBase64(data.charAt(i));
+    final DecodingInputStream input = new DecodingInputStream(code);
+    SegmentBitVector vector = new SegmentBitVector(kChunkSize * code.length());
+    for (int i = 0; input.hasMore(); i++) {
+      int chunk = input.next();
       for (int j = 0; j < kChunkSize; j++) {
         if ((chunk & (1 << (kChunkSize - j - 1))) != 0)
           vector.set(i * kChunkSize + j, true);
