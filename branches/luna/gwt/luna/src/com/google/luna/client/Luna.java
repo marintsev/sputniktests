@@ -3,18 +3,17 @@
 
 package com.google.luna.client;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Node;
+import com.google.gwt.user.client.Window.Location;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.luna.client.control.AboutPage;
 import com.google.luna.client.control.ComparePage;
 import com.google.luna.client.control.IPage;
 import com.google.luna.client.control.ManagePage;
-import com.google.luna.client.control.RunPage;
+import com.google.luna.client.logic.RunPagePresenter;
+import com.google.luna.client.logic.ToplevelPresenter;
 import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.rmi.CrossDomainServerConnection;
 import com.google.luna.client.rmi.DirectServerConnection;
@@ -25,15 +24,20 @@ import com.google.luna.client.test.SputnikTestCase;
 import com.google.luna.client.test.data.ITestCase;
 import com.google.luna.client.test.data.ITestPackage;
 import com.google.luna.client.test.data.TestPackageImpl;
-import com.google.luna.client.ui.ErrorDialog;
-import com.google.luna.client.ui.IPageView;
-import com.google.luna.client.ui.IUiMessages;
-import com.google.luna.client.ui.ResultEntry;
-import com.google.luna.client.ui.RunView;
-import com.google.luna.client.ui.TestControlPanel;
-import com.google.luna.client.ui.Toplevel;
+import com.google.luna.client.utils.BrowserCookieJar;
+import com.google.luna.client.utils.Cookie;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
+import com.google.luna.client.widget.ErrorDialog;
+import com.google.luna.client.widget.IPageView;
+import com.google.luna.client.widget.IUiMessages;
+import com.google.luna.client.widget.ResultEntry;
+import com.google.luna.client.widget.RunView;
+import com.google.luna.client.widget.TestControlPanel;
+import com.google.luna.client.widget.ToplevelWidget;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Entry point for the Luna app.  Also provides access to app-global
@@ -52,7 +56,7 @@ public class Luna implements EntryPoint {
 
   private static final Map<String, IPage.IFactory<?>> kPages = new HashMap<String, IPage.IFactory<?>>() {{
     put("About", AboutPage.getFactory());
-    put("Run", RunPage.getFactory());
+    put("Run", RunPagePresenter.getFactory());
     put("Compare", ComparePage.getFactory());
     put("Manage", ManagePage.getFactory());
   }};
@@ -65,6 +69,7 @@ public class Luna implements EntryPoint {
   private static final IUiMessages kMessages = GWT.create(IUiMessages.class);
 
   private static Node workspace;
+  private static ToplevelPresenter toplevel;
 
   @Override
   public void onModuleLoad() {
@@ -73,10 +78,15 @@ public class Luna implements EntryPoint {
     IPage.IFactory<?> factory = kPages.get(pageName);
     IPage<?> page = factory.createPage();
     IPageView view = page.bindView();
-    Toplevel toplevel = Toplevel.create(view);
+    toplevel = new ToplevelPresenter();
+    ToplevelWidget widget = ToplevelWidget.create(toplevel, view);
     toplevel.init();
     page.init();
-    RootPanel.get().add(toplevel);
+    RootPanel.get().add(widget);
+  }
+
+  public static ToplevelPresenter getToplevel() {
+    return toplevel;
   }
 
   public static Node getWorkspace() {
@@ -90,7 +100,7 @@ public class Luna implements EntryPoint {
   }
 
   private void ensureCssInjected() {
-    Toplevel.getResources().css().ensureInjected();
+    ToplevelWidget.getResources().css().ensureInjected();
     TestControlPanel.getResources().css().ensureInjected();
     RunView.getResources().css().ensureInjected();
     ResultEntry.getResources().css().ensureInjected();
@@ -135,6 +145,20 @@ public class Luna implements EntryPoint {
     } else {
       return DirectServerConnection.getFactory(dataPath);
     }
+  }
+
+  private static Boolean devModeUiCache = null;
+  public static boolean showDevModeUi() {
+    if (devModeUiCache == null) {
+      devModeUiCache = "true".equals(Location.getParameter("devModeUi"));
+    }
+    return devModeUiCache;
+  }
+
+  private static final Cookie.Factory rootCookieFactory =
+    new BrowserCookieJar().factory().child("luna");
+  public static Cookie.Factory getRootCookieFactory() {
+    return rootCookieFactory;
   }
 
   public static boolean isDevelMode() {

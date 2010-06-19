@@ -1,0 +1,9 @@
+.frame {
+  height: 100%;
+}
+
+.table {
+  height: 100%;
+  overflow: auto;
+  font-size: 80%;
+}

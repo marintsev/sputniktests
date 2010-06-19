@@ -1,7 +1,7 @@
 package com.google.luna.client.control;
 
-import com.google.luna.client.ui.CompareView;
-import com.google.luna.client.ui.ICompareView;
+import com.google.luna.client.widget.CompareView;
+import com.google.luna.client.widget.ICompareView;
 
 public class ComparePage implements IPage<ICompareView> {
 

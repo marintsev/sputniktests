@@ -106,9 +106,18 @@ public class SegmentBitVector implements IBitVector {
 
   }
 
+  public void clear() {
+    for (int i = 0; i < subsets.size(); i++)
+      clearSegment(i, subsets.get(i));
+    subsets.clear();
+  }
+
   @Override
   public Iterator<Integer> iterator() {
     return new SegmentBitSetIterator();
+  }
+
+  protected void clearSegment(int index, IBitVector segment) {
   }
 
 }

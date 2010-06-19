@@ -1,12 +1,11 @@
 package com.google.luna.client.utils;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.luna.client.LunaTestCase;
 
 import org.junit.Test;
 
-import com.google.luna.client.LunaTestCase;
-
+import java.util.HashSet;
+import java.util.Set;
 
 public class PseudoRandomTest extends LunaTestCase {
 

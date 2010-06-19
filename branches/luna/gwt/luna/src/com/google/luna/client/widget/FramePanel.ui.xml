@@ -1,0 +1,22 @@
+<ui:UiBinder 
+    xmlns:ui='urn:ui:com.google.gwt.uibinder'
+    xmlns:g='urn:import:com.google.gwt.user.client.ui'
+    xmlns:l='urn:import:com.google.luna.client.widget'>
+
+  <ui:with field='res' type='com.google.luna.client.widget.FramePanel.IResources' />
+
+  <g:HTMLPanel>
+    <div ui:field='frame' class='{res.css.frame}'>
+      <div class='{res.css.nw}'/>
+      <div class='{res.css.n}'/>
+      <div class='{res.css.ne}'/>
+      <div class='{res.css.e}'/>
+      <div class='{res.css.se}'/>
+      <div class='{res.css.s}'/>
+      <div class='{res.css.sw}'/>
+      <div class='{res.css.w}'/>
+      <g:FlowPanel ui:field='container' styleName='{res.css.container}'/>
+    </div>
+  </g:HTMLPanel>
+
+</ui:UiBinder>

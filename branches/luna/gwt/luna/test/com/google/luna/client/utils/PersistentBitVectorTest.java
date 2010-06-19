@@ -1,12 +1,12 @@
 package com.google.luna.client.utils;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.luna.client.LunaTestCase;
+import com.google.luna.client.utils.Cookie.Factory;
 
 import org.junit.Test;
 
-import com.google.luna.client.LunaTestCase;
-import com.google.luna.client.utils.Cookie.Factory;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PersistentBitVectorTest extends LunaTestCase {
 
@@ -28,6 +28,14 @@ public class PersistentBitVectorTest extends LunaTestCase {
     SegmentBitVector newBits = new PersistentBitVector(50, factory);
     for (int i = 0; i < 1000; i++)
       assertEquals(reference.contains(i), newBits.get(i));
+
+    newBits.clear();
+    for (int i = 0; i < 1000; i++)
+      assertFalse(newBits.get(i));
+
+    SegmentBitVector newestBits = new PersistentBitVector(50, factory);
+    for (int i = 0; i < 1000; i++)
+      assertFalse(newestBits.get(i));
   }
 
 }

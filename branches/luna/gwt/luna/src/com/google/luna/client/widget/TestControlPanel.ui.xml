@@ -1,0 +1,42 @@
+<ui:UiBinder 
+    xmlns:ui='urn:ui:com.google.gwt.uibinder'
+    xmlns:g='urn:import:com.google.gwt.user.client.ui'
+    xmlns:l='urn:import:com.google.luna.client.widget'>
+
+  <ui:with field='resources' type='com.google.luna.client.widget.TestControlPanel.Resources'/>
+
+  <g:HTMLPanel>
+    <table class='{resources.css.outer}'>
+      <tr class='{resources.css.progressRow}'>
+        <td class='{resources.css.progressCol}'>
+          <l:ProgressBar ui:field='progress' addStyleNames='{resources.css.progress}'/>
+        </td>
+        <td>
+          <g:Button ui:field='reset' addStyleNames='{resources.css.controlButton}'>Reset</g:Button>
+        </td>
+        <td>
+          <g:Button ui:field='start' addStyleNames='{resources.css.controlButton}'>Start</g:Button>
+        </td>
+      </tr>
+    </table>
+    <g:VerticalPanel addStyleNames='{resources.css.stats}'>
+      <g:FlowPanel>
+        <g:Label addStyleNames='{resources.css.caption}'>Current:</g:Label>
+        <l:PromiseLabel ui:field='current' addStyleNames='{resources.css.value}'></l:PromiseLabel>
+      </g:FlowPanel>
+      <g:FlowPanel>
+        <g:Label addStyleNames='{resources.css.caption}'>Total:</g:Label>
+        <g:Label ui:field='total' addStyleNames='{resources.css.value}'></g:Label>
+      </g:FlowPanel>
+      <g:FlowPanel>
+        <g:Label addStyleNames='{resources.css.caption}'>Succeeded:</g:Label>
+        <g:Label ui:field='succeeded' addStyleNames='{resources.css.value}'></g:Label>
+      </g:FlowPanel>
+      <g:FlowPanel>
+        <g:Label addStyleNames='{resources.css.caption}'>Failed:</g:Label>
+        <g:Label ui:field='failed' addStyleNames='{resources.css.value}'></g:Label>
+      </g:FlowPanel>
+    </g:VerticalPanel>
+  </g:HTMLPanel>
+
+</ui:UiBinder>
