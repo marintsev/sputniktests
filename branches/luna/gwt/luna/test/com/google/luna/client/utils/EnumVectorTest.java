@@ -2,7 +2,8 @@ package com.google.luna.client.utils;
 
 import org.junit.Test;
 
-import com.google.luna.LunaTestCase;
+import com.google.luna.client.LunaTestCase;
+
 
 public class EnumVectorTest extends LunaTestCase {
 
@@ -12,7 +13,7 @@ public class EnumVectorTest extends LunaTestCase {
   public void testRandom() {
     EnumVector<Color> set = new EnumVector<Color>(Color.values(), 1024);
     Color[] colors = new Color[1024];
-    PseudoRandom pr = new PseudoRandom(31, 29);
+    PseudoRandom pr = new PseudoRandom(31);
     for (int i = 0; i < 1024; i++) {
       assertEquals(Color.RED, set.get(i));
       Color color = pr.nextElement(Color.values());

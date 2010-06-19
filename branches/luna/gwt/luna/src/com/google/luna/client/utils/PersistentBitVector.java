@@ -16,7 +16,7 @@ public class PersistentBitVector extends SegmentBitVector {
   public PersistentBitVector(int segmentSize, Factory factory) {
     super(segmentSize);
     this.factory = factory;
-    this.segmentCount = factory.integer("segments");
+    this.segmentCount = factory.integer("segmentCount");
     this.ensureSegmentsPresent(segmentCount.get());
   }
 

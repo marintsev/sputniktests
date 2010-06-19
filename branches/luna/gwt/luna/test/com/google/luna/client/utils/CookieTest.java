@@ -1,6 +1,6 @@
 package com.google.luna.client.utils;
 
-import com.google.luna.LunaTestCase;
+import com.google.luna.client.LunaTestCase;
 import com.google.luna.client.utils.Cookie.Factory;
 
 public class CookieTest extends LunaTestCase {
