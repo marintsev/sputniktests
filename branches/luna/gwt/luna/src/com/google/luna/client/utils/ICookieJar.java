@@ -9,4 +9,6 @@ public interface ICookieJar {
   public boolean exists(String key);
   public void clear(String key);
 
+  public Cookie.Factory factory();
+
 }

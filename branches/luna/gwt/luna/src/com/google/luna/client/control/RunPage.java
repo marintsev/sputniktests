@@ -4,9 +4,9 @@
 package com.google.luna.client.control;
 
 import com.google.luna.client.Luna;
-import com.google.luna.client.test.ITestCase;
-import com.google.luna.client.test.TestPackage;
 import com.google.luna.client.test.TestRun;
+import com.google.luna.client.test.data.ITestCase;
+import com.google.luna.client.test.data.ITestPackage;
 import com.google.luna.client.ui.IRunView;
 import com.google.luna.client.ui.ITestControlPanel;
 import com.google.luna.client.ui.RunView;
@@ -25,14 +25,14 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
   }
 
   private IRunView view;
-  private TestPackage pack;
+  private ITestPackage pack;
   private TestRun run;
   private int maxTestCaseLoaded = 0;
 
-  private void onReceivedPackage(TestPackage pack) {
+  private void onReceivedPackage(ITestPackage pack) {
     view.setMode(IRunView.Mode.READY);
     this.pack = pack;
-    pack.addListener(new TestPackage.IListener() {
+    pack.addListener(new ITestPackage.IListener() {
       @Override
       public void onTestBlockLoaded(int from, int to) {
         onTestCaseBlockLoaded(to);
@@ -104,8 +104,8 @@ public class RunPage implements IPage<IRunView>, ITestControlPanel.IHandler,
   }
 
   private void fetchActivePackage() {
-    Luna.getActivePackage().onValue(new Thunk<TestPackage>() {
-      public void onValue(TestPackage pack) {
+    Luna.getActivePackage().onValue(new Thunk<ITestPackage>() {
+      public void onValue(ITestPackage pack) {
         onReceivedPackage(pack);
       }
     });

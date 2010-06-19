@@ -5,6 +5,8 @@ import com.google.gwt.dom.client.IFrameElement;
 import com.google.luna.client.Luna;
 import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.rmi.Backend.Case;
+import com.google.luna.client.test.data.AbstractTestCase;
+import com.google.luna.client.test.data.ITestCase;
 import com.google.luna.client.utils.Promise;
 
 public class SputnikTestCase extends AbstractTestCase {

@@ -13,12 +13,12 @@ public abstract class Cookie<T> {
     private final ICookieJar jar;
     private final String name;
 
-    public Factory(ICookieJar jar, String name) {
+    private Factory(ICookieJar jar, String name) {
       this.jar = jar;
       this.name = name;
     }
 
-    public Factory(ICookieJar jar) {
+    Factory(ICookieJar jar) {
       this(jar, null);
     }
 
@@ -30,7 +30,7 @@ public abstract class Cookie<T> {
       return this.jar;
     }
 
-    public Factory subFactory(String subname) {
+    public Factory child(String subname) {
       if (name == null) return new Factory(jar, subname);
       else return new Factory(jar, name + "." + subname);
     }

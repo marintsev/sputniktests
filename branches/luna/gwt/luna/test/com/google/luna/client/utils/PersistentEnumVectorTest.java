@@ -16,7 +16,7 @@ public class PersistentEnumVectorTest extends LunaTestCase {
 
   @Test
   public void testVector() {
-    TestCookieJar jar = new TestCookieJar();
+    FakeCookieJar jar = new FakeCookieJar();
     Factory factory = new Factory(jar);
     PersistentEnumVector<Suit> vector = new PersistentEnumVector<Suit>(
         Suit.values(), 1024, 50, factory);

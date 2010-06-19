@@ -1,7 +1,7 @@
 // Copyright 2010 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
-package com.google.luna.client.test;
+package com.google.luna.client.test.data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import com.google.luna.client.utils.Listeners;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
-public class TestSuite {
+class TestSuite {
 
   /**
    * Listener for test suite related load events.

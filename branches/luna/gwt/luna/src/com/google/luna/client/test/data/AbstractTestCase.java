@@ -1,9 +1,10 @@
 // Copyright 2010 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
-package com.google.luna.client.test;
+package com.google.luna.client.test.data;
 
 import com.google.luna.client.rmi.Backend;
+import com.google.luna.client.test.ITestProgressSink;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 

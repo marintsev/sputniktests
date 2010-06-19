@@ -21,9 +21,10 @@ import com.google.luna.client.rmi.DirectServerConnection;
 import com.google.luna.client.rmi.ServerConnection;
 import com.google.luna.client.rmi.Backend.Package;
 import com.google.luna.client.test.Es5ConformTestCase;
-import com.google.luna.client.test.ITestCase;
 import com.google.luna.client.test.SputnikTestCase;
-import com.google.luna.client.test.TestPackage;
+import com.google.luna.client.test.data.ITestCase;
+import com.google.luna.client.test.data.ITestPackage;
+import com.google.luna.client.test.data.TestPackageImpl;
 import com.google.luna.client.ui.ErrorDialog;
 import com.google.luna.client.ui.IPageView;
 import com.google.luna.client.ui.IUiMessages;
@@ -148,14 +149,14 @@ public class Luna implements EntryPoint {
     return backend;
   }
 
-  private static Promise<TestPackage> activePackage;
-  public static Promise<TestPackage> getActivePackage() {
+  private static Promise<ITestPackage> activePackage;
+  public static Promise<ITestPackage> getActivePackage() {
     if (activePackage == null) {
-      activePackage = new Promise<TestPackage>();
+      activePackage = new Promise<ITestPackage>();
       getBackend().getActivePackage().onValue(new Thunk<Backend.Package>() {
         @Override
         public void onValue(Package data) {
-          activePackage.setValue(new TestPackage(data));
+          activePackage.setValue(new TestPackageImpl(data));
         }
       });
     }

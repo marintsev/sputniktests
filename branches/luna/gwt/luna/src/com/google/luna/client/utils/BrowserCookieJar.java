@@ -3,6 +3,7 @@ package com.google.luna.client.utils;
 import java.util.Date;
 
 import com.google.gwt.user.client.Cookies;
+import com.google.luna.client.utils.Cookie.Factory;
 /**
  * A cookie jar representing real browser cookies.
  */
@@ -30,6 +31,11 @@ public class BrowserCookieJar implements ICookieJar {
     } else {
       Cookies.setCookie(key, value, expiration);
     }
+  }
+
+  @Override
+  public Factory factory() {
+    return new Cookie.Factory(this);
   }
 
 }

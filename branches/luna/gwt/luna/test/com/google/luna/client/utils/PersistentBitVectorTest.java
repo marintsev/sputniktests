@@ -12,7 +12,7 @@ public class PersistentBitVectorTest extends LunaTestCase {
 
   @Test
   public void testPersistentBitVector() {
-    TestCookieJar testJar = new TestCookieJar();
+    FakeCookieJar testJar = new FakeCookieJar();
     Factory factory = new Factory(testJar);
     SegmentBitVector bits = new PersistentBitVector(50, factory);
     Set<Integer> reference = new HashSet<Integer>();

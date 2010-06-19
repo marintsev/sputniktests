@@ -28,7 +28,7 @@ public class PersistentEnumVector<T extends Enum<T>> extends EnumVector<T> {
 
   protected IBitVector newBitVector(T value, int size) {
     assert value != null;
-    Factory subFactory = factory.subFactory(value.name());
+    Factory subFactory = factory.child(value.name());
     return new PersistentBitVector(segmentSize, subFactory);
   }
 

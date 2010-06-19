@@ -1,7 +1,7 @@
 // Copyright 2010 the Sputnik authors.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
-package com.google.luna.client.test;
+package com.google.luna.client.test.data;
 
 import java.util.ArrayList;
 
@@ -11,24 +11,9 @@ import com.google.luna.client.rmi.Backend;
 import com.google.luna.client.utils.Listeners;
 import com.google.luna.client.utils.Promise;
 /**
- * A complete collection of tests potentially made up of several different
- * types of test suites.
+ * Test package implementation backed by results fetched from the server.
  */
-public class TestPackage {
-
-  /**
-   * Listener for events related to loading test case packages.
-   */
-  public interface IListener {
-
-    /**
-     * Invoked when another block of tests has been fetched from the
-     * server.  The range of serial numbers of the test block is passed
-     * as parameters.
-     */
-    public void onTestBlockLoaded(int from, int to);
-
-  }
+public class TestPackageImpl implements ITestPackage {
 
   /**
    * Underlying definition of this package.
@@ -42,7 +27,7 @@ public class TestPackage {
 
   private final Listeners<IListener> listeners = new Listeners<IListener>();
 
-  public TestPackage(Backend.Package data) {
+  public TestPackageImpl(Backend.Package data) {
     this.data = data;
     this.suites = new ArrayList<TestSuite>();
     JsArray<Backend.Suite> suites = data.getSuites();
@@ -78,14 +63,17 @@ public class TestPackage {
     }
   }
 
+  @Override
   public void addListener(IListener listener) {
     listeners.add(listener);
   }
 
+  @Override
   public void removeListener(IListener listener) {
     listeners.remove(listener);
   }
 
+  @Override
   public int getTestCount() {
     int result = 0;
     for (TestSuite suite : suites)
@@ -93,6 +81,7 @@ public class TestPackage {
     return result;
   }
 
+  @Override
   public Promise<ITestCase> getCase(int index) {
     for (TestSuite suite : suites) {
       int count = suite.getCaseCount();
@@ -103,6 +92,7 @@ public class TestPackage {
     return null;
   }
 
+  @Override
   public String getVersion() {
     return data.getVersion();
   }

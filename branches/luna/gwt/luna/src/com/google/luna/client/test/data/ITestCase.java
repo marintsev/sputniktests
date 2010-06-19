@@ -1,6 +1,7 @@
-package com.google.luna.client.test;
+package com.google.luna.client.test.data;
 
 import com.google.luna.client.rmi.Backend.Case;
+import com.google.luna.client.test.ITestProgressSink;
 import com.google.luna.client.utils.Promise;
 
 public interface ITestCase {
