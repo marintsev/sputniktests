@@ -1,13 +1,12 @@
 package com.google.luna.client.utils;
 
-import org.junit.Test;
-
 import com.google.luna.client.LunaTestCase;
 
+import org.junit.Test;
 
 public class EnumVectorTest extends LunaTestCase {
 
-  private enum Color { RED, GREEN, BLUE };
+  private enum Color { RED, GREEN, BLUE }
 
   @Test
   public void testRandom() {

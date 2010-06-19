@@ -1,16 +1,16 @@
 package com.google.luna.client.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.google.luna.client.LunaTestCase;
 import com.google.luna.client.test.TestProgress.TestMonitor;
 import com.google.luna.client.test.data.FakeTestCase;
 import com.google.luna.client.test.data.FakeTestPackage;
 import com.google.luna.client.utils.FakeCookieJar;
 import com.google.luna.client.utils.Thunk;
+
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProgressTest extends LunaTestCase {
 
@@ -56,6 +56,8 @@ public class ProgressTest extends LunaTestCase {
     assertFalse(progress.hasNext());
   }
 
+  /*
+
   @Test
   public void testContinueAfterInterruption() {
     for (int i = 0; i < kTestCount / 2; i++) {
@@ -83,5 +85,7 @@ public class ProgressTest extends LunaTestCase {
       assertEquals(0, progress.getSuccessCount());
     }
   }
+
+  */
 
 }

@@ -2,9 +2,9 @@ package com.google.luna.client.control;
 
 import com.google.luna.client.Luna;
 import com.google.luna.client.test.data.ITestPackage;
-import com.google.luna.client.ui.AboutView;
-import com.google.luna.client.ui.IAboutView;
 import com.google.luna.client.utils.Thunk;
+import com.google.luna.client.widget.AboutView;
+import com.google.luna.client.widget.IAboutView;
 
 public class AboutPage implements IPage<IAboutView> {
 

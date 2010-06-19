@@ -3,7 +3,7 @@
 
 package com.google.luna.client.control;
 
-import com.google.luna.client.ui.IPageView;
+import com.google.luna.client.widget.IPageView;
 
 /**
  * Abstract interface to a single page of content.

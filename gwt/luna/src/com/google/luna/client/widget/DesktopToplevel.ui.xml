@@ -1,0 +1,53 @@
+<ui:UiBinder 
+    xmlns:ui='urn:ui:com.google.gwt.uibinder'
+    xmlns:g='urn:import:com.google.gwt.user.client.ui'
+    xmlns:l='urn:import:com.google.luna.client.widget'>
+
+  <ui:style src="DesktopToplevel.css"/>
+  <ui:with field='resources' type='com.google.luna.client.widget.ToplevelWidget.Resources'/>
+
+  <g:HTMLPanel styleName='{style.broadCenter}'>
+    <g:VerticalPanel>
+      <g:Label styleName='{style.title}'>Luna</g:Label>
+      <g:Label ui:field='subtitle' styleName='{style.subtitle}'/>
+      <g:HorizontalPanel>
+  	<l:TabButton ui:field='aboutButton' styleName='{style.tabButton}' target="about.html">About</l:TabButton>
+  	<g:FlowPanel styleName='{style.spacer}'/>
+  	<l:TabButton ui:field='runButton' styleName='{style.tabButton}' target="run.html">Run</l:TabButton>
+  	<g:FlowPanel styleName='{style.spacer}'/>
+  	<l:TabButton ui:field='compareButton' styleName='{style.tabButton}' target="compare.html">Compare</l:TabButton>
+      </g:HorizontalPanel>
+      <l:FramePanel styleName='{style.contentsFrame}'>
+        <g:FlowPanel styleName='{style.contents}'>
+          <l:PageView ui:field='contents'/>
+        </g:FlowPanel>
+      </l:FramePanel>
+      <l:LogWidget ui:field='log' styleName='{style.log}'>
+      </l:LogWidget>
+      <g:FlowPanel styleName='{style.footer}'>
+        <g:HTMLPanel styleName='{style.left}'>
+          <a href="http://www.google.com">Home</a>
+          - <a href="http://sputniktests.googlecode.com">Source</a>
+          - <a href="http://www.google.com/privacy">Privacy</a>
+          - <a href="http://www.google.com/accounts/TOS">Terms</a>
+          <span ui:field='whenUser'>
+            - <span ui:field='userName'/> (<a ui:field='logout'>Log out</a>)
+          </span>
+          <span ui:field='whenNoUser'>
+            - <a ui:field='login'>Log in</a>
+          </span>
+          <span ui:field='manage'>
+            - <a href='manage.html'>Manage</a>
+          </span>
+          <span ui:field='devModeUi'>
+            - <g:Anchor href="javascript:void 0" ui:field='toggleLog'>Log</g:Anchor>
+          </span>
+        </g:HTMLPanel>
+        <g:HTMLPanel styleName='{style.right}'>
+          Made by Google | Google
+        </g:HTMLPanel>
+      </g:FlowPanel>
+    </g:VerticalPanel>
+  </g:HTMLPanel>
+
+</ui:UiBinder>

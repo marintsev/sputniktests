@@ -1,7 +1,7 @@
 package com.google.luna.client.control;
 
-import com.google.luna.client.ui.AboutView;
-import com.google.luna.client.ui.IPageView;
+import com.google.luna.client.widget.AboutView;
+import com.google.luna.client.widget.IPageView;
 
 public class ManagePage implements IPage<IPageView> {
 

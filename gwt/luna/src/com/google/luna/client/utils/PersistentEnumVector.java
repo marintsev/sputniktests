@@ -26,6 +26,7 @@ public class PersistentEnumVector<T extends Enum<T>> extends EnumVector<T> {
       super.initialize();
   }
 
+  @Override
   protected IBitVector newBitVector(T value, int size) {
     assert value != null;
     Factory subFactory = factory.child(value.name());

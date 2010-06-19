@@ -7,6 +7,9 @@ import com.google.luna.client.utils.Cookie.Factory;
  * keep the max size of the cookies involved down and to reduce the size
  * of cookie payload, so only a single segment has to be re-encoded and
  * stored when a bit changes.
+ *
+ * A persistent bit vector assumes that the cookies it uses are not changed
+ * by anyone but itself.
  */
 public class PersistentBitVector extends SegmentBitVector {
 
@@ -41,6 +44,17 @@ public class PersistentBitVector extends SegmentBitVector {
       }
     });
     return result;
+  }
+
+  @Override
+  protected void clearSegment(int index, IBitVector segment) {
+    factory.string(Integer.toString(index)).clear();
+  }
+
+  @Override
+  public void clear() {
+    segmentCount.clear();
+    super.clear();
   }
 
 }
