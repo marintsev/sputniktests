@@ -6,7 +6,7 @@
   <ui:with field='resources' type='com.google.luna.client.widget.RunView.Resources'/>
 
   <g:FlowPanel styleName='{resources.css.outer}'>
-    <l:TestControlPanel ui:field='controls' addStyleNames='{resources.css.controls}'/>
+    <l:TestControlPanelWidget ui:field='controls' addStyleNames='{resources.css.controls}'/>
     <l:ResultList ui:field='results' addStyleNames='{resources.css.results}'/>
     <g:FlowPanel ui:field='workspace' styleName='{resources.css.workspace}'/>
   </g:FlowPanel>

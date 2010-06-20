@@ -41,4 +41,9 @@ public class EnumVector<T extends Enum<T>> {
     return new FlatBitVector(size);
   }
 
+  public void clear() {
+    for (IBitVector child : this.bitSets)
+      child.clear();
+  }
+
 }

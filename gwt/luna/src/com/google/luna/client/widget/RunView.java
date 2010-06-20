@@ -10,6 +10,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.luna.client.Luna;
+import com.google.luna.client.logic.ITestControlPanelView;
 
 public class RunView extends PageView implements IRunView {
 
@@ -37,7 +38,7 @@ public class RunView extends PageView implements IRunView {
   private static IMyUiBinder BINDER = GWT.create(IMyUiBinder.class);
 
   @UiField(provided=true) final Resources resources = getResources();
-  @UiField TestControlPanel controls;
+  @UiField TestControlPanelWidget controls;
   @UiField ResultList results;
   @UiField FlowPanel workspace;
 
@@ -48,18 +49,13 @@ public class RunView extends PageView implements IRunView {
   }
 
   @Override
-  public ITestControlPanel getController() {
+  public ITestControlPanelView getControlPanel() {
     return controls;
   }
 
   @Override
   public IResultList getResults() {
     return this.results;
-  }
-
-  @Override
-  public void setMode(Mode mode) {
-    controls.setMode(mode);
   }
 
 }

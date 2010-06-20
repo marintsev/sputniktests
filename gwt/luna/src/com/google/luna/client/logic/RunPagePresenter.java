@@ -14,10 +14,9 @@ import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 import com.google.luna.client.utils.Cookie.Factory;
 import com.google.luna.client.widget.IRunView;
-import com.google.luna.client.widget.ITestControlPanel;
 import com.google.luna.client.widget.RunView;
 
-public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHandler,
+public class RunPagePresenter implements IPage<IRunView>, TestControlPanelPresenter.IListener,
     TestScheduler.IListener {
 
   public static IFactory<IRunView> getFactory() {
@@ -30,12 +29,13 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
   }
 
   private IRunView view;
+  private TestControlPanelPresenter controlPanel;
   private ITestPackage pack;
-  private TestScheduler run;
   private int maxTestCaseLoaded = 0;
+  private TestScheduler scheduler;
 
   private void onReceivedPackage(ITestPackage pack) {
-    view.setMode(IRunView.Mode.READY);
+    controlPanel.setMode(IRunView.Mode.READY);
     this.pack = pack;
     pack.addListener(new ITestPackage.IListener() {
       @Override
@@ -43,13 +43,15 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
         onTestCaseBlockLoaded(to);
       }
     });
-    Factory factory = Luna.getRootCookieFactory();
-    TestProgress progress = new TestProgress(pack, factory.child("results"));
-    run = new TestScheduler(progress);
-    run.addListener(this);
+    TestProgress progress = createNextProgress(pack, false);
+    scheduler = createNextScheduler(progress);
+    initializeProgressIndicators();
+  }
+
+  private void initializeProgressIndicators() {
     final Promise<String> pLabel = new Promise<String>();
     // Fun with thunks!
-    progress.peekNextCase().eagerOnValue(new Thunk<ITestCase>() {
+    scheduler.getProgress().peekNextCase().eagerOnValue(new Thunk<ITestCase>() {
       public void onValue(ITestCase t) {
         t.getLabel().eagerOnValue(new Thunk<String>() {
           @Override
@@ -59,32 +61,41 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
         });
       }
     });
-    updateProgressUi(progress.getTestCompleteCount(), pLabel);
+    updateProgressUi(scheduler.getProgress().getTestCompleteCount(),
+        pLabel);
+  }
+
+  private TestProgress createNextProgress(ITestPackage pack, boolean clear) {
+    Factory factory = Luna.getRootCookieFactory();
+    if (clear)
+      TestProgress.clearCookies(pack, factory);
+    return new TestProgress(pack, factory);
+  }
+
+  private TestScheduler createNextScheduler(TestProgress progress) {
+    TestScheduler scheduler = new TestScheduler(progress);
+    scheduler.addListener(this);
+    return scheduler;
   }
 
   private void onTestCaseBlockLoaded(int value) {
     if (value > maxTestCaseLoaded) {
       maxTestCaseLoaded = value;
       double ratio = ((double) value) / pack.getTestCount();
-      view.getController().setLoadProgress(ratio);
+      view.getControlPanel().setLoadProgress(ratio);
     }
   }
 
-  @Override
-  public void resetClicked() {
-
-  }
-
   public void allDone() {
-    view.getController().setRunProgress(1);
+    view.getControlPanel().setRunProgress(1);
   }
 
   private void updateProgressUi(int runCount, Promise<String> currentLabel) {
     double count = pack.getTestCount();
-    view.getController().setRunProgress(runCount / count);
-    view.getController().updateStats(currentLabel, runCount,
-        run.getProgress().getExpectedOutcomeCount(),
-        run.getProgress().getUnexpectedOutcomeCount());
+    view.getControlPanel().setRunProgress(runCount / count);
+    view.getControlPanel().updateStats(currentLabel, runCount,
+        scheduler.getProgress().getExpectedOutcomeCount(),
+        scheduler.getProgress().getUnexpectedOutcomeCount());
   }
 
   public void testStarting(ITestCase test) {
@@ -98,33 +109,43 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
   }
 
   @Override
-  public void startClicked() {
-    view.setMode(IRunView.Mode.RUNNING);
-    run.start();
+  public void onResetClicked() {
+    controlPanel.setMode(IRunView.Mode.READY);
+    TestProgress progress = createNextProgress(this.pack, true);
+    scheduler = createNextScheduler(progress);
+    initializeProgressIndicators();
   }
 
   @Override
-  public void pauseClicked() {
-    view.setMode(IRunView.Mode.PAUSED);
-    this.run.setPaused(true);
+  public void onStartClicked() {
+    controlPanel.setMode(IRunView.Mode.RUNNING);
+    scheduler.start();
   }
 
   @Override
-  public void resumeClicked() {
-    run.setPaused(false);
-    view.setMode(IRunView.Mode.RUNNING);
+  public void onPauseClicked() {
+    controlPanel.setMode(IRunView.Mode.PAUSED);
+    this.scheduler.setPaused(true);
+  }
+
+  @Override
+  public void onResumeClicked() {
+    scheduler.setPaused(false);
+    controlPanel.setMode(IRunView.Mode.RUNNING);
   }
 
   @Override
   public IRunView bindView() {
     this.view = new RunView();
-    view.setMode(IRunView.Mode.DISABLED);
+    this.controlPanel = new TestControlPanelPresenter(view.getControlPanel());
+    controlPanel.init();
+    controlPanel.setMode(IRunView.Mode.DISABLED);
     return this.view;
   }
 
   @Override
   public void init() {
-    view.getController().addHandler(this);
+    controlPanel.addListener(this);
     fetchActivePackage();
   }
 

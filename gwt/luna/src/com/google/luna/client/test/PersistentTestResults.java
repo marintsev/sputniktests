@@ -1,9 +1,9 @@
 package com.google.luna.client.test;
 
-import com.google.luna.client.test.data.ITestPackage;
 import com.google.luna.client.utils.Cookie;
 import com.google.luna.client.utils.EnumVector;
 import com.google.luna.client.utils.PersistentEnumVector;
+import com.google.luna.client.utils.Cookie.Factory;
 
 /**
  * A compact representation of the results of a test run.  This is the
@@ -17,28 +17,37 @@ public class PersistentTestResults {
   }
 
   private static final int kVectorSegmentSize = 256;
-  private final Cookie<Integer> resultCount;
+  private final Cookie<Integer> count;
   private final EnumVector<TestState> states;
 
-  public PersistentTestResults(ITestPackage tests, Cookie.Factory cookieFactory) {
+  public PersistentTestResults(int testCount, Cookie.Factory cookieFactory) {
     this.states = new PersistentEnumVector<TestState>(TestState.values(),
-        tests.getTestCount(), kVectorSegmentSize, cookieFactory.child("state"));
-    this.resultCount = cookieFactory.integer("resultCount");
+        testCount, kVectorSegmentSize, cookieFactory.child("state"));
+    this.count = cookieFactory.integer("count");
   }
 
   public int getResultCount() {
-    return resultCount.get();
+    return count.get();
   }
 
   public void setState(int serial, TestState state) {
-    int count = serial + 1;
-    if (count > resultCount.get())
-      resultCount.set(count);
+    int countIncludingThis = serial + 1;
+    if (countIncludingThis > count.get())
+      count.set(countIncludingThis);
     states.set(serial, state);
   }
 
   public TestState getState(int serial) {
     return states.get(serial);
+  }
+
+  public void clear() {
+    count.clear();
+    states.clear();
+  }
+
+  public static void clearCookies(int testCount, Factory child) {
+    (new PersistentTestResults(testCount, child)).clear();
   }
 
 }

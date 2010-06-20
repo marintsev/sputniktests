@@ -13,6 +13,8 @@ import com.google.luna.client.utils.Thunk;
  */
 public class TestProgress {
 
+  private static final String kFactoryName = "results";
+
   private final ITestPackage pack;
   private final PersistentTestResults results;
   private final EventTranslater eventTranslater;
@@ -43,7 +45,8 @@ public class TestProgress {
 
   public TestProgress(ITestPackage pack, Cookie.Factory cookieFactory) {
     this.pack = pack;
-    this.results = new PersistentTestResults(pack, cookieFactory.child("results"));
+    this.results = new PersistentTestResults(pack.getTestCount(),
+        cookieFactory.child(kFactoryName));
     this.nextTest = results.getResultCount();
     this.eventTranslater = new EventTranslater();
     this.eventTranslater.addListener(new EventTranslater.ITestResultListener() {
@@ -57,6 +60,10 @@ public class TestProgress {
       }
     });
     fastForwardStats();
+  }
+
+  public static void clearCookies(ITestPackage pack, Cookie.Factory cookieFactory) {
+    PersistentTestResults.clearCookies(pack.getTestCount(), cookieFactory.child(kFactoryName));
   }
 
   public void addListener(EventTranslater.ITestResultListener listener) {

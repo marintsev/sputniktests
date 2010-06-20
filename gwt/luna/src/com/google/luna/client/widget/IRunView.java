@@ -3,6 +3,8 @@
 
 package com.google.luna.client.widget;
 
+import com.google.luna.client.logic.ITestControlPanelView;
+
 
 
 public interface IRunView extends IPageView {
@@ -11,9 +13,7 @@ public interface IRunView extends IPageView {
     DISABLED, READY, RUNNING, PAUSED
   }
 
-  public ITestControlPanel getController();
-
-  public void setMode(Mode mode);
+  public ITestControlPanelView getControlPanel();
 
   public IResultList getResults();
 
