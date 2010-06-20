@@ -10,11 +10,12 @@ import com.google.luna.client.test.TestProgress;
 import com.google.luna.client.test.TestScheduler;
 import com.google.luna.client.test.data.ITestCase;
 import com.google.luna.client.test.data.ITestPackage;
+import com.google.luna.client.utils.Cookie;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
-import com.google.luna.client.utils.Cookie.Factory;
 import com.google.luna.client.widget.IRunView;
 import com.google.luna.client.widget.RunView;
+import com.google.luna.client.widget.IRunView.Mode;
 
 public class RunPagePresenter implements IPage<IRunView>, TestControlPanelPresenter.IListener,
     TestScheduler.IListener {
@@ -49,24 +50,31 @@ public class RunPagePresenter implements IPage<IRunView>, TestControlPanelPresen
   }
 
   private void initializeProgressIndicators() {
-    final Promise<String> pLabel = new Promise<String>();
-    // Fun with thunks!
-    scheduler.getProgress().peekNextCase().eagerOnValue(new Thunk<ITestCase>() {
-      public void onValue(ITestCase t) {
-        t.getLabel().eagerOnValue(new Thunk<String>() {
-          @Override
-          public void onValue(String t) {
-            pLabel.setValue(t);
-          }
-        });
-      }
-    });
+    final Promise<String> pLabel;
+    if (scheduler.getProgress().getTestCompleteCount() == 0) {
+      controlPanel.setMode(Mode.READY);
+      pLabel = Promise.from("");
+    } else {
+      controlPanel.setMode(Mode.PAUSED);
+      pLabel = new Promise<String>();
+      // Fun with thunks!
+      scheduler.getProgress().peekNextCase().eagerOnValue(new Thunk<ITestCase>() {
+        public void onValue(ITestCase t) {
+          t.getLabel().eagerOnValue(new Thunk<String>() {
+            @Override
+            public void onValue(String t) {
+              pLabel.setValue(t);
+            }
+          });
+        }
+      });
+    }
     updateProgressUi(scheduler.getProgress().getTestCompleteCount(),
         pLabel);
   }
 
   private TestProgress createNextProgress(ITestPackage pack, boolean clear) {
-    Factory factory = Luna.getRootCookieFactory();
+    Cookie.Factory factory = Luna.getRootCookieFactory();
     if (clear)
       TestProgress.clearCookies(pack, factory);
     return new TestProgress(pack, factory);
@@ -110,7 +118,6 @@ public class RunPagePresenter implements IPage<IRunView>, TestControlPanelPresen
 
   @Override
   public void onResetClicked() {
-    controlPanel.setMode(IRunView.Mode.READY);
     TestProgress progress = createNextProgress(this.pack, true);
     scheduler = createNextScheduler(progress);
     initializeProgressIndicators();
