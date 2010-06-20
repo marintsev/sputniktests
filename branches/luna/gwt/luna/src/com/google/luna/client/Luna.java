@@ -33,7 +33,7 @@ import com.google.luna.client.widget.IPageView;
 import com.google.luna.client.widget.IUiMessages;
 import com.google.luna.client.widget.ResultEntry;
 import com.google.luna.client.widget.RunView;
-import com.google.luna.client.widget.TestControlPanel;
+import com.google.luna.client.widget.TestControlPanelWidget;
 import com.google.luna.client.widget.ToplevelWidget;
 
 import java.util.HashMap;
@@ -101,7 +101,7 @@ public class Luna implements EntryPoint {
 
   private void ensureCssInjected() {
     ToplevelWidget.getResources().css().ensureInjected();
-    TestControlPanel.getResources().css().ensureInjected();
+    TestControlPanelWidget.getResources().css().ensureInjected();
     RunView.getResources().css().ensureInjected();
     ResultEntry.getResources().css().ensureInjected();
   }

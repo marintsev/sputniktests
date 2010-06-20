@@ -88,4 +88,9 @@ public class FlatBitVector implements IBitVector {
     return new FlatBitSetIterator();
   }
 
+  @Override
+  public void clear() {
+    throw new UnsupportedOperationException();
+  }
+
 }

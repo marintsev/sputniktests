@@ -3,7 +3,7 @@
     xmlns:g='urn:import:com.google.gwt.user.client.ui'
     xmlns:l='urn:import:com.google.luna.client.widget'>
 
-  <ui:with field='resources' type='com.google.luna.client.widget.TestControlPanel.Resources'/>
+  <ui:with field='resources' type='com.google.luna.client.widget.TestControlPanelWidget.Resources'/>
 
   <g:HTMLPanel>
     <table class='{resources.css.outer}'>

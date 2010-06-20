@@ -15,13 +15,17 @@ public class PromiseLabel extends Label {
 
   public void setText(final Promise<String> pText) {
     this.pText = pText;
-    pText.eagerOnValue(new Thunk<String>() {
+    boolean gotValue = pText.eagerOnValue(new Thunk<String>() {
       @Override
       public void onValue(String value) {
         if (pText == PromiseLabel.this.pText)
           setText(value);
       }
     });
+    // If the value isn't set immediately we clear it to avoid showing
+    // stale data while we wait.
+    if (!gotValue)
+      setText("");
   }
 
   @Override
