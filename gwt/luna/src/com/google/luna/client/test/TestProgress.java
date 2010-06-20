@@ -56,10 +56,24 @@ public class TestProgress {
         // ignore
       }
     });
+    fastForwardStats();
+  }
+
+  public void addListener(EventTranslater.ITestResultListener listener) {
+    this.eventTranslater.addListener(listener);
+  }
+
+  public void removeListener(EventTranslater.ITestResultListener listener) {
+    this.eventTranslater.removeListener(listener);
   }
 
   public boolean hasNext() {
     return nextTest < pack.getTestCount();
+  }
+
+  public Promise<ITestCase> peekNextCase() {
+    assert hasNext();
+    return pack.getCase(nextTest);
   }
 
   public Promise<TestMonitor> getNext() {
@@ -73,6 +87,17 @@ public class TestProgress {
       }
     });
     return pResult;
+  }
+
+  private void fastForwardStats() {
+    int count = results.getResultCount();
+    for (int i = 0; i < count; i++) {
+      if (results.getState(i) == TestState.PASSED) {
+        expectedOutcomeCount++;
+      } else {
+        unexpectedOutcomeCount++;
+      }
+    }
   }
 
   protected void registerResult(TestOutcome outcome) {
@@ -95,6 +120,10 @@ public class TestProgress {
 
   public int getTestCompleteCount() {
     return expectedOutcomeCount + unexpectedOutcomeCount;
+  }
+
+  public boolean hasMoreTests() {
+    return nextTest < pack.getTestCount();
   }
 
 }

@@ -5,16 +5,20 @@ package com.google.luna.client.logic;
 
 import com.google.luna.client.Luna;
 import com.google.luna.client.control.IPage;
-import com.google.luna.client.test.TestRun;
+import com.google.luna.client.test.TestOutcome;
+import com.google.luna.client.test.TestProgress;
+import com.google.luna.client.test.TestScheduler;
 import com.google.luna.client.test.data.ITestCase;
 import com.google.luna.client.test.data.ITestPackage;
+import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
+import com.google.luna.client.utils.Cookie.Factory;
 import com.google.luna.client.widget.IRunView;
 import com.google.luna.client.widget.ITestControlPanel;
 import com.google.luna.client.widget.RunView;
 
 public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHandler,
-    TestRun.IListener {
+    TestScheduler.IListener {
 
   public static IFactory<IRunView> getFactory() {
     return new IFactory<IRunView>() {
@@ -27,7 +31,7 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
 
   private IRunView view;
   private ITestPackage pack;
-  private TestRun run;
+  private TestScheduler run;
   private int maxTestCaseLoaded = 0;
 
   private void onReceivedPackage(ITestPackage pack) {
@@ -39,6 +43,23 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
         onTestCaseBlockLoaded(to);
       }
     });
+    Factory factory = Luna.getRootCookieFactory();
+    TestProgress progress = new TestProgress(pack, factory.child("results"));
+    run = new TestScheduler(progress);
+    run.addListener(this);
+    final Promise<String> pLabel = new Promise<String>();
+    // Fun with thunks!
+    progress.peekNextCase().eagerOnValue(new Thunk<ITestCase>() {
+      public void onValue(ITestCase t) {
+        t.getLabel().eagerOnValue(new Thunk<String>() {
+          @Override
+          public void onValue(String t) {
+            pLabel.setValue(t);
+          }
+        });
+      }
+    });
+    updateProgressUi(progress.getTestCompleteCount(), pLabel);
   }
 
   private void onTestCaseBlockLoaded(int value) {
@@ -58,24 +79,27 @@ public class RunPagePresenter implements IPage<IRunView>, ITestControlPanel.IHan
     view.getController().setRunProgress(1);
   }
 
-  public void testStarted(ITestCase test) {
-    int runCount = test.getSerial();
+  private void updateProgressUi(int runCount, Promise<String> currentLabel) {
     double count = pack.getTestCount();
     view.getController().setRunProgress(runCount / count);
-    view.getController().updateStats(test.getLabel(), runCount,
-        run.getResults().getExpectedCount(), run.getResults().getUnexpectedCount());
+    view.getController().updateStats(currentLabel, runCount,
+        run.getProgress().getExpectedOutcomeCount(),
+        run.getProgress().getUnexpectedOutcomeCount());
+  }
+
+  public void testStarting(ITestCase test) {
+    updateProgressUi(test.getSerial(), test.getLabel());
   }
 
   @Override
-  public void testOver(ITestCase test, boolean hadExpectedResult) {
-    if (!hadExpectedResult)
-      view.getResults().addResult(test, "");
+  public void testDone(TestOutcome outcome) {
+    if (!outcome.wasExpected())
+      view.getResults().addResult(outcome);
   }
 
   @Override
   public void startClicked() {
     view.setMode(IRunView.Mode.RUNNING);
-    this.run = new TestRun(pack, this);
     run.start();
   }
 

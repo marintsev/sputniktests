@@ -1,7 +1,7 @@
 package com.google.luna.client.test.data;
 
 import com.google.luna.client.rmi.Backend.Case;
-import com.google.luna.client.test.ITestProgressSink;
+import com.google.luna.client.test.ITestEventHandler;
 import com.google.luna.client.utils.Promise;
 
 public interface ITestCase {
@@ -18,6 +18,6 @@ public interface ITestCase {
 
   public boolean isNegative();
 
-  public void schedule(ITestProgressSink progress);
+  public void schedule(ITestEventHandler handler);
 
 }

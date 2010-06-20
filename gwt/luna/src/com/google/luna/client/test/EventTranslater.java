@@ -88,17 +88,12 @@ public class EventTranslater {
 
     @Override
     public void onAboutToStart() {
-
+      fireTestStarting(test);
     }
 
     @Override
     public void onComplete() {
       isComplete = true;
-    }
-
-    @Override
-    public void onLoaded() {
-      fireTestStarting(test);
     }
 
     @Override
@@ -109,6 +104,11 @@ public class EventTranslater {
       boolean shouldFail = test.isNegative();
       Status outcome = (didFail == shouldFail) ? Status.EXPECTED : Status.UNEXPECTED;
       fireTestDone(new TestOutcome(test, outcome, error, messages));
+    }
+
+    @Override
+    public void onSkip() {
+      fireTestDone(new TestOutcome(test, Status.EXPECTED, error, messages));
     }
 
   }

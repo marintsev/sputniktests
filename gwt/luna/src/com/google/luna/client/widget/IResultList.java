@@ -1,9 +1,9 @@
 package com.google.luna.client.widget;
 
-import com.google.luna.client.test.data.ITestCase;
+import com.google.luna.client.test.TestOutcome;
 
 public interface IResultList {
 
-  public void addResult(ITestCase test, String str);
+  public void addResult(TestOutcome outcome);
 
 }

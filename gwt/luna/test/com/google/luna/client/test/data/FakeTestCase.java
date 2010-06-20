@@ -1,6 +1,6 @@
 package com.google.luna.client.test.data;
 
-import com.google.luna.client.test.ITestProgressSink;
+import com.google.luna.client.test.ITestEventHandler;
 import com.google.luna.client.utils.Promise;
 
 public class FakeTestCase implements ITestCase {
@@ -39,7 +39,7 @@ public class FakeTestCase implements ITestCase {
   }
 
   @Override
-  public void schedule(ITestProgressSink progress) {
+  public void schedule(ITestEventHandler progress) {
     // ignore.
   }
 
