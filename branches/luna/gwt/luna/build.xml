@@ -42,6 +42,7 @@
       <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
       <jvmarg value="-Xmx256M"/>
       <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+      <arg value="-style"/><arg value="PRETTY"/>
       <arg line="${gwt.args}"/>
       <arg value="com.google.luna.Luna"/>
     </java>

@@ -84,7 +84,7 @@ public class SputnikTestCase extends AbstractTestCase {
   }
 
   @Override
-  protected void run(ITestProgressSink runner) {
+  protected void run(ITestEventHandler runner) {
     IFrameElement frame = Document.get().createIFrameElement();
     Luna.getWorkspace().appendChild(frame);
     installGlobals(frame, runner);
@@ -94,35 +94,35 @@ public class SputnikTestCase extends AbstractTestCase {
     TestUtils.injectScript(frame, "testDone();");
   }
 
-  public void testStarted(ITestProgressSink runner) {
-    runner.testStarted(this);
+  public void testStarted(ITestEventHandler handler) {
+    handler.onAboutToStart();
   }
 
-  public void testScriptComplete(ITestProgressSink runner) {
-    runner.testScriptComplete(this);
+  public void testScriptComplete(ITestEventHandler handler) {
+    handler.onComplete();
   }
 
-  public void testFailed(ITestProgressSink runner, String message) {
-    runner.testFailed(this, message);
+  public void testFailed(ITestEventHandler runner, String message) {
+    runner.onError(message);
   }
 
-  public void testPrint(ITestProgressSink runner, String message) {
-    runner.testPrint(this, message);
+  public void testPrint(ITestEventHandler runner, String message) {
+    runner.onMessage(message);
   }
 
-  public void testDone(ITestProgressSink runner, IFrameElement frame) {
+  public void testDone(ITestEventHandler runner, IFrameElement frame) {
     Luna.getWorkspace().removeChild(frame);
-    runner.testDone(this);
+    runner.onDone();
   }
 
-  private native void installGlobals(IFrameElement frame, ITestProgressSink runner) /*-{
+  private native void installGlobals(IFrameElement frame, ITestEventHandler runner) /*-{
     var self = this;
     var global = frame.contentWindow;
-    global.testStarted = function () { self.@com.google.luna.client.test.SputnikTestCase::testStarted(Lcom/google/luna/client/test/ITestProgressSink;)(runner); };
-    global.testScriptComplete = function () { self.@com.google.luna.client.test.SputnikTestCase::testScriptComplete(Lcom/google/luna/client/test/ITestProgressSink;)(runner); };
-    global.testDone = function () { self.@com.google.luna.client.test.SputnikTestCase::testDone(Lcom/google/luna/client/test/ITestProgressSink;Lcom/google/gwt/dom/client/IFrameElement;)(runner, frame); };
-    global.testFailed = function (message) { self.@com.google.luna.client.test.SputnikTestCase::testFailed(Lcom/google/luna/client/test/ITestProgressSink;Ljava/lang/String;)(runner, message); };
-    global.testPrint = function (message) { self.@com.google.luna.client.test.SputnikTestCase::testPrint(Lcom/google/luna/client/test/ITestProgressSink;Ljava/lang/String;)(runner, message); };
+    global.testStarted = function () { self.@com.google.luna.client.test.SputnikTestCase::testStarted(Lcom/google/luna/client/test/ITestEventHandler;)(runner); };
+    global.testScriptComplete = function () { self.@com.google.luna.client.test.SputnikTestCase::testScriptComplete(Lcom/google/luna/client/test/ITestEventHandler;)(runner); };
+    global.testDone = function () { self.@com.google.luna.client.test.SputnikTestCase::testDone(Lcom/google/luna/client/test/ITestEventHandler;Lcom/google/gwt/dom/client/IFrameElement;)(runner, frame); };
+    global.testFailed = function (message) { self.@com.google.luna.client.test.SputnikTestCase::testFailed(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, message); };
+    global.testPrint = function (message) { self.@com.google.luna.client.test.SputnikTestCase::testPrint(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, message); };
   }-*/;
 
 }

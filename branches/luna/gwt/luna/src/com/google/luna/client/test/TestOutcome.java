@@ -20,6 +20,10 @@ public class TestOutcome {
     this.messages = messages;
   }
 
+  public boolean wasExpected() {
+    return status == Status.EXPECTED;
+  }
+
   public Status getStatus() {
     return this.status;
   }
@@ -34,6 +38,10 @@ public class TestOutcome {
 
   public int getSerial() {
     return test.getSerial();
+  }
+
+  public ITestCase getTest() {
+    return this.test;
   }
 
 }

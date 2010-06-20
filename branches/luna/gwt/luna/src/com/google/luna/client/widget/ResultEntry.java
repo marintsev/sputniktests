@@ -10,7 +10,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.luna.client.test.data.ITestCase;
+import com.google.luna.client.test.TestOutcome;
 
 public class ResultEntry extends Composite {
 
@@ -40,10 +40,10 @@ public class ResultEntry extends Composite {
   @UiField PromiseLabel name;
   @UiField PromiseLabel description;
 
-  public ResultEntry(ITestCase test, String text) {
+  public ResultEntry(TestOutcome outcome) {
     initWidget(BINDER.createAndBindUi(this));
-    this.name.setText(test.getLabel());
-    this.description.setText(test.getDescription());
+    this.name.setText(outcome.getTest().getLabel());
+    this.description.setText(outcome.getTest().getDescription());
   }
 
 }

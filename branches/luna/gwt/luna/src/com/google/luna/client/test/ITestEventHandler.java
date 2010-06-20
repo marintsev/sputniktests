@@ -5,11 +5,6 @@ package com.google.luna.client.test;
 public interface ITestEventHandler {
 
   /**
-   * The test has been loaded but has not yet been started.
-   */
-  public void onLoaded();
-
-  /**
    * The test is just about to start.
    */
   public void onAboutToStart();
@@ -34,4 +29,8 @@ public interface ITestEventHandler {
    */
   public void onDone();
 
+  /**
+   * This test will not be run.
+   */
+  public void onSkip();
 }

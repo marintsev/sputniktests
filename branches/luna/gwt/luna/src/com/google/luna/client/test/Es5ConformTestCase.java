@@ -136,11 +136,11 @@ public class Es5ConformTestCase extends AbstractTestCase {
   }
 
   @Override
-  protected void run(final ITestProgressSink runner) {
+  protected void run(final ITestEventHandler runner) {
     // The test is marked as started first and the test running is
     // forced to wait so the event loop has time to process the UI
     // update showing the test to be running before starting it.
-    runner.testStarted(this);
+    runner.onAboutToStart();
     getTestObject().lazyOnValue(new Thunk<JavaScriptObject>() {
       @Override
       public void onValue(JavaScriptObject testObject) {
@@ -149,57 +149,52 @@ public class Es5ConformTestCase extends AbstractTestCase {
     });
   }
 
-  private void runTest(ITestProgressSink runner, JavaScriptObject testObject) {
+  private void runTest(ITestEventHandler runner, JavaScriptObject testObject) {
     ensureAttached();
     nativeRunTest(runner, testObject);
     ensureDetached();
   }
 
   @SuppressWarnings("unused") // Used from JS code
-  private void testSkipped(ITestProgressSink runner) {
-    runner.testSkipped(this);
+  private void testSkipped(ITestEventHandler runner) {
+    runner.onSkip();
   }
 
   @SuppressWarnings("unused") // Used from JS code
-  private void testScriptComplete(ITestProgressSink runner) {
-    runner.testScriptComplete(this);
+  private void testScriptComplete(ITestEventHandler runner) {
+    runner.onComplete();
   }
 
   @SuppressWarnings("unused") // Used from JS code
-  private void testFailed(ITestProgressSink runner, String message) {
-    runner.testFailed(this, message);
+  private void testFailed(ITestEventHandler runner, String message) {
+    runner.onError(message);
   }
 
   @SuppressWarnings("unused") // Used from JS code
-  private void testStarted(ITestProgressSink runner) {
-    runner.testStarted(this);
+  private void testDone(ITestEventHandler runner) {
+    runner.onDone();
   }
 
-  @SuppressWarnings("unused") // Used from JS code
-  private void testDone(ITestProgressSink runner) {
-    runner.testDone(this);
-  }
-
-  private native void nativeRunTest(ITestProgressSink runner, JavaScriptObject testObject) /*-{
+  private native void nativeRunTest(ITestEventHandler runner, JavaScriptObject testObject) /*-{
     var skip = false;
     try {
       // Skip if there is a precondition and it returns false.
       if (!testObject || (testObject.precondition && !testObject.precondition())) {
-        this.@com.google.luna.client.test.Es5ConformTestCase::testSkipped(Lcom/google/luna/client/test/ITestProgressSink;)(runner);
+        this.@com.google.luna.client.test.Es5ConformTestCase::testSkipped(Lcom/google/luna/client/test/ITestEventHandler;)(runner);
         return;
       }
     } catch (e) {
       // If the precondition fails we count this test as having failed.
-      this.@com.google.luna.client.test.Es5ConformTestCase::testFailed(Lcom/google/luna/client/test/ITestProgressSink;Ljava/lang/String;)(runner, String(e));
+      this.@com.google.luna.client.test.Es5ConformTestCase::testFailed(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, String(e));
     }
     try {
       if (!testObject.test())
-        this.@com.google.luna.client.test.Es5ConformTestCase::testFailed(Lcom/google/luna/client/test/ITestProgressSink;Ljava/lang/String;)(runner, "");
-      this.@com.google.luna.client.test.Es5ConformTestCase::testScriptComplete(Lcom/google/luna/client/test/ITestProgressSink;)(runner);
+        this.@com.google.luna.client.test.Es5ConformTestCase::testFailed(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, "");
+      this.@com.google.luna.client.test.Es5ConformTestCase::testScriptComplete(Lcom/google/luna/client/test/ITestEventHandler;)(runner);
     } catch (e) {
-      this.@com.google.luna.client.test.Es5ConformTestCase::testFailed(Lcom/google/luna/client/test/ITestProgressSink;Ljava/lang/String;)(runner, String(e));
+      this.@com.google.luna.client.test.Es5ConformTestCase::testFailed(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, String(e));
     } finally {
-      this.@com.google.luna.client.test.Es5ConformTestCase::testDone(Lcom/google/luna/client/test/ITestProgressSink;)(runner);
+      this.@com.google.luna.client.test.Es5ConformTestCase::testDone(Lcom/google/luna/client/test/ITestEventHandler;)(runner);
     }
   }-*/;
 

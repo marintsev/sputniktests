@@ -4,7 +4,7 @@
 package com.google.luna.client.test.data;
 
 import com.google.luna.client.rmi.Backend;
-import com.google.luna.client.test.ITestProgressSink;
+import com.google.luna.client.test.ITestEventHandler;
 import com.google.luna.client.utils.Promise;
 import com.google.luna.client.utils.Thunk;
 
@@ -24,16 +24,16 @@ public abstract class AbstractTestCase implements ITestCase {
   }
 
   @Override
-  public void schedule(final ITestProgressSink progress) {
+  public void schedule(final ITestEventHandler handler) {
     Promise.defer().onValue(new Thunk<Object>() {
       @Override
       public void onValue(Object t) {
-        AbstractTestCase.this.run(progress);
+        AbstractTestCase.this.run(handler);
       }
     });
   }
 
-  protected abstract void run(ITestProgressSink runner);
+  protected abstract void run(ITestEventHandler handler);
 
   protected Backend.Case getData() {
     return this.data;
