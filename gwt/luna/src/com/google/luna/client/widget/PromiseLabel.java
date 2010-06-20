@@ -25,7 +25,7 @@ public class PromiseLabel extends Label {
     // If the value isn't set immediately we clear it to avoid showing
     // stale data while we wait.
     if (!gotValue)
-      setText("");
+      super.setText("");
   }
 
   @Override

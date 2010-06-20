@@ -24,6 +24,7 @@ public class SputnikTestCase extends AbstractTestCase {
   private Promise<String> pLabel;
   private String source;
   private Boolean isNegative;
+  private IFrameElement iFrame;
 
   public SputnikTestCase(Backend.Case data, int serial) {
     super(data, serial);
@@ -85,33 +86,39 @@ public class SputnikTestCase extends AbstractTestCase {
 
   @Override
   protected void run(ITestEventHandler runner) {
-    IFrameElement frame = Document.get().createIFrameElement();
-    Luna.getWorkspace().appendChild(frame);
-    installGlobals(frame, runner);
-    TestUtils.injectScript(frame, "testStarted();");
+    iFrame = Document.get().createIFrameElement();
+    Luna.getWorkspace().appendChild(iFrame);
+    installGlobals(iFrame, runner);
+    TestUtils.injectScript(iFrame, "testStarted();");
     String fullSource = getSource() + "\ntestScriptComplete();";
-    TestUtils.injectScript(frame, fullSource);
-    TestUtils.injectScript(frame, "testDone();");
+    TestUtils.injectScript(iFrame, fullSource);
+    TestUtils.injectScript(iFrame, "testDone();");
   }
 
-  public void testStarted(ITestEventHandler handler) {
+  @SuppressWarnings("unused") // Used from JS code
+  private void testStarted(ITestEventHandler handler) {
     handler.onAboutToStart();
   }
 
-  public void testScriptComplete(ITestEventHandler handler) {
+  @SuppressWarnings("unused") // Used from JS code
+  private void testScriptComplete(ITestEventHandler handler) {
     handler.onComplete();
   }
 
-  public void testFailed(ITestEventHandler runner, String message) {
+  @SuppressWarnings("unused") // Used from JS code
+  private void testFailed(ITestEventHandler runner, String message) {
     runner.onError(message);
   }
 
-  public void testPrint(ITestEventHandler runner, String message) {
+  @SuppressWarnings("unused") // Used from JS code
+  private void testPrint(ITestEventHandler runner, String message) {
     runner.onMessage(message);
   }
 
-  public void testDone(ITestEventHandler runner, IFrameElement frame) {
-    Luna.getWorkspace().removeChild(frame);
+  @SuppressWarnings("unused") // Used from JS code
+  private void testDone(ITestEventHandler runner) {
+    Luna.getWorkspace().removeChild(iFrame);
+    this.iFrame = null;
     runner.onDone();
   }
 
@@ -120,7 +127,7 @@ public class SputnikTestCase extends AbstractTestCase {
     var global = frame.contentWindow;
     global.testStarted = function () { self.@com.google.luna.client.test.SputnikTestCase::testStarted(Lcom/google/luna/client/test/ITestEventHandler;)(runner); };
     global.testScriptComplete = function () { self.@com.google.luna.client.test.SputnikTestCase::testScriptComplete(Lcom/google/luna/client/test/ITestEventHandler;)(runner); };
-    global.testDone = function () { self.@com.google.luna.client.test.SputnikTestCase::testDone(Lcom/google/luna/client/test/ITestEventHandler;Lcom/google/gwt/dom/client/IFrameElement;)(runner, frame); };
+    global.testDone = function () { self.@com.google.luna.client.test.SputnikTestCase::testDone(Lcom/google/luna/client/test/ITestEventHandler;)(runner); };
     global.testFailed = function (message) { self.@com.google.luna.client.test.SputnikTestCase::testFailed(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, message); };
     global.testPrint = function (message) { self.@com.google.luna.client.test.SputnikTestCase::testPrint(Lcom/google/luna/client/test/ITestEventHandler;Ljava/lang/String;)(runner, message); };
   }-*/;
