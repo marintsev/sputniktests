@@ -9,7 +9,7 @@
 * @description: Apply String.prototype.substring to Object instance. Call instance.substring(...).substring(...);
 */
 
-__instance = function(){};
+var __instance = function(){};
  
 __instance.substring = String.prototype.substring;
 
