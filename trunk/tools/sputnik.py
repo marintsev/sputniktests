@@ -35,6 +35,9 @@ def BuildOptions():
                     help="Print summary after running tests")
   result.add_option("--full-summary", default=False, action="store_true",
                     help="Print summary and test output after running tests")
+  result.add_option("--enable-strict-mode", default=False, action="store_true", 
+                    help="Run the mode also in ES5 strict mode")
+
   return result
 
 
@@ -121,6 +124,8 @@ class TestResult(object):
     if self.HasUnexpectedOutcome():
       if self.case.IsNegative():
         print "%s was expected to fail but didn't" % name
+      elif (self.case.strict_mode and self.case.IsStrictModeNegative()):
+        print "%s was expected to fail in strict mode, but didn't" % name
       else:
         if long_format:
           print "=== %s failed ===" % name
@@ -138,6 +143,11 @@ class TestResult(object):
           print "==="
     elif self.case.IsNegative():
       print "%s failed as expected" % name
+    elif self.case.strict_mode:
+      if self.case.IsStrictModeNegative():
+        print "%s failed in strict mode as expected" % name
+      else: 
+        print "%s passed in strict mode" % name
     else:
       print "%s passed" % name
 
@@ -147,18 +157,22 @@ class TestResult(object):
   def HasUnexpectedOutcome(self):
     if self.case.IsNegative():
        return not self.HasFailed()
+    if self.case.IsStrictModeNegative():
+       return not self.HasFailed()
     else:
        return self.HasFailed()
 
 
 class TestCase(object):
 
-  def __init__(self, suite, name, full_path):
+  def __init__(self, suite, name, full_path, strict_mode=False):
     self.suite = suite
     self.name = name
     self.full_path = full_path
     self.contents = None
     self.is_negative = None
+    self.strict_mode = strict_mode
+    self.is_strict_mode_negative = None
 
   def GetName(self):
     return path.join(*self.name)
@@ -178,6 +192,11 @@ class TestCase(object):
       self.is_negative = ("@negative" in self.GetRawContents())
     return self.is_negative
 
+  def IsStrictModeNegative(self):
+    if self.strict_mode and self.is_strict_mode_negative is None:
+      self.is_strict_mode_negative = ("@strict_mode_negative" in self.GetRawContents())
+    return self.is_strict_mode_negative
+
   def GetSource(self):
     source = self.suite.GetInclude("framework.js", False)
     source += StripHeader(self.GetRawContents())
@@ -187,7 +206,10 @@ class TestCase(object):
     def SpecialCall(match):
       key = match.group(1)
       return _SPECIAL_CALLS.get(key, match.group(0))
-    source = _SPECIAL_CALL_PATTERN.sub(SpecialCall, source)
+    if self.strict_mode:
+      source = '"use strict"\nvar strict_mode = true\n' + _SPECIAL_CALL_PATTERN.sub(SpecialCall, source)
+    else:
+      source =  "var strict_mode = false; \n" + _SPECIAL_CALL_PATTERN.sub(SpecialCall, source)
     return source
 
   def InstantiateTemplate(self, template, params):
@@ -266,9 +288,10 @@ def MakePlural(n):
 
 class TestSuite(object):
 
-  def __init__(self, root):
+  def __init__(self, root, stric_mode):
     self.test_root = path.join(root, 'tests', 'Conformance')
     self.lib_root = path.join(root, 'lib')
+    self.strict_mode = stric_mode
     self.include_cache = { }
 
   def Validate(self):
@@ -345,7 +368,9 @@ class TestSuite(object):
           if self.ShouldRun(rel_path, tests):
             basename = path.basename(full_path)[:-3]
             name = rel_path.split(path.sep)[:-1] + [basename]
-            cases.append(TestCase(self, name, full_path))
+            cases.append(TestCase(self, name, full_path, False))
+            if self.strict_mode:
+              cases.append(TestCase(self, name, full_path, True))
     logging.info("Done listing tests")
     return cases
 
@@ -480,7 +505,7 @@ def Main():
   parser = BuildOptions()
   (options, args) = parser.parse_args()
   ValidateOptions(options)
-  test_suite = TestSuite(options.tests)
+  test_suite = TestSuite(options.tests, options.enable_strict_mode)
   test_suite.Validate()
   if options.cat:
     test_suite.Print(args)
