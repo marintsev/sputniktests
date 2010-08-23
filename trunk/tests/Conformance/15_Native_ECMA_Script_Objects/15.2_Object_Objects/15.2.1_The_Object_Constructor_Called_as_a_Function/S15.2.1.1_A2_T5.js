@@ -9,14 +9,14 @@
 * @description: Calling Object function with NaN argument value;
 */
 
-num = NaN;
+var num = NaN;
 
 // CHECK#1
 if(typeof num  !== 'number'){
   $ERROR('#1: num = NaN should have number type');
 }
 
-obj = Object(num);
+var obj = Object(num);
 
 //CHECK#2
 if (obj.constructor !== Number) {
