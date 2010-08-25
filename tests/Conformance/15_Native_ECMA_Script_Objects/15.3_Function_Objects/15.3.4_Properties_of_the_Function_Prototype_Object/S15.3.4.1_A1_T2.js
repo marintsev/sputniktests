@@ -8,9 +8,9 @@
 * @description: Create new Function.prototype.constructor object;
 */
 
-constr = Function.prototype.constructor;
+var constr = Function.prototype.constructor;
 
-f = new constr;
+var f = new constr;
 
 // CHECK#0
 if (f === undefined) {
@@ -28,7 +28,7 @@ if (!(Function.prototype.isPrototypeOf(f))) {
 }
 
 // CHECK#3
-to_string_result = '[object '+ 'Function' +']';
+var to_string_result = '[object '+ 'Function' +']';
 
 delete Function.prototype.toString;
 
