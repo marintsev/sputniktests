@@ -27,7 +27,7 @@ function gebi(id) {
 }
 
 function Persistent(key) {
-  this.keyEq_ = key + "=";
+  this.key_ = key;
   this.hasValue_ = false;
   this.value_ = undefined;
 }
@@ -35,8 +35,16 @@ function Persistent(key) {
 Persistent.prototype.fetchFromCookie = function () {
   var parts = document.cookie.split(/\s*;\s*/);
   for (var i = 0; i < parts.length; i++) {
-    if (parts[i].substring(0, this.keyEq_.length) == this.keyEq_)
-      return parts[i].substring(this.keyEq_.length);
+    var part = parts[i];
+    if (part.substring(0, this.key_.length) == this.key_) {
+      var start;
+      if (part.charAt(this.key_.length) == '=') {
+        start = this.key_.length + 1;
+      } else {
+        start = this.key_.length;
+      }
+      return part.substring(start);
+    }
   }
 };
 
@@ -55,12 +63,12 @@ Persistent.prototype.set = function (value, expiryHoursOpt) {
   var date = new Date();
   date.setTime(date.getTime() + (expiryHours * 60 * 60 * 1000));
   var expiry = "expires=" + date.toGMTString();
-  var value = this.keyEq_ + value + ";" + expiry + "; path=/";
+  var value = this.key_ + "=" + value + ";" + expiry + "; path=/";
   document.cookie = value;
 };
 
 Persistent.prototype.clear = function () {
-  document.cookie = this.keyEq_ + "; path=/";
+  document.cookie = this.key_ + "=; path=/";
   this.hasValue_ = true;
   this.value_ = undefined;
 };
@@ -1735,12 +1743,12 @@ function loaded() {
     var control = new TestControls(start, reset, isContinuation);
     testControls = control;
     control.initialize();
-    goog.events.listen(start, goog.ui.Component.EventType.ACTION, function (e) {
-      control.startClicked(e);
-    });
-    goog.events.listen(reset, goog.ui.Component.EventType.ACTION, function (e) {
-      control.resetClicked();
-    });
+    start.getElement().onclick =  function (e) {
+      control.startClicked(e || window.event);
+    };
+    reset.getElement().onclick = function (e) {
+      control.resetClicked(e || window.event);
+    };
   }
   var plotBox = gebi('plotBox');
   if (plotBox) {
