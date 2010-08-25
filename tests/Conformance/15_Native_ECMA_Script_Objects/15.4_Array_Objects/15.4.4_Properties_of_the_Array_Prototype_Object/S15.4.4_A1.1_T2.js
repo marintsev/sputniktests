@@ -7,6 +7,7 @@
  * @assertion: The value of the internal [[Prototype]] property of 
  * the Array prototype object is the Object prototype object;
  * @description: delete Array.prototype.toString;
+ * @strict_mode_negative
 */
 
 //CHECK#1
