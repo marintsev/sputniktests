@@ -4,7 +4,7 @@ Here you will find information that you'll need to be able to contribute to Sput
 
 == Submitting code ==
 
-All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the v8 project.  In order to submit a patch, you need to get the [http://dev.chromium.org/developers/how-tos/install-gclient depot_tools] and follow these instructions on [http://dev.chromium.org/developers/contributing-code requesting a review] (using your sputnik workspace instead of a chromium workspace).
+All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the v8 project.  In order to submit a patch, you need to get the [http://dev.chromium.org/developers/how-tos/depottools depot_tools] and follow these instructions on [http://dev.chromium.org/developers/contributing-code requesting a review] (using your sputnik workspace instead of a chromium workspace).
 
 == The small print ==
 
