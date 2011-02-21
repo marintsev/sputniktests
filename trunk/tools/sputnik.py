@@ -452,7 +452,7 @@ def GetDaylightSavingsTimes():
   after = now + 4 * one_month
   before = now - 4 * one_month
   if IsDst(now) == IsDst(before) and IsDst(now) == IsDst(after):
-    logger.warning("Was unable to determine DST info.")
+    logging.warning("Was unable to determine DST info.")
     return None
   # Determine when the change occurs between now and the date we just found
   # in a different DST.
