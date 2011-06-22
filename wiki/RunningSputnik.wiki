@@ -14,10 +14,10 @@ The `<command>` parameter specifies how to run the !JavaScript implementation.  
 python tools/sputnik.py --command v8/shell.exe
 }}}
 
-Each test will be run by adding the test file name after the specified command.  For more complex commands you can use the `{{file}}` placeholder which will be replaced with the file to run:
+Each test will be run by adding the test file path name after the specified command.  For more complex commands you can use the `{{path}}` placeholder which will be replaced with the file path to run:
 
 {{{
-python tools/sputnik.py --command "v8/shell.exe {{file}}"
+python tools/sputnik.py --command "v8/shell.exe {{path}}"
 }}}
 
 The test harness prints the test outcomes as it runs the tests.  To run a particular test or set of tests you can specify the names on the command-line, for instance
