@@ -207,7 +207,7 @@ class TestCase(object):
       key = match.group(1)
       return _SPECIAL_CALLS.get(key, match.group(0))
     if self.strict_mode:
-      source = '"use strict"\nvar strict_mode = true\n' + _SPECIAL_CALL_PATTERN.sub(SpecialCall, source)
+      source = '"use strict";\nvar strict_mode = true;\n' + _SPECIAL_CALL_PATTERN.sub(SpecialCall, source)
     else:
       source =  "var strict_mode = false; \n" + _SPECIAL_CALL_PATTERN.sub(SpecialCall, source)
     return source
